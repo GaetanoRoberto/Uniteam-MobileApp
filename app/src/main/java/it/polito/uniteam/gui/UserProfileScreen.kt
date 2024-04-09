@@ -2,7 +2,8 @@ package it.polito.uniteam.gui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,11 +12,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Face
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,7 +37,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
@@ -91,7 +96,7 @@ class UserProfileScreen :ViewModel(){
             nameError = ""
     }
 
-    var nicknameValue by mutableStateOf(" ")
+    var nicknameValue by mutableStateOf("Tanucc")
         private set
     var nicknameError by mutableStateOf("")
         private set
@@ -124,7 +129,7 @@ class UserProfileScreen :ViewModel(){
             emailError = ""
     }
 
-    var locationValue by mutableStateOf(" ")
+    var locationValue by mutableStateOf("Corso Duca Degli Abruzzi")
         private set
     var locationError by mutableStateOf("")
         private set
@@ -138,7 +143,7 @@ class UserProfileScreen :ViewModel(){
             locationError = ""
     }
 
-    var descriptionValue by mutableStateOf(" ")
+    var descriptionValue by mutableStateOf("Ciao Sono Gaetano")
         private set
     var descriptionError by mutableStateOf("")
         private set
@@ -166,16 +171,13 @@ class UserProfileScreen :ViewModel(){
 
 @Preview
 @Composable
-fun EditPane(vm: UserProfileScreen = viewModel()) {
+fun EditProfile(vm: UserProfileScreen = viewModel()) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         //
-        Image(
-            painter = painterResource(id = vm.imageValue),
-            contentDescription = null
-        )
+        DefaultImage(vm)
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -229,6 +231,9 @@ fun EditPane(vm: UserProfileScreen = viewModel()) {
 
         TextField(
             value = vm.descriptionValue,
+            modifier = Modifier
+                .height(100.dp)
+                .padding(10.dp),
             onValueChange = vm::setDescription,
             label = { Text("Description") },
             isError = vm.descriptionError.isNotBlank()
@@ -252,34 +257,51 @@ fun EditPane(vm: UserProfileScreen = viewModel()) {
 fun DefaultImage(vm: UserProfileScreen = viewModel()) {
     val name = vm.nameValue
 
-    val initialsValue = name
-        .split(' ')
-        .mapNotNull { it.firstOrNull()?.toString() }
-        .reduce { acc, s -> acc + s }
-        .take(2)
+    if (name.isNotBlank()) {
+        val initialsValue =
+            name.split(' ')
+                .mapNotNull { it.firstOrNull()?.toString() }
+                .reduce { acc, s -> acc + s }
+                .take(2)
         //Double Name
+        Box() {
+            // First element
 
-    Card(modifier = Modifier.background(Color.White)){
+            // Second element stacked on top of the first one
+            Box(){
+                Card(modifier = Modifier.background(Color.White)) {
+                    Row(
+                        modifier = Modifier
+                            .background(Color.White)
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
 
-        Row(
-            modifier = Modifier.background(Color.White).padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ){
-
-            Text(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .drawBehind {
-                        drawCircle(
-                            color = Color.Blue,
-                            radius = this.size.maxDimension
+                        Text(
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .drawBehind {
+                                    drawCircle(
+                                        color = Color.Blue,
+                                        radius = this.size.maxDimension
+                                    )
+                                },
+                            text = initialsValue,
+                            style = TextStyle(color = Color.White, fontSize = 20.sp)
                         )
-                    },
-                text = initialsValue,
-                style = TextStyle(color = Color.White, fontSize = 20.sp)
-            )
+
+                    }
+                }
+            }
+            Box() {
+                Button(modifier = Modifier.size(10.dp), onClick = { vm.setEmail("httrfht") }) {
+                    Icon(imageVector = Icons.Default.Add, contentDescription = "camera")
+                }
+            }
 
         }
+    } else {
+        Image(painter = painterResource(id = vm.imageValue), contentDescription = "Image")
     }
 }
 
@@ -294,9 +316,30 @@ fun PresentationPane(vm: UserProfileScreen = viewModel()) {
             modifier = Modifier.fillMaxWidth(0.8f),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            DefaultImage(vm)
+        }
+        //
+        Row(
+            modifier = Modifier.fillMaxWidth(0.8f),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Icon(imageVector = Icons.Default.Person, contentDescription = "name", modifier = Modifier.size(48.dp))
             Text(
                 vm.nameValue,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(16.dp, 0.dp),
+                style = MaterialTheme.typography.headlineMedium
+            )
+        }
+        //
+        Row(
+            modifier = Modifier.fillMaxWidth(0.8f),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(imageVector = Icons.Default.Face, contentDescription = "nickname", modifier = Modifier.size(48.dp))
+            Text(
+                vm.nicknameValue,
                 modifier = Modifier
                     .weight(1f)
                     .padding(16.dp, 0.dp),
@@ -317,8 +360,48 @@ fun PresentationPane(vm: UserProfileScreen = viewModel()) {
                 style = MaterialTheme.typography.headlineMedium
             )
         }
-
-
+        //
+        Row(
+            modifier = Modifier.fillMaxWidth(0.8f),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(imageVector = Icons.Default.LocationOn, contentDescription = "location", modifier = Modifier.size(48.dp))
+            Text(
+                vm.locationValue,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(16.dp, 0.dp),
+                style = MaterialTheme.typography.headlineMedium
+            )
+        }
+        //
+        Row(
+            modifier = Modifier.fillMaxWidth(0.8f),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(imageVector = Icons.Default.Menu, contentDescription = "description", modifier = Modifier.size(48.dp))
+            Text(
+                vm.descriptionValue,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(16.dp, 0.dp),
+                style = MaterialTheme.typography.headlineMedium
+            )
+        }
+        //
+        Row(
+            modifier = Modifier.fillMaxWidth(0.8f),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(imageVector = Icons.Default.Star, contentDescription = "KPI", modifier = Modifier.size(48.dp))
+            Text(
+                vm.KPIValue,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(16.dp, 0.dp),
+                style = MaterialTheme.typography.headlineMedium
+            )
+        }
     }
 }
 
@@ -347,7 +430,7 @@ fun FormScreen(vm: UserProfileScreen = viewModel()) {
         Spacer(modifier = Modifier.height(16.dp))
         //
         if (vm.isEditing)
-            EditPane(vm)
+            EditProfile(vm)
         else
             PresentationPane(vm)
 
