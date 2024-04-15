@@ -3,6 +3,8 @@ package it.polito.uniteam.gui
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -177,14 +180,23 @@ fun EditProfile(vm: UserProfileScreen = viewModel()) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         //
-        DefaultImage(vm)
+        Box() {
+
+
+
+            DefaultImage(vm)
+            Box(){
+                Button(modifier = Modifier.size(16.dp).offset(x=55.dp, y= 55.dp),   onClick = { vm.setEmail("photo button pressed") }) {
+                    Icon(imageVector = Icons.Default.Add, contentDescription = "camera")
+                }}
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         TextField(
             value = vm.nameValue,
             onValueChange = vm::setName,
-            label = { Text("Name") },
+            label = { Text("Full Name") },
             isError = vm.nameError.isNotBlank()
         )
         //
@@ -263,17 +275,12 @@ fun DefaultImage(vm: UserProfileScreen = viewModel()) {
                 .mapNotNull { it.firstOrNull()?.toString() }
                 .reduce { acc, s -> acc + s }
                 .take(2)
-        //Double Name
-        Box() {
-            // First element
 
-            // Second element stacked on top of the first one
-            Box(){
                 Card(modifier = Modifier.background(Color.White)) {
                     Row(
                         modifier = Modifier
                             .background(Color.White)
-                            .padding(16.dp),
+                            .padding(10.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
 
@@ -292,14 +299,8 @@ fun DefaultImage(vm: UserProfileScreen = viewModel()) {
 
                     }
                 }
-            }
-            Box() {
-                Button(modifier = Modifier.size(10.dp), onClick = { vm.setEmail("httrfht") }) {
-                    Icon(imageVector = Icons.Default.Add, contentDescription = "camera")
-                }
-            }
 
-        }
+
     } else {
         Image(painter = painterResource(id = vm.imageValue), contentDescription = "Image")
     }
