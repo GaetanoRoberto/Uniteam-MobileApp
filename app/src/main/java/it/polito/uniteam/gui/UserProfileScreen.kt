@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -28,6 +29,7 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -166,6 +168,12 @@ class UserProfileScreen :ViewModel(){
         KPIValue = t
     }
 
+    var cameraPressed by mutableStateOf(false)
+        private set
+    fun toggleCameraButtonPressed(){
+        cameraPressed = !cameraPressed
+    }
+
 
 
 
@@ -185,10 +193,41 @@ fun EditProfile(vm: UserProfileScreen = viewModel()) {
 
 
             DefaultImage(vm)
-            Box(){
-                Button(modifier = Modifier.size(16.dp).offset(x=55.dp, y= 55.dp),   onClick = { vm.setEmail("photo button pressed") }) {
-                    Icon(imageVector = Icons.Default.Add, contentDescription = "camera")
-                }}
+            if(!vm.cameraPressed){
+                Box(){
+                    Button(modifier = Modifier
+                        .size(16.dp)
+                        .offset(x = 55.dp, y = 55.dp),   onClick = { vm.toggleCameraButtonPressed() }) {
+                        Icon(imageVector = Icons.Default.Add, contentDescription = "camera")
+                    }}
+            }else{
+                Box(){
+                    Column {
+                        Row {
+                            FloatingActionButton(modifier = Modifier
+                                .offset(x = 55.dp, y = 55.dp).width(100.dp),
+                                onClick = {  },
+                            ) {
+
+                                Text(text = "take a photo")
+                            }}
+                        Row {
+                            FloatingActionButton(modifier = Modifier
+                                .offset(x = 55.dp, y = 55.dp).width(100.dp),
+                                onClick = {  },
+                            ) {
+
+                                Text(text = "choose from gallery")
+                            }
+                        }
+
+
+
+                        }}
+
+
+            }
+
         }
 
         Spacer(modifier = Modifier.height(16.dp))
