@@ -37,6 +37,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
@@ -201,7 +202,7 @@ class UserProfileScreen : ViewModel() {
 
 @Composable
 fun EditRowItem(value: String, keyboardType: KeyboardType = KeyboardType.Text ,onChange: (String) -> Unit, label: String, errorText: String) {
-    TextField(
+    OutlinedTextField(
         value = value,
         modifier = Modifier.fillMaxWidth(0.8f),
         onValueChange = onChange,
@@ -225,45 +226,7 @@ fun EditProfile(vm: UserProfileScreen = viewModel()) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Box() {
-                    DefaultImage(vm)
-                    if (!vm.cameraPressed) {
-                        Box() {
-                            Button(modifier = Modifier
-                                .size(16.dp)
-                                .offset(x = 55.dp, y = 55.dp),
-                                onClick = { vm.toggleCameraButtonPressed() }) {
-                                Icon(imageVector = Icons.Default.Add, contentDescription = "camera")
-                            }
-                        }
-                    } else {
-                        Box() {
-                            Column {
-                                Row {
-                                    FloatingActionButton(
-                                        modifier = Modifier
-                                            .offset(x = 55.dp, y = 55.dp)
-                                            .width(100.dp),
-                                        onClick = { vm.toggleCameraButtonPressed() },
-                                    ) {
-
-                                        Text(text = "take a photo")
-                                    }
-                                }
-                                Row {
-                                    FloatingActionButton(
-                                        modifier = Modifier
-                                            .offset(x = 55.dp, y = 55.dp)
-                                            .width(100.dp),
-                                        onClick = { vm.toggleCameraButtonPressed() },
-                                    ) {
-                                        Text(text = "choose from gallery")
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                DefaultImage(vm)
                 Spacer(modifier = Modifier.height(16.dp))
                 EditRowItem(value = vm.nameValue, onChange = vm::setName, label = "Full Name", errorText = vm.nameError)
                 Spacer(modifier = Modifier.height(16.dp))
@@ -323,13 +286,16 @@ fun DefaultImage(vm: UserProfileScreen = viewModel()) {
     val iconPainter: Painter = painterResource(id = R.drawable.camera)
 
     if (name.isNotBlank()) {
-        val initialsValue =
-            name.split(' ')
+        val initials = name.trim().split(' ');
+        var initialsValue = initials
+            .mapNotNull { it.firstOrNull()?.toString() }
+            .first();
+
+        if (initials.size >=2) {
+            initialsValue += initials
                 .mapNotNull { it.firstOrNull()?.toString() }
-                .first() +
-                    name.split(' ')
-                        .mapNotNull { it.firstOrNull()?.toString() }
-                        .last()
+                .last()
+        }
 
         Card(modifier = Modifier.background(Color.White)) {
             Row(
@@ -340,7 +306,7 @@ fun DefaultImage(vm: UserProfileScreen = viewModel()) {
             ) {
 
                 // Box per contenere l'icona della fotocamera
-                Box(modifier = Modifier.size(200.dp)) {
+                Box(modifier = Modifier.size(200.dp), contentAlignment = Alignment.Center) {
                     Text(
                         modifier = Modifier
                             .padding(40.dp)
@@ -354,31 +320,35 @@ fun DefaultImage(vm: UserProfileScreen = viewModel()) {
                         text = initialsValue,
                         style = TextStyle(color = Color.White, fontSize = 60.sp, textAlign = TextAlign.Center)
                     )
-                    Button(
-                        modifier = Modifier
-                            .size(100.dp)
-                            .scale(0.5f)
-                            .align(Alignment.Center),
-                        onClick = { /* Azione per aprire la galleria */ }
-                    ) {
-                        // Mostra l'icona con l'immagine PNG
-                        Icon(
-                            painter = iconPainter,
-                            contentDescription = "camera",
-                            modifier = Modifier.fillMaxSize()
-                        )
+                    if (vm.isEditing) {
+                        Button(
+                            modifier = Modifier
+                                .size(100.dp)
+                                .scale(0.5f)
+                                .align(Alignment.BottomEnd),
+                            onClick = { /* Azione per aprire la galleria */ }
+                        ) {
+                            // Mostra l'icona con l'immagine PNG
+                            Icon(
+                                painter = iconPainter,
+                                contentDescription = "camera",
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
                     }
                 }
             }
         }
     } else {
-        Image(
-            painter = painterResource(id = vm.imageValue),
-            contentDescription = "Image",
-            modifier = Modifier
-                .padding(40.dp, 0.dp, 40.dp, 0.dp)
-                .size(160.dp)
-        )
+        Box(modifier = Modifier.size(200.dp), contentAlignment = Alignment.Center) {
+            Image(
+                painter = painterResource(id = vm.imageValue),
+                contentDescription = "Image",
+                modifier = Modifier
+                    //.padding(40.dp, 0.dp, 40.dp, 0.dp)
+                    .size(160.dp)
+            )
+        }
     }
 }
 
