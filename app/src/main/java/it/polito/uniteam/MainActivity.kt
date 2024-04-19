@@ -9,6 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,6 +23,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import it.polito.uniteam.gui.FormScreen
 import it.polito.uniteam.gui.UserProfileScreen
+import it.polito.uniteam.ui.theme.UniTeamTheme
 import java.io.File
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -56,8 +58,23 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContent {
+            val theme = isSystemInDarkTheme()
+            UniTeamTheme(darkTheme = theme){
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    FormScreen(
+                        vm = viewModel(),
+                        outputDirectory = getOutputDirectory(),
+                        cameraExecutor = cameraExecutor,
+                        pickImageLauncher = pickImageLauncher
+                    )
+                }
+            }
+
+
             val interactionSource = remember { MutableInteractionSource() }
             val focusManager = LocalFocusManager.current
             Surface(
