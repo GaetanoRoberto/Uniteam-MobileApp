@@ -215,10 +215,10 @@ class UserProfileScreen : ViewModel() {
     fun showCamera(boolean: Boolean) {
         showCamera = boolean
     }
-    var photoUri = Uri.EMPTY
+    var photoUri by mutableStateOf(Uri.EMPTY)
         private set
 
-    fun setPhotoUri(uri: Uri) {
+    fun setUri(uri: Uri) {
         photoUri = uri
     }
 
@@ -340,18 +340,8 @@ fun EditProfile(vm: UserProfileScreen = viewModel()) {
 @Composable
 fun DefaultImage(vm: UserProfileScreen = viewModel()) {
     val name = vm.nameValue
-
-    if (name.isNotBlank()) {
-        val initials = name.trim().split(' ');
-        var initialsValue = initials
-            .mapNotNull { it.firstOrNull()?.toString() }
-            .first();
-
-        if (initials.size >=2) {
-            initialsValue += initials
-                .mapNotNull { it.firstOrNull()?.toString() }
-                .last()
-        }
+    println(name)
+    if (name.isNotBlank() || vm.photoUri != Uri.EMPTY) {
 
         Card(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
             Row(
@@ -373,6 +363,16 @@ fun DefaultImage(vm: UserProfileScreen = viewModel()) {
                             contentScale = ContentScale.Crop
                         )
                     } else {
+                        val initials = name.trim().split(' ');
+                        var initialsValue = initials
+                            .mapNotNull { it.firstOrNull()?.toString() }
+                            .first();
+
+                        if (initials.size >=2) {
+                            initialsValue += initials
+                                .mapNotNull { it.firstOrNull()?.toString() }
+                                .last()
+                        }
                         Text(
                             modifier = Modifier
                                 .padding(40.dp)
@@ -451,7 +451,7 @@ fun DefaultImage(vm: UserProfileScreen = viewModel()) {
                                     if (vm.showConfirmationDialog) {
                                         AlertDialogExample(
                                             onDismissRequest = { vm.toggleDialog() },
-                                            onConfirmation = { vm.toggleDialog(); vm.setPhotoUri(Uri.EMPTY); vm.toggleCameraButtonPressed() })
+                                            onConfirmation = { vm.toggleDialog(); vm.setUri(Uri.EMPTY); vm.toggleCameraButtonPressed() })
                                     }
                                 }
                             }
@@ -469,19 +469,73 @@ fun DefaultImage(vm: UserProfileScreen = viewModel()) {
                     //.padding(40.dp, 0.dp, 40.dp, 0.dp)
                     .size(160.dp)
             )
-            Button(
-                modifier = Modifier
-                    .size(100.dp)
-                    .scale(0.5f)
-                    .align(Alignment.BottomEnd),
-                onClick = { vm.toggleCameraButtonPressed() }
-            ) {
-                // Mostra l'icona con l'immagine PNG
-                Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit Profile",
-                    modifier = Modifier.fillMaxSize()
-                )
+            if(!vm.cameraPressed) {
+                Button(
+                    modifier = Modifier
+                        .size(100.dp)
+                        .scale(0.5f)
+                        .align(Alignment.BottomEnd),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary) // Imposta il colore di sfondo del bottone a rosso
+
+                    ,
+                    onClick = { vm.toggleCameraButtonPressed() }
+                ) {
+                    // Mostra l'icona con l'immagine PNG
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        tint = MaterialTheme.colorScheme.onSecondary,
+                        contentDescription = "Edit Profile",
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+            } else {
+                Box() {
+                    Column {
+                        Row {
+                            FloatingActionButton(
+
+                                modifier = Modifier
+                                    .offset(x = 75.dp, y = 14.dp)
+                                    .size(40.dp),
+                                onClick = { vm.setIsFrontCamera(true); vm.showCamera(true); vm.toggleCameraButtonPressed() },
+                                containerColor = MaterialTheme.colorScheme.tertiary
+                            ) {
+                                Icon(modifier = Modifier.scale(0.8f), painter = painterResource(id = R.drawable.camera), contentDescription = "take photo", tint = MaterialTheme.colorScheme.onSecondary)
+                            }
+                        }
+                        Spacer(modifier = Modifier.padding(3.dp))
+                        Row {
+                            FloatingActionButton(
+                                modifier = Modifier
+                                    .offset(x = 75.dp, y = 14.dp)
+                                    .size(40.dp),
+                                onClick = { vm.openGallery(true); vm.toggleCameraButtonPressed() },
+                                containerColor = MaterialTheme.colorScheme.tertiary
+                            ) {
+                                Icon(modifier = Modifier.scale(0.8f), painter = painterResource(id = R.drawable.gallery), contentDescription = "choose from gallery",tint = MaterialTheme.colorScheme.onSecondary)
+                            }
+                        }
+                        if (vm.photoUri != Uri.EMPTY) {
+                            Spacer(modifier = Modifier.padding(3.dp))
+                            Row {
+                                FloatingActionButton(
+                                    modifier = Modifier
+                                        .offset(x = 75.dp, y = 14.dp)
+                                        .size(40.dp),
+                                    onClick = { vm.toggleDialog() },
+                                    containerColor = MaterialTheme.colorScheme.tertiary
+                                ) {
+                                    Icon(modifier = Modifier.scale(1.5f), imageVector = Icons.Default.Delete, contentDescription = "remove photo",tint = MaterialTheme.colorScheme.onSecondary)
+                                }
+                            }
+                        }
+                        if (vm.showConfirmationDialog) {
+                            AlertDialogExample(
+                                onDismissRequest = { vm.toggleDialog() },
+                                onConfirmation = { vm.toggleDialog(); vm.setUri(Uri.EMPTY); vm.toggleCameraButtonPressed() })
+                        }
+                    }
+                }
             }
         }
     }
@@ -698,7 +752,7 @@ fun FormScreen(
                             Button(
                                 onClick = {
                                     vm.showPhoto(false)
-                                    vm.setPhotoUri(vm.temporaryUri)
+                                    vm.setUri(vm.temporaryUri)
                                     vm.setTemporaryUri(Uri.EMPTY)
                                     Toast.makeText(context, "Profile Image Updated", Toast.LENGTH_SHORT).show()
                                 },
@@ -745,7 +799,7 @@ fun FormScreen(
                         Button(
                             onClick = {
                                 vm.showPhoto(false)
-                                vm.setPhotoUri(vm.temporaryUri)
+                                vm.setUri(vm.temporaryUri)
                                 vm.setTemporaryUri(Uri.EMPTY)
                                 Toast.makeText(context, "Profile Image Updated", Toast.LENGTH_SHORT).show()
                             },

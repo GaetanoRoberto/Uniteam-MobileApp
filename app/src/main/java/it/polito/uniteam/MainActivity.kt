@@ -42,7 +42,7 @@ class MainActivity : ComponentActivity() {
         val uri = activity?.data?.data
         if (uri != null) {
             // Image picked successfully, do something with the URI
-            vm.setPhotoUri(uri)
+            vm.setUri(uri)
         }
         vm.openGallery(false)
     }
