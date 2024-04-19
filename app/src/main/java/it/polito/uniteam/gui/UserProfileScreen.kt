@@ -274,19 +274,14 @@ fun EditRowItem(value: String, keyboardType: KeyboardType = KeyboardType.Text ,o
         label = {
             Text(
             text = label,
-            style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onPrimary)//testo dentro
+            style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)//testo
         ) },
         isError = errorText.isNotBlank(),
         keyboardOptions = KeyboardOptions.Default.copy(
             keyboardType = keyboardType,
             imeAction = ImeAction.Done
         ),
-        /*colors = TextFieldDefaults.outlinedTextFieldColors(
-            focusedBorderColor = MaterialTheme.colorScheme.onTertiary, // Cambia il colore del bordo quando il campo è in focus
-            unfocusedBorderColor = MaterialTheme.colorScheme.onTertiary ,// Cambia il colore del bordo quando il campo non è in focus
-            cursorColor = MaterialTheme.colorScheme.secondary, // Cambia il colore del cursore
 
-        )*/
     )
     if (errorText.isNotBlank())
         Text(errorText, color = MaterialTheme.colorScheme.error)
@@ -407,6 +402,7 @@ fun DefaultImage(vm: UserProfileScreen = viewModel()) {
                                 // Mostra l'icona con l'immagine PNG
                                 Icon(
                                     imageVector = Icons.Default.Edit,
+                                    tint = MaterialTheme.colorScheme.onSecondary,
                                     contentDescription = "Edit Profile",
                                     modifier = Modifier.fillMaxSize()
                                 )
@@ -421,8 +417,9 @@ fun DefaultImage(vm: UserProfileScreen = viewModel()) {
                                                 .offset(x = 75.dp, y = 14.dp)
                                                 .size(40.dp),
                                             onClick = { vm.setIsFrontCamera(true); vm.showCamera(true); vm.toggleCameraButtonPressed() },
+                                            containerColor = MaterialTheme.colorScheme.tertiary
                                         ) {
-                                            Icon(modifier = Modifier.scale(0.9f), painter = painterResource(id = R.drawable.camera), contentDescription = "take photo")
+                                            Icon(modifier = Modifier.scale(0.8f), painter = painterResource(id = R.drawable.camera), contentDescription = "take photo", tint = MaterialTheme.colorScheme.onSecondary)
                                         }
                                     }
                                     Spacer(modifier = Modifier.padding(3.dp))
@@ -432,8 +429,9 @@ fun DefaultImage(vm: UserProfileScreen = viewModel()) {
                                                 .offset(x = 75.dp, y = 14.dp)
                                                 .size(40.dp),
                                             onClick = { vm.openGallery(true); vm.toggleCameraButtonPressed() },
+                                            containerColor = MaterialTheme.colorScheme.tertiary
                                         ) {
-                                            Icon(modifier = Modifier.scale(0.9f), painter = painterResource(id = R.drawable.gallery), contentDescription = "choose from gallery")
+                                            Icon(modifier = Modifier.scale(0.8f), painter = painterResource(id = R.drawable.gallery), contentDescription = "choose from gallery",tint = MaterialTheme.colorScheme.onSecondary)
                                         }
                                     }
                                     if (vm.photoUri != Uri.EMPTY) {
@@ -443,9 +441,10 @@ fun DefaultImage(vm: UserProfileScreen = viewModel()) {
                                                 modifier = Modifier
                                                     .offset(x = 75.dp, y = 14.dp)
                                                     .size(40.dp),
-                                                onClick = { vm.toggleDialog() }
+                                                onClick = { vm.toggleDialog() },
+                                                containerColor = MaterialTheme.colorScheme.tertiary
                                             ) {
-                                                Icon(modifier = Modifier.scale(1.5f), imageVector = Icons.Default.Delete, contentDescription = "remove photo")
+                                                Icon(modifier = Modifier.scale(1.5f), imageVector = Icons.Default.Delete, contentDescription = "remove photo",tint = MaterialTheme.colorScheme.onSecondary)
                                             }
                                         }
                                     }
@@ -499,7 +498,7 @@ fun AlertDialogExample(
             Icon(Icons.Default.Info, contentDescription = "Example Icon")
         },
         text = {
-            Text(text = "Are you Sure to Remove the Profile Image ?")
+            Text(text = "Are you Sure to Remove the Profile Image ?",color = MaterialTheme.colorScheme.onPrimary)
         },
         onDismissRequest = {
             onDismissRequest()
@@ -509,8 +508,10 @@ fun AlertDialogExample(
                 onClick = {
                     onConfirmation()
                 }
+                //colors = ButtonDefaults.textButtonColors(contentColor = Color.Red)
+
             ) {
-                Text("Confirm")
+                Text("Confirm",color = MaterialTheme.colorScheme.onPrimary)
             }
         },
         dismissButton = {
@@ -518,8 +519,9 @@ fun AlertDialogExample(
                 onClick = {
                     onDismissRequest()
                 }
+                //colors = ButtonDefaults.textButtonColors(contentColor =  Color.Red)
             ) {
-                Text("Undo")
+                Text("Undo",color = MaterialTheme.colorScheme.onPrimary)
             }
         }
     )
@@ -541,11 +543,11 @@ fun RowItem(modifier: Modifier = Modifier, icon: ImageVector, description: Strin
             modifier = Modifier
                 .weight(1f)
                 .padding(16.dp, 0.dp),
-            style = MaterialTheme.typography.headlineSmall
+            style = MaterialTheme.typography.headlineSmall,
         )
     }
     Row(
-        modifier = modifier
+        modifier = modifier,
     ) {
     }
     Spacer(modifier = Modifier.padding(5.dp))
@@ -572,7 +574,7 @@ fun PresentationPane(vm: UserProfileScreen = viewModel()) {
                 val line_modifier = Modifier
                     .fillMaxWidth(0.8f)
                     .height(1.dp)
-                    .background(color = Color.Black)
+                    .background(color = MaterialTheme.colorScheme.onSurface)
                 rowItems.forEachIndexed { index, (icon, description, value) ->
                     if (index == rowItems.size-1) {
                         RowItem(icon = icon, description = description, value = value)
@@ -595,12 +597,25 @@ fun PresentationPane(vm: UserProfileScreen = viewModel()) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                RowItem(icon = Icons.Default.Person, description = "name", value = vm.nameValue)
-                RowItem(icon = Icons.Default.Face, description = "nickname", value = vm.nicknameValue)
-                RowItem(icon = Icons.Default.Email, description = "email", value = vm.emailValue)
-                RowItem(icon = Icons.Default.LocationOn, description = "location", value = vm.locationValue)
-                RowItem(icon = Icons.Default.Menu, description = "description", value = vm.descriptionValue)
-                RowItem(icon = Icons.Default.Star, description = "KPI", value = vm.KPIValue)
+                val rowItems = listOf(
+                    Triple(Icons.Default.Person, "name", vm.nameValue),
+                    Triple(Icons.Default.Face, "nickname", vm.nicknameValue),
+                    Triple(Icons.Default.Email, "email", vm.emailValue),
+                    Triple(Icons.Default.LocationOn, "location", vm.locationValue),
+                    Triple(Icons.Default.Info, "description", vm.descriptionValue),
+                    Triple(Icons.Default.Star, "KPI", vm.KPIValue)
+                )
+                val line_modifier = Modifier
+                    .fillMaxWidth(0.8f)
+                    .height(1.dp)
+                    .background(color = MaterialTheme.colorScheme.onSurface)
+                rowItems.forEachIndexed { index, (icon, description, value) ->
+                    if (index == rowItems.size-1) {
+                        RowItem(icon = icon, description = description, value = value)
+                    } else {
+                        RowItem(modifier = line_modifier, icon = icon, description = description, value = value)
+                    }
+                }
             }
         }
     }
@@ -672,9 +687,10 @@ fun FormScreen(
                                     vm.showPhoto(false)
                                     vm.setTemporaryUri(Uri.EMPTY)
                                 },
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onTertiary) ,// Imposta il colore di sfondo del bottone a rosso,
                                 modifier = Modifier.weight(1f)
                             ) {
-                                Text(text = "Undo")
+                                Text(text = "Undo",color = MaterialTheme.colorScheme.onSecondary)
                             }
 
                             Spacer(modifier = Modifier.padding(16.dp))
@@ -686,9 +702,10 @@ fun FormScreen(
                                     vm.setTemporaryUri(Uri.EMPTY)
                                     Toast.makeText(context, "Profile Image Updated", Toast.LENGTH_SHORT).show()
                                 },
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onTertiary) ,// Imposta il colore di sfondo del bottone a rosso,
                                 modifier = Modifier.weight(1f)
                             ) {
-                                Text(text = "Confirm")
+                                Text(text = "Confirm",color = MaterialTheme.colorScheme.onSecondary)
                             }
                         }
                     }
@@ -716,9 +733,11 @@ fun FormScreen(
                                 vm.showPhoto(false)
                                 vm.setTemporaryUri(Uri.EMPTY)
                             },
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onTertiary) ,// Imposta il colore di sfondo del bottone a rosso,
+
                             modifier = Modifier.width(200.dp)
                         ) {
-                            Text(text = "Undo")
+                            Text(text = "Undo",color = MaterialTheme.colorScheme.onSecondary)
                         }
 
                         Spacer(modifier = Modifier.width(16.dp))
@@ -730,9 +749,10 @@ fun FormScreen(
                                 vm.setTemporaryUri(Uri.EMPTY)
                                 Toast.makeText(context, "Profile Image Updated", Toast.LENGTH_SHORT).show()
                             },
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onTertiary) ,// Imposta il colore di sfondo del bottone a rosso,
                             modifier = Modifier.width(200.dp)
                         ) {
-                            Text(text = "Confirm")
+                            Text(text = "Confirm",color = MaterialTheme.colorScheme.onSecondary)
                         }
                     }
 

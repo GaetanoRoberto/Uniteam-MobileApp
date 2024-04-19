@@ -21,7 +21,7 @@ private val DarkColorScheme = darkColorScheme(
     secondary = Blue,
     tertiary = Color(0xff018FF3),//Azzurro fotocamera
     background =  Blue,
-    surface = Color.Yellow,
+    surface = Orange,
     onPrimary = Color.White,
     onSecondary = Color.White,
     onTertiary = Orange, //
@@ -37,10 +37,10 @@ private val LightColorScheme = lightColorScheme(
 
     // Other default colors to override
     background = Color.White,
-    surface = Color.Yellow,
+    surface = Color.White,
     onPrimary = Blue,
     onSecondary = Color.White,
-    onTertiary = Color.Red,
+    onTertiary = Orange,
     onBackground = Color(0xFF1C1B1F),
     onSurface = Color(0xFF1C1B1F),
     error = Color.Red
@@ -52,7 +52,7 @@ private val LightColorScheme = lightColorScheme(
 fun UniTeamTheme(
     darkTheme: Boolean = isSystemInDarkTheme() ,
     // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
