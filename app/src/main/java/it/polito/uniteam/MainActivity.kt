@@ -9,9 +9,9 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -58,25 +58,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
-            val theme = isSystemInDarkTheme()
-            UniTeamTheme(darkTheme = theme){
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    FormScreen(
-                        vm = viewModel(),
-                        outputDirectory = getOutputDirectory(),
-                        cameraExecutor = cameraExecutor,
-                        pickImageLauncher = pickImageLauncher
-                    )
-                }
-            }
-
-
             val interactionSource = remember { MutableInteractionSource() }
             val focusManager = LocalFocusManager.current
+            val theme = isSystemInDarkTheme()
+            UniTeamTheme(darkTheme = theme){
             Surface(
                 modifier = Modifier
                     .fillMaxSize()
@@ -99,7 +86,7 @@ class MainActivity : ComponentActivity() {
                     cameraExecutor = cameraExecutor,
                     pickImageLauncher = pickImageLauncher
                 )
-            }
+            }}
         }
 
         requestCameraPermission()
