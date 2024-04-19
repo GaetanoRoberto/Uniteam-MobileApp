@@ -1,6 +1,7 @@
 package it.polito.uniteam.gui
 
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
@@ -32,7 +33,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import android.graphics.Matrix
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -83,7 +86,7 @@ fun CameraView(
     // 3
     Box(contentAlignment = Alignment.BottomCenter, modifier = Modifier.fillMaxSize()) {
         AndroidView({ previewView }, modifier = Modifier.fillMaxSize())
-
+        val configuration = LocalConfiguration.current
         IconButton(
             modifier = Modifier.padding(bottom = 20.dp).size(60.dp),
             onClick = {
@@ -95,7 +98,8 @@ fun CameraView(
                     executor = executor,
                     onImageCaptured = vm::handleImageCapture,
                     onError = onError,
-                    flip = vm.isFrontCamera
+                    flip = vm.isFrontCamera,
+                    configuration = configuration
                 )
             }) {
             Icon(
@@ -133,7 +137,8 @@ private fun takePhoto(
     executor: Executor,
     onImageCaptured: (Uri) -> Unit,
     onError: (ImageCaptureException) -> Unit,
-    flip: Boolean
+    flip: Boolean,
+    configuration: Configuration
 ) {
 
     val photoFile = File(
@@ -150,13 +155,18 @@ private fun takePhoto(
         }
 
         override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+            val screenWidthDp = configuration.screenWidthDp.dp
+            val screenHeightDp = configuration.screenHeightDp.dp
+
             val savedUri = Uri.fromFile(photoFile)
             if (flip) {
                 // Flip the image horizontally
                 val bitmap = BitmapFactory.decodeFile(photoFile.absolutePath)
                 val matrix = Matrix().apply {
                     postScale(-1f, 1f, bitmap.width / 2f, bitmap.height / 2f)
-                    postRotate(90f)
+                    if (screenHeightDp >= screenWidthDp) {
+                        postRotate(90f)
+                    }
                 }
                 val flippedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
 

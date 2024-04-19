@@ -772,9 +772,11 @@ fun FormScreen(
                         contentDescription = null,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .fillMaxHeight(0.8f)
+                            .fillMaxHeight(0.7f)
                             .align(Alignment.Center)
                     )
+
+                    Spacer(modifier = Modifier.width(16.dp))
 
                     // Buttons at the bottom
                     Row(
@@ -789,7 +791,7 @@ fun FormScreen(
                             },
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onTertiary) ,// Imposta il colore di sfondo del bottone a rosso,
 
-                            modifier = Modifier.width(200.dp)
+                            modifier = Modifier.width(100.dp)
                         ) {
                             Text(text = "Undo",color = MaterialTheme.colorScheme.onSecondary)
                         }
@@ -804,7 +806,7 @@ fun FormScreen(
                                 Toast.makeText(context, "Profile Image Updated", Toast.LENGTH_SHORT).show()
                             },
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onTertiary) ,// Imposta il colore di sfondo del bottone a rosso,
-                            modifier = Modifier.width(200.dp)
+                            modifier = Modifier.width(100.dp)
                         ) {
                             Text(text = "Confirm",color = MaterialTheme.colorScheme.onSecondary)
                         }
