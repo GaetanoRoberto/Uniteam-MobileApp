@@ -19,37 +19,38 @@ import androidx.core.view.WindowCompat
 private val DarkColorScheme = darkColorScheme(
     primary = Orange,
     secondary = Blue,
-    tertiary = Color(0xff018FF3),//Azzurro
+    tertiary = Color(0xff018FF3),//Azzurro fotocamera
     background =  Blue,
     surface = Color.Yellow,
     onPrimary = Color.White,
     onSecondary = Color.White,
-    onTertiary = Orange, //Form Border and Conten
+    onTertiary = Orange, //
     onBackground = Orange,
     onSurface = Color.White ,//Color(0xFF1C1B1F),
     error = Color.Red
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Color.Blue,
+    primary = Blue,
     secondary = Orange,
-    tertiary = Orange,
+    tertiary = Color(0xff018FF3),//fotocamera
 
     // Other default colors to override
     background = Color.White,
     surface = Color.Yellow,
-    onPrimary = Color.Black,
+    onPrimary = Blue,
     onSecondary = Color.White,
-    onTertiary = Color.White,
+    onTertiary = Color.Red,
     onBackground = Color(0xFF1C1B1F),
     onSurface = Color(0xFF1C1B1F),
     error = Color.Red
 
 )
 
+
 @Composable
 fun UniTeamTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = isSystemInDarkTheme() ,
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit

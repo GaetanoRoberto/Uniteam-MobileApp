@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -325,10 +326,10 @@ fun DefaultImage(vm: UserProfileScreen = viewModel()) {
                 .last()
         }
 
-        Card(modifier = Modifier.background(MaterialTheme.colorScheme.secondary)) {
+        Card(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
             Row(
                 modifier = Modifier
-                    .background(MaterialTheme.colorScheme.secondary),
+                    .background(MaterialTheme.colorScheme.background),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
@@ -581,13 +582,13 @@ fun FormScreen(
                     if (vm.isEditing)
                         Button(onClick = { vm.validate() }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary) // Imposta il colore di sfondo del bottone a rosso
                         ) {
-                            Text("Done")
+                            Text("Done",color = MaterialTheme.colorScheme.onSecondary)
 
                         }
                     else
                         IconButton(onClick = { vm.edit() }, colors = IconButtonDefaults.iconButtonColors(MaterialTheme.colorScheme.secondary),
                         ) {
-                            Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit")
+                            Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.onSecondary)
                         }
                 }
             )
