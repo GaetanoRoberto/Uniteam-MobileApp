@@ -33,14 +33,17 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -54,6 +57,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
@@ -66,6 +70,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import it.polito.uniteam.R
+import it.polito.uniteam.ui.theme.Orange
 import java.io.File
 import java.util.concurrent.ExecutorService
 
@@ -192,7 +197,7 @@ class UserProfileScreen : ViewModel() {
             descriptionError = ""
     }
 
-    var KPIValue by mutableStateOf("100%")
+    var KPIValue by mutableStateOf("100% on all Tasks")
         private set
 
     fun setKPI(t: String) {
@@ -215,18 +220,29 @@ class UserProfileScreen : ViewModel() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditRowItem(value: String, keyboardType: KeyboardType = KeyboardType.Text ,onChange: (String) -> Unit, label: String, errorText: String) {
     OutlinedTextField(
         value = value,
         modifier = Modifier.fillMaxWidth(0.8f),
         onValueChange = onChange,
-        label = { Text(label) },
+        label = {
+            Text(
+            text = label,
+            style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onPrimary)//testo dentro
+        ) },
         isError = errorText.isNotBlank(),
         keyboardOptions = KeyboardOptions.Default.copy(
             keyboardType = keyboardType,
             imeAction = ImeAction.Done
-        )
+        ),
+        /*colors = TextFieldDefaults.outlinedTextFieldColors(
+            focusedBorderColor = MaterialTheme.colorScheme.onTertiary, // Cambia il colore del bordo quando il campo è in focus
+            unfocusedBorderColor = MaterialTheme.colorScheme.onTertiary ,// Cambia il colore del bordo quando il campo non è in focus
+            cursorColor = MaterialTheme.colorScheme.secondary, // Cambia il colore del cursore
+
+        )*/
     )
     if (errorText.isNotBlank())
         Text(errorText, color = MaterialTheme.colorScheme.error)
@@ -238,7 +254,9 @@ fun EditProfile(vm: UserProfileScreen = viewModel()) {
     BoxWithConstraints {
         if (this.maxHeight > this.maxWidth) {
             Column(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 DefaultImage(vm)
@@ -307,10 +325,10 @@ fun DefaultImage(vm: UserProfileScreen = viewModel()) {
                 .last()
         }
 
-        Card(modifier = Modifier.background(Color.White)) {
+        Card(modifier = Modifier.background(MaterialTheme.colorScheme.secondary)) {
             Row(
                 modifier = Modifier
-                    .background(Color.White),
+                    .background(MaterialTheme.colorScheme.secondary),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
@@ -322,7 +340,8 @@ fun DefaultImage(vm: UserProfileScreen = viewModel()) {
                             painter = rememberAsyncImagePainter(vm.photoUri),
                             contentDescription = null,
                             modifier = Modifier
-                                .clip(CircleShape) // Clip the image into a circular shape
+                                .clip(CircleShape), // Clip the image into a circular shape
+                            contentScale = ContentScale.Crop
                         )
                     } else {
                         Text(
@@ -331,7 +350,7 @@ fun DefaultImage(vm: UserProfileScreen = viewModel()) {
                                 .size(80.dp)
                                 .drawBehind {
                                     drawCircle(
-                                        color = Color.Blue,
+                                        color = Orange,
                                         radius = this.size.maxDimension
                                     )
                                 },
@@ -346,13 +365,18 @@ fun DefaultImage(vm: UserProfileScreen = viewModel()) {
                                     .size(100.dp)
                                     .scale(0.5f)
                                     .align(Alignment.BottomEnd),
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary) // Imposta il colore di sfondo del bottone a rosso
+
+                                ,
                                 onClick = { vm.toggleCameraButtonPressed() }
                             ) {
                                 // Mostra l'icona con l'immagine PNG
                                 Icon(
                                     painter = painterResource(id = R.drawable.camera),
                                     contentDescription = "camera",
-                                    modifier = Modifier.fillMaxSize()
+                                    modifier = Modifier
+                                        .fillMaxSize()
+
                                 )
                             }
                         } else {
@@ -360,9 +384,11 @@ fun DefaultImage(vm: UserProfileScreen = viewModel()) {
                                 Column {
                                     Row {
                                         FloatingActionButton(
+
                                             modifier = Modifier
                                                 .offset(x = 55.dp, y = 55.dp)
                                                 .width(100.dp),
+
                                             onClick = { vm.showCamera = true; vm.toggleCameraButtonPressed() },
                                         ) {
                                             Text(text = "take a photo")
@@ -550,14 +576,17 @@ fun FormScreen(
         ) {
             TopAppBar(
                 title = { Text("") },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                colors = TopAppBarDefaults.topAppBarColors(containerColor =  MaterialTheme.colorScheme.primary),
                 actions = {
                     if (vm.isEditing)
-                        Button(onClick = { vm.validate() }) {
+                        Button(onClick = { vm.validate() }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary) // Imposta il colore di sfondo del bottone a rosso
+                        ) {
                             Text("Done")
+
                         }
                     else
-                        IconButton(onClick = { vm.edit() }) {
+                        IconButton(onClick = { vm.edit() }, colors = IconButtonDefaults.iconButtonColors(MaterialTheme.colorScheme.secondary),
+                        ) {
                             Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit")
                         }
                 }
