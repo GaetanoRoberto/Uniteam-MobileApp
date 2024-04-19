@@ -11,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -22,6 +23,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import it.polito.uniteam.gui.FormScreen
 import it.polito.uniteam.gui.UserProfileScreen
+import it.polito.uniteam.ui.theme.UniTeamTheme
 import java.io.File
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -60,6 +62,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             val interactionSource = remember { MutableInteractionSource() }
             val focusManager = LocalFocusManager.current
+            val theme = isSystemInDarkTheme()
+            UniTeamTheme(darkTheme = theme){
             Surface(
                 modifier = Modifier
                     .fillMaxSize()
@@ -82,7 +86,7 @@ class MainActivity : ComponentActivity() {
                     cameraExecutor = cameraExecutor,
                     pickImageLauncher = pickImageLauncher
                 )
-            }
+            }}
         }
 
         requestCameraPermission()
