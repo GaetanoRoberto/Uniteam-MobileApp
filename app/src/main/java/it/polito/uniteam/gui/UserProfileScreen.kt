@@ -1,5 +1,9 @@
 package it.polito.uniteam.gui
 
+import android.content.Intent
+import android.net.Uri
+import android.util.Log
+import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -21,8 +25,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Face
@@ -39,7 +41,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -52,7 +53,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -64,10 +64,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.rememberAsyncImagePainter
 import it.polito.uniteam.R
+import java.io.File
+import java.util.concurrent.ExecutorService
 
 
 class UserProfileScreen : ViewModel() {
+    var showCamera by mutableStateOf(false)
+    var photoUri = Uri.EMPTY
+    var temporaryUri = Uri.EMPTY
+    var showPhoto by mutableStateOf(false)
+    var isFrontCamera by mutableStateOf(true)
+    var openGallery by mutableStateOf(false)
     var isEditing by mutableStateOf(false)
         private set  //By adding "private set" only this class can change 'isEditing'
 
@@ -100,7 +109,7 @@ class UserProfileScreen : ViewModel() {
         //check of integers
     }
 
-    var nameValue by mutableStateOf("Gaetano  Roberto")
+    var nameValue by mutableStateOf("Gaetano Roberto")
         private set
     var nameError by mutableStateOf("")
         private set
@@ -197,7 +206,13 @@ class UserProfileScreen : ViewModel() {
         cameraPressed = !cameraPressed
     }
 
+    fun handleImageCapture(uri: Uri) {
+        Log.i("kilo", "Image captured: $uri")
+        showCamera = false
 
+        temporaryUri = uri
+        showPhoto = true
+    }
 }
 
 @Composable
@@ -239,10 +254,6 @@ fun EditProfile(vm: UserProfileScreen = viewModel()) {
                 EditRowItem(value = vm.descriptionValue, onChange = vm::setDescription, label = "Description", errorText = vm.descriptionError)
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(vm.KPIValue)
-                //Temporary button to validate
-                Button(onClick = { vm.validate() }) {
-                    Text("Validate")
-                }
             }
         } else {
             Row(modifier = Modifier.fillMaxSize()) {
@@ -283,7 +294,6 @@ fun EditProfile(vm: UserProfileScreen = viewModel()) {
 @Composable
 fun DefaultImage(vm: UserProfileScreen = viewModel()) {
     val name = vm.nameValue
-    val iconPainter: Painter = painterResource(id = R.drawable.camera)
 
     if (name.isNotBlank()) {
         val initials = name.trim().split(' ');
@@ -307,33 +317,69 @@ fun DefaultImage(vm: UserProfileScreen = viewModel()) {
 
                 // Box per contenere l'icona della fotocamera
                 Box(modifier = Modifier.size(200.dp), contentAlignment = Alignment.Center) {
-                    Text(
-                        modifier = Modifier
-                            .padding(40.dp)
-                            .size(80.dp)
-                            .drawBehind {
-                                drawCircle(
-                                    color = Color.Blue,
-                                    radius = this.size.maxDimension
-                                )
-                            },
-                        text = initialsValue,
-                        style = TextStyle(color = Color.White, fontSize = 60.sp, textAlign = TextAlign.Center)
-                    )
-                    if (vm.isEditing) {
-                        Button(
+                    if (vm.photoUri != Uri.EMPTY) {
+                        Image(
+                            painter = rememberAsyncImagePainter(vm.photoUri),
+                            contentDescription = null,
                             modifier = Modifier
-                                .size(100.dp)
-                                .scale(0.5f)
-                                .align(Alignment.BottomEnd),
-                            onClick = { /* Azione per aprire la galleria */ }
-                        ) {
-                            // Mostra l'icona con l'immagine PNG
-                            Icon(
-                                painter = iconPainter,
-                                contentDescription = "camera",
-                                modifier = Modifier.fillMaxSize()
-                            )
+                                .clip(CircleShape) // Clip the image into a circular shape
+                        )
+                    } else {
+                        Text(
+                            modifier = Modifier
+                                .padding(40.dp)
+                                .size(80.dp)
+                                .drawBehind {
+                                    drawCircle(
+                                        color = Color.Blue,
+                                        radius = this.size.maxDimension
+                                    )
+                                },
+                            text = initialsValue,
+                            style = TextStyle(color = Color.White, fontSize = 60.sp, textAlign = TextAlign.Center)
+                        )
+                    }
+                    if (vm.isEditing) {
+                        if(!vm.cameraPressed) {
+                            Button(
+                                modifier = Modifier
+                                    .size(100.dp)
+                                    .scale(0.5f)
+                                    .align(Alignment.BottomEnd),
+                                onClick = { vm.toggleCameraButtonPressed() }
+                            ) {
+                                // Mostra l'icona con l'immagine PNG
+                                Icon(
+                                    painter = painterResource(id = R.drawable.camera),
+                                    contentDescription = "camera",
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
+                        } else {
+                            Box() {
+                                Column {
+                                    Row {
+                                        FloatingActionButton(
+                                            modifier = Modifier
+                                                .offset(x = 55.dp, y = 55.dp)
+                                                .width(100.dp),
+                                            onClick = { vm.showCamera = true; vm.toggleCameraButtonPressed() },
+                                        ) {
+                                            Text(text = "take a photo")
+                                        }
+                                    }
+                                    Row {
+                                        FloatingActionButton(
+                                            modifier = Modifier
+                                                .offset(x = 55.dp, y = 55.dp)
+                                                .width(100.dp),
+                                            onClick = { vm.openGallery = true; vm.toggleCameraButtonPressed() },
+                                        ) {
+                                            Text(text = "choose from gallery")
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -436,34 +482,94 @@ fun PresentationPane(vm: UserProfileScreen = viewModel()) {
 
 }
 
-@Preview
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FormScreen(vm: UserProfileScreen = viewModel()) {
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        TopAppBar(
-            title = { Text("") },
-            colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-            actions = {
-                if (vm.isEditing)
-                    Button(onClick = { vm.validate() }) {
-                        Text("Done")
-                    }
-                else
-                    IconButton(onClick = { vm.edit() }) {
-                        Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit")
-                    }
-            }
+fun FormScreen(
+    vm: UserProfileScreen = viewModel(),
+    outputDirectory: File,
+    cameraExecutor: ExecutorService,
+    pickImageLauncher: ActivityResultLauncher<Intent>
+) {
+    if (vm.openGallery) {
+        // Launch gallery intent
+        val galleryIntent = Intent(Intent.ACTION_PICK).apply {
+            type = "image/*"
+        }
+        pickImageLauncher.launch(galleryIntent)
+    }
+    if (vm.showCamera) {
+        CameraView(
+            vm = vm,
+            outputDirectory = outputDirectory,
+            executor = cameraExecutor,
+            onError = { Log.e("kilo", "View error:", it) }
         )
-        //
-        Spacer(modifier = Modifier.height(16.dp))
-        //
-        if (vm.isEditing)
-            EditProfile(vm)
-        else
-            PresentationPane(vm)
+    } else if (vm.showPhoto) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Top
+        ) {
+            // Image at the top
+            Image(
+                painter = rememberAsyncImagePainter(vm.temporaryUri),
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxWidth(),
+            )
 
+            // Buttons at the bottom
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Button(
+                        onClick = { vm.showPhoto = false },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(text = "Undo")
+                    }
+
+                    Button(
+                        onClick = { vm.showPhoto = false; vm.photoUri = vm.temporaryUri },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(text = "Accept")
+                    }
+                }
+            }
+        }
+
+    } else {
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            TopAppBar(
+                title = { Text("") },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                actions = {
+                    if (vm.isEditing)
+                        Button(onClick = { vm.validate() }) {
+                            Text("Done")
+                        }
+                    else
+                        IconButton(onClick = { vm.edit() }) {
+                            Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit")
+                        }
+                }
+            )
+            //
+            Spacer(modifier = Modifier.height(16.dp))
+            //
+            if (vm.isEditing)
+                EditProfile(vm)
+            else
+                PresentationPane(vm)
+
+        }
     }
 }
