@@ -9,10 +9,13 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
@@ -22,7 +25,11 @@ import it.polito.uniteam.gui.UserProfileScreen
 import java.io.File
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.input.pointer.pointerInput
 class MainActivity : ComponentActivity() {
 
     private lateinit var outputDirectory: File
@@ -33,9 +40,9 @@ class MainActivity : ComponentActivity() {
         val uri = activity?.data?.data
         if (uri != null) {
             // Image picked successfully, do something with the URI
-            vm.photoUri = uri
-            vm.openGallery = false
+            vm.setPhotoUri(uri)
         }
+        vm.openGallery(false)
     }
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -49,20 +56,33 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
-
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    FormScreen(
-                        vm = viewModel(),
-                        outputDirectory = getOutputDirectory(),
-                        cameraExecutor = cameraExecutor,
-                        pickImageLauncher = pickImageLauncher
-                    )
-                }
-
+            val interactionSource = remember { MutableInteractionSource() }
+            val focusManager = LocalFocusManager.current
+            Surface(
+                modifier = Modifier
+                    .fillMaxSize()
+                    // remove the focus and the opened photo/gallery menu
+                    .pointerInput(Unit, interactionSource) {
+                        detectTapGestures(
+                            onPress = {
+                                if (vm.cameraPressed) {
+                                    vm.toggleCameraButtonPressed()
+                                }
+                                focusManager.clearFocus()
+                            }
+                        )
+                    },
+                color = MaterialTheme.colorScheme.background
+            ) {
+                FormScreen(
+                    vm = viewModel(),
+                    outputDirectory = getOutputDirectory(),
+                    cameraExecutor = cameraExecutor,
+                    pickImageLauncher = pickImageLauncher
+                )
+            }
         }
 
         requestCameraPermission()

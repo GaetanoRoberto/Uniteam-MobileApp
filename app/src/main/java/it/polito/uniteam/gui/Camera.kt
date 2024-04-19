@@ -1,8 +1,13 @@
 package it.polito.uniteam.gui
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.ImageDecoder
 import android.net.Uri
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
@@ -24,7 +29,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import android.graphics.Matrix
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
@@ -33,6 +40,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import it.polito.uniteam.R
 import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.Executor
@@ -47,7 +55,7 @@ fun CameraView(
     onError: (ImageCaptureException) -> Unit
 ) {
     // 1
-    val lensFacing = if(vm.isFrontCamera) { CameraSelector.LENS_FACING_BACK } else { CameraSelector.LENS_FACING_FRONT}
+    val lensFacing = if(vm.isFrontCamera) { CameraSelector.LENS_FACING_FRONT } else { CameraSelector.LENS_FACING_BACK}
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -77,7 +85,7 @@ fun CameraView(
         AndroidView({ previewView }, modifier = Modifier.fillMaxSize())
 
         IconButton(
-            modifier = Modifier.padding(bottom = 20.dp),
+            modifier = Modifier.padding(bottom = 20.dp).size(60.dp),
             onClick = {
                 Log.i("kilo", "ON CLICK")
                 takePhoto(
@@ -86,7 +94,8 @@ fun CameraView(
                     outputDirectory = outputDirectory,
                     executor = executor,
                     onImageCaptured = vm::handleImageCapture,
-                    onError = onError
+                    onError = onError,
+                    flip = vm.isFrontCamera
                 )
             }) {
             Icon(
@@ -94,26 +103,24 @@ fun CameraView(
                 contentDescription = "Take picture",
                 tint = Color.White,
                 modifier = Modifier
-                    .size(100.dp)
                     .padding(1.dp)
-                    .border(1.dp, Color.White, CircleShape)
+                    .scale(0.8f)
             )
         }
 
         IconButton(
-            modifier = Modifier.align(Alignment.TopStart).padding(start = 16.dp, top = 16.dp),
+            modifier = Modifier.align(Alignment.TopStart).padding(start = 16.dp, top = 16.dp).size(60.dp),
             onClick = {
                 Log.i("kilo", "ON CLICK")
-                vm.isFrontCamera = !vm.isFrontCamera
+                vm.setIsFrontCamera(!vm.isFrontCamera)
             }) {
             Icon(
-                imageVector = Icons.Default.Refresh,
+                painter = painterResource(R.drawable.change_camera),
                 contentDescription = "Change Camera",
                 tint = Color.White,
                 modifier = Modifier
-                    .size(100.dp)
                     .padding(1.dp)
-                    .border(1.dp, Color.White, CircleShape)
+                    .size(50.dp)
             )
         }
     }
@@ -125,7 +132,8 @@ private fun takePhoto(
     outputDirectory: File,
     executor: Executor,
     onImageCaptured: (Uri) -> Unit,
-    onError: (ImageCaptureException) -> Unit
+    onError: (ImageCaptureException) -> Unit,
+    flip: Boolean
 ) {
 
     val photoFile = File(
@@ -143,6 +151,21 @@ private fun takePhoto(
 
         override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
             val savedUri = Uri.fromFile(photoFile)
+            if (flip) {
+                // Flip the image horizontally
+                val bitmap = BitmapFactory.decodeFile(photoFile.absolutePath)
+                val matrix = Matrix().apply {
+                    postScale(-1f, 1f, bitmap.width / 2f, bitmap.height / 2f)
+                    postRotate(90f)
+                }
+                val flippedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+
+                // Save the flipped bitmap
+                FileOutputStream(photoFile).use { outputStream ->
+                    flippedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+                }
+            }
+            // Notify the caller with the flipped image URI
             onImageCaptured(savedUri)
         }
     })

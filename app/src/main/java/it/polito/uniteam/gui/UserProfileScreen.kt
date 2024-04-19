@@ -3,9 +3,17 @@ package it.polito.uniteam.gui
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.activity.result.ActivityResultLauncher
+import androidx.compose.animation.core.EaseIn
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -22,16 +30,20 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Face
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,19 +53,25 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
@@ -65,18 +83,13 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
+import it.polito.uniteam.gui.CameraView
 import it.polito.uniteam.R
 import java.io.File
 import java.util.concurrent.ExecutorService
 
 
 class UserProfileScreen : ViewModel() {
-    var showCamera by mutableStateOf(false)
-    var photoUri = Uri.EMPTY
-    var temporaryUri = Uri.EMPTY
-    var showPhoto by mutableStateOf(false)
-    var isFrontCamera by mutableStateOf(true)
-    var openGallery by mutableStateOf(false)
     var isEditing by mutableStateOf(false)
         private set  //By adding "private set" only this class can change 'isEditing'
 
@@ -93,20 +106,6 @@ class UserProfileScreen : ViewModel() {
 
         if (nameError.isBlank() && emailError.isBlank() && nicknameError.isBlank() && locationError.isBlank() && descriptionError.isBlank())
             isEditing = false
-    }
-
-    var imageValue by mutableStateOf(R.drawable.user_icon)
-        private set
-    var imageError by mutableStateOf("")
-        private set
-
-    fun setImage(n: Int) {
-        imageValue = n
-    }
-
-    //TO DO
-    private fun checkImage() {
-        //check of integers
     }
 
     var nameValue by mutableStateOf("Gaetano Roberto")
@@ -187,7 +186,7 @@ class UserProfileScreen : ViewModel() {
 
     private fun checkDescription() {
         if (descriptionValue.isBlank())
-            descriptionError = "Location cannot be blank!"
+            descriptionError = "Description cannot be blank!"
         else
             descriptionError = ""
     }
@@ -206,12 +205,57 @@ class UserProfileScreen : ViewModel() {
         cameraPressed = !cameraPressed
     }
 
+    var showCamera by mutableStateOf(false)
+        private set
+    fun showCamera(boolean: Boolean) {
+        showCamera = boolean
+    }
+    var photoUri = Uri.EMPTY
+        private set
+
+    fun setPhotoUri(uri: Uri) {
+        photoUri = uri
+    }
+
+    var temporaryUri = Uri.EMPTY
+        private set
+
+    fun setTemporaryUri(uri: Uri) {
+        temporaryUri = uri
+    }
+
+    var showPhoto by mutableStateOf(false)
+        private set
+
+    fun showPhoto(boolean: Boolean) {
+        showPhoto = boolean
+    }
+    var isFrontCamera by mutableStateOf(true)
+        private set
+
+    fun setIsFrontCamera(boolean: Boolean) {
+        isFrontCamera = boolean
+    }
+    var openGallery by mutableStateOf(false)
+        private set
+
+    fun openGallery(boolean: Boolean) {
+        openGallery = boolean
+    }
+
     fun handleImageCapture(uri: Uri) {
         Log.i("kilo", "Image captured: $uri")
         showCamera = false
 
         temporaryUri = uri
         showPhoto = true
+    }
+
+    var showConfirmationDialog by mutableStateOf(false)
+        private set
+
+    fun toggleDialog() {
+        showConfirmationDialog = !showConfirmationDialog
     }
 }
 
@@ -235,13 +279,17 @@ fun EditRowItem(value: String, keyboardType: KeyboardType = KeyboardType.Text ,o
 @Preview
 @Composable
 fun EditProfile(vm: UserProfileScreen = viewModel()) {
+    // Handle Back Button
+    BackHandler(onBack = {
+        vm.validate()
+    })
     BoxWithConstraints {
         if (this.maxHeight > this.maxWidth) {
             Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .verticalScroll(rememberScrollState())
             ) {
-                DefaultImage(vm)
                 Spacer(modifier = Modifier.height(16.dp))
                 EditRowItem(value = vm.nameValue, onChange = vm::setName, label = "Full Name", errorText = vm.nameError)
                 Spacer(modifier = Modifier.height(16.dp))
@@ -252,39 +300,25 @@ fun EditProfile(vm: UserProfileScreen = viewModel()) {
                 EditRowItem(value = vm.locationValue, onChange = vm::setLocation, label = "Location", errorText = vm.locationError)
                 Spacer(modifier = Modifier.height(16.dp))
                 EditRowItem(value = vm.descriptionValue, onChange = vm::setDescription, label = "Description", errorText = vm.descriptionError)
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(vm.KPIValue)
             }
         } else {
-            Row(modifier = Modifier.fillMaxSize()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth(0.33f)
-                        .fillMaxHeight()
-                        .padding(10.dp, 0.dp, 10.dp, 0.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    DefaultImage(vm)
-                }
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .verticalScroll(rememberScrollState()),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    EditRowItem(value = vm.nameValue, onChange = vm::setName, label = "Full Name", errorText = vm.nameError)
-                    Spacer(modifier = Modifier.height(16.dp))
-                    EditRowItem(value = vm.nicknameValue, onChange = vm::setNickname, label = "Nickname", errorText = vm.nicknameError)
-                    Spacer(modifier = Modifier.height(16.dp))
-                    EditRowItem(value = vm.emailValue, onChange = vm::setEmail, label = "Email", errorText = vm.emailError)
-                    Spacer(modifier = Modifier.height(16.dp))
-                    EditRowItem(value = vm.locationValue, onChange = vm::setLocation, label = "Location", errorText = vm.locationError)
-                    Spacer(modifier = Modifier.height(16.dp))
-                    EditRowItem(value = vm.descriptionValue, onChange = vm::setDescription, label = "Description", errorText = vm.descriptionError)
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                EditRowItem(value = vm.nameValue, onChange = vm::setName, label = "Full Name", errorText = vm.nameError)
+                Spacer(modifier = Modifier.height(16.dp))
+                EditRowItem(value = vm.nicknameValue, onChange = vm::setNickname, label = "Nickname", errorText = vm.nicknameError)
+                Spacer(modifier = Modifier.height(16.dp))
+                EditRowItem(value = vm.emailValue, onChange = vm::setEmail, label = "Email", errorText = vm.emailError)
+                Spacer(modifier = Modifier.height(16.dp))
+                EditRowItem(value = vm.locationValue, onChange = vm::setLocation, label = "Location", errorText = vm.locationError)
+                Spacer(modifier = Modifier.height(16.dp))
+                EditRowItem(value = vm.descriptionValue, onChange = vm::setDescription, label = "Description", errorText = vm.descriptionError)
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
@@ -322,7 +356,9 @@ fun DefaultImage(vm: UserProfileScreen = viewModel()) {
                             painter = rememberAsyncImagePainter(vm.photoUri),
                             contentDescription = null,
                             modifier = Modifier
-                                .clip(CircleShape) // Clip the image into a circular shape
+                                .size(160.dp)
+                                .clip(CircleShape), // Clip the image into a circular shape
+                            contentScale = ContentScale.Crop
                         )
                     } else {
                         Text(
@@ -350,8 +386,8 @@ fun DefaultImage(vm: UserProfileScreen = viewModel()) {
                             ) {
                                 // Mostra l'icona con l'immagine PNG
                                 Icon(
-                                    painter = painterResource(id = R.drawable.camera),
-                                    contentDescription = "camera",
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = "Edit Profile",
                                     modifier = Modifier.fillMaxSize()
                                 )
                             }
@@ -361,22 +397,41 @@ fun DefaultImage(vm: UserProfileScreen = viewModel()) {
                                     Row {
                                         FloatingActionButton(
                                             modifier = Modifier
-                                                .offset(x = 55.dp, y = 55.dp)
-                                                .width(100.dp),
-                                            onClick = { vm.showCamera = true; vm.toggleCameraButtonPressed() },
+                                                .offset(x = 75.dp, y = 14.dp)
+                                                .size(40.dp),
+                                            onClick = { vm.setIsFrontCamera(true); vm.showCamera(true); vm.toggleCameraButtonPressed() },
                                         ) {
-                                            Text(text = "take a photo")
+                                            Icon(modifier = Modifier.scale(0.9f), painter = painterResource(id = R.drawable.camera), contentDescription = "take photo")
                                         }
                                     }
+                                    Spacer(modifier = Modifier.padding(3.dp))
                                     Row {
                                         FloatingActionButton(
                                             modifier = Modifier
-                                                .offset(x = 55.dp, y = 55.dp)
-                                                .width(100.dp),
-                                            onClick = { vm.openGallery = true; vm.toggleCameraButtonPressed() },
+                                                .offset(x = 75.dp, y = 14.dp)
+                                                .size(40.dp),
+                                            onClick = { vm.openGallery(true); vm.toggleCameraButtonPressed() },
                                         ) {
-                                            Text(text = "choose from gallery")
+                                            Icon(modifier = Modifier.scale(0.9f), painter = painterResource(id = R.drawable.gallery), contentDescription = "choose from gallery")
                                         }
+                                    }
+                                    if (vm.photoUri != Uri.EMPTY) {
+                                        Spacer(modifier = Modifier.padding(3.dp))
+                                        Row {
+                                            FloatingActionButton(
+                                                modifier = Modifier
+                                                    .offset(x = 75.dp, y = 14.dp)
+                                                    .size(40.dp),
+                                                onClick = { vm.toggleDialog() }
+                                            ) {
+                                                Icon(modifier = Modifier.scale(1.5f), imageVector = Icons.Default.Delete, contentDescription = "remove photo")
+                                            }
+                                        }
+                                    }
+                                    if (vm.showConfirmationDialog) {
+                                        AlertDialogExample(
+                                            onDismissRequest = { vm.toggleDialog() },
+                                            onConfirmation = { vm.toggleDialog(); vm.setPhotoUri(Uri.EMPTY); vm.toggleCameraButtonPressed() })
                                     }
                                 }
                             }
@@ -388,18 +443,69 @@ fun DefaultImage(vm: UserProfileScreen = viewModel()) {
     } else {
         Box(modifier = Modifier.size(200.dp), contentAlignment = Alignment.Center) {
             Image(
-                painter = painterResource(id = vm.imageValue),
+                painter = painterResource(id = R.drawable.user_icon),
                 contentDescription = "Image",
                 modifier = Modifier
                     //.padding(40.dp, 0.dp, 40.dp, 0.dp)
                     .size(160.dp)
             )
+            Button(
+                modifier = Modifier
+                    .size(100.dp)
+                    .scale(0.5f)
+                    .align(Alignment.BottomEnd),
+                onClick = { vm.toggleCameraButtonPressed() }
+            ) {
+                // Mostra l'icona con l'immagine PNG
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Edit Profile",
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RowItem(icon: ImageVector, description: String, value: String) {
+fun AlertDialogExample(
+    onDismissRequest: () -> Unit,
+    onConfirmation: () -> Unit
+) {
+    AlertDialog(
+        icon = {
+            Icon(Icons.Default.Info, contentDescription = "Example Icon")
+        },
+        text = {
+            Text(text = "Are you Sure to Remove the Profile Image ?")
+        },
+        onDismissRequest = {
+            onDismissRequest()
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    onConfirmation()
+                }
+            ) {
+                Text("Confirm")
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = {
+                    onDismissRequest()
+                }
+            ) {
+                Text("Undo")
+            }
+        }
+    )
+}
+
+@Composable
+fun RowItem(modifier: Modifier = Modifier, icon: ImageVector, description: String, value: String) {
     Row(
         modifier = Modifier.fillMaxWidth(0.8f),
         verticalAlignment = Alignment.CenterVertically
@@ -417,6 +523,11 @@ fun RowItem(icon: ImageVector, description: String, value: String) {
             style = MaterialTheme.typography.headlineSmall
         )
     }
+    Row(
+        modifier = modifier
+    ) {
+    }
+    Spacer(modifier = Modifier.padding(5.dp))
 }
 
 @Preview
@@ -426,56 +537,49 @@ fun PresentationPane(vm: UserProfileScreen = viewModel()) {
         if (this.maxHeight > this.maxWidth) {
             Column(
                 modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .fillMaxHeight()
+                    .verticalScroll(rememberScrollState())
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(0.8f),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    DefaultImage(vm)
+                val rowItems = listOf(
+                    Triple(Icons.Default.Person, "name", vm.nameValue),
+                    Triple(Icons.Default.Face, "nickname", vm.nicknameValue),
+                    Triple(Icons.Default.Email, "email", vm.emailValue),
+                    Triple(Icons.Default.LocationOn, "location", vm.locationValue),
+                    Triple(Icons.Default.Info, "description", vm.descriptionValue),
+                    Triple(Icons.Default.Star, "KPI", vm.KPIValue)
+                )
+                val line_modifier = Modifier
+                    .fillMaxWidth(0.8f)
+                    .height(1.dp)
+                    .background(color = Color.Black)
+                rowItems.forEachIndexed { index, (icon, description, value) ->
+                    if (index == rowItems.size-1) {
+                        RowItem(icon = icon, description = description, value = value)
+                    } else {
+                        RowItem(modifier = line_modifier, icon = icon, description = description, value = value)
+                    }
                 }
-                Spacer(modifier = Modifier.height(30.dp))
-                Column(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .verticalScroll(rememberScrollState())
-                ) {
-                    RowItem(icon = Icons.Default.Person, description = "name", value = vm.nameValue)
-                    RowItem(icon = Icons.Default.Face, description = "nickname", value = vm.nicknameValue)
-                    RowItem(icon = Icons.Default.Email, description = "email", value = vm.emailValue)
-                    RowItem(icon = Icons.Default.LocationOn, description = "location", value = vm.locationValue)
-                    RowItem(icon = Icons.Default.Menu, description = "description", value = vm.descriptionValue)
-                    RowItem(icon = Icons.Default.Star, description = "KPI", value = vm.KPIValue)
-                }
+                /*RowItem(icon = Icons.Default.Person, description = "name", value = vm.nameValue)
+                RowItem(icon = Icons.Default.Face, description = "nickname", value = vm.nicknameValue)
+                RowItem(icon = Icons.Default.Email, description = "email", value = vm.emailValue)
+                RowItem(icon = Icons.Default.LocationOn, description = "location", value = vm.locationValue)
+                RowItem(icon = Icons.Default.Menu, description = "description", value = vm.descriptionValue)
+                RowItem(icon = Icons.Default.Star, description = "KPI", value = vm.KPIValue)*/
             }
         } else {
-            Row(modifier = Modifier.fillMaxSize()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth(0.33f)
-                        .fillMaxHeight()
-                        .padding(10.dp, 0.dp, 10.dp, 0.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    DefaultImage(vm)
-                }
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .verticalScroll(rememberScrollState()),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    RowItem(icon = Icons.Default.Person, description = "name", value = vm.nameValue)
-                    RowItem(icon = Icons.Default.Face, description = "nickname", value = vm.nicknameValue)
-                    RowItem(icon = Icons.Default.Email, description = "email", value = vm.emailValue)
-                    RowItem(icon = Icons.Default.LocationOn, description = "location", value = vm.locationValue)
-                    RowItem(icon = Icons.Default.Menu, description = "description", value = vm.descriptionValue)
-                    RowItem(icon = Icons.Default.Star, description = "KPI", value = vm.KPIValue)
-                }
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                RowItem(icon = Icons.Default.Person, description = "name", value = vm.nameValue)
+                RowItem(icon = Icons.Default.Face, description = "nickname", value = vm.nicknameValue)
+                RowItem(icon = Icons.Default.Email, description = "email", value = vm.emailValue)
+                RowItem(icon = Icons.Default.LocationOn, description = "location", value = vm.locationValue)
+                RowItem(icon = Icons.Default.Menu, description = "description", value = vm.descriptionValue)
+                RowItem(icon = Icons.Default.Star, description = "KPI", value = vm.KPIValue)
             }
         }
     }
@@ -490,6 +594,7 @@ fun FormScreen(
     cameraExecutor: ExecutorService,
     pickImageLauncher: ActivityResultLauncher<Intent>
 ) {
+    val context = LocalContext.current
     if (vm.openGallery) {
         // Launch gallery intent
         val galleryIntent = Intent(Intent.ACTION_PICK).apply {
@@ -498,6 +603,10 @@ fun FormScreen(
         pickImageLauncher.launch(galleryIntent)
     }
     if (vm.showCamera) {
+        // Handle Back Button
+        BackHandler(onBack = {
+            vm.showCamera(false)
+        })
         CameraView(
             vm = vm,
             outputDirectory = outputDirectory,
@@ -505,45 +614,118 @@ fun FormScreen(
             onError = { Log.e("kilo", "View error:", it) }
         )
     } else if (vm.showPhoto) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Top
-        ) {
-            // Image at the top
-            Image(
-                painter = rememberAsyncImagePainter(vm.temporaryUri),
-                contentDescription = null,
-                modifier = Modifier
-                    .fillMaxWidth(),
-            )
-
-            // Buttons at the bottom
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Row(
-                    modifier = Modifier
+        // Handle Back Button
+        BackHandler(onBack = {
+            vm.showPhoto(false)
+        })
+        BoxWithConstraints {
+            if (this.maxHeight > this.maxWidth) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Text(modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Button(
-                        onClick = { vm.showPhoto = false },
-                        modifier = Modifier.weight(1f)
+                        .padding(50.dp), text = "Photo Preview", style = TextStyle(fontSize = 30.sp, textAlign = TextAlign.Center))
+                    // Image at the top
+                    Image(
+                        painter = rememberAsyncImagePainter(vm.temporaryUri),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .align(Alignment.TopCenter),
+                    )
+
+                    // Buttons at the bottom
+                    Column(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 16.dp)
+                            .fillMaxHeight(0.1f)
                     ) {
-                        Text(text = "Undo")
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Button(
+                                onClick = {
+                                    vm.showPhoto(false)
+                                    vm.setTemporaryUri(Uri.EMPTY)
+                                },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text(text = "Undo")
+                            }
+
+                            Spacer(modifier = Modifier.padding(16.dp))
+
+                            Button(
+                                onClick = {
+                                    vm.showPhoto(false)
+                                    vm.setPhotoUri(vm.temporaryUri)
+                                    vm.setTemporaryUri(Uri.EMPTY)
+                                    Toast.makeText(context, "Profile Image Updated", Toast.LENGTH_SHORT).show()
+                                },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text(text = "Confirm")
+                            }
+                        }
+                    }
+                }
+            } else {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    // Image at the top
+                    Image(
+                        painter = rememberAsyncImagePainter(vm.temporaryUri),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight(0.8f)
+                            .align(Alignment.Center)
+                    )
+
+                    // Buttons at the bottom
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxHeight(0.1f)
+                    ) {
+                        Button(
+                            onClick = {
+                                vm.showPhoto(false)
+                                vm.setTemporaryUri(Uri.EMPTY)
+                            },
+                            modifier = Modifier.width(200.dp)
+                        ) {
+                            Text(text = "Undo")
+                        }
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        Button(
+                            onClick = {
+                                vm.showPhoto(false)
+                                vm.setPhotoUri(vm.temporaryUri)
+                                vm.setTemporaryUri(Uri.EMPTY)
+                                Toast.makeText(context, "Profile Image Updated", Toast.LENGTH_SHORT).show()
+                            },
+                            modifier = Modifier.width(200.dp)
+                        ) {
+                            Text(text = "Confirm")
+                        }
                     }
 
-                    Button(
-                        onClick = { vm.showPhoto = false; vm.photoUri = vm.temporaryUri },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(text = "Accept")
-                    }
+                    // Text at the top
+                    Text(
+                        modifier = Modifier
+                            .fillMaxHeight(0.1f)
+                            .fillMaxWidth(),
+                        text = "Photo Preview",
+                        style = TextStyle(fontSize = 30.sp, textAlign = TextAlign.Center)
+                    )
                 }
             }
         }
-
     } else {
         Column(
             modifier = Modifier.fillMaxSize()
@@ -565,10 +747,86 @@ fun FormScreen(
             //
             Spacer(modifier = Modifier.height(16.dp))
             //
+            BoxWithConstraints {
+                if(this.maxHeight > this.maxWidth) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(0.8f),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            DefaultImage(vm)
+                        }
+                        Spacer(modifier = Modifier.height(30.dp))
+                        if (vm.isEditing)
+                            EditProfile(vm)
+                        else
+                            PresentationPane(vm)
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth(0.33f)
+                                .fillMaxHeight()
+                                .padding(10.dp, 0.dp, 10.dp, 0.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            DefaultImage(vm)
+                        }
+                        Spacer(modifier = Modifier.height(30.dp))
+                        if (vm.isEditing)
+                            EditProfile(vm)
+                        else
+                            PresentationPane(vm)
+                    }
+                }
+            }
+            /*Column(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(0.8f),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    DefaultImage(vm)
+                }
+                Spacer(modifier = Modifier.height(30.dp))
+                if (vm.isEditing)
+                    EditProfile(vm)
+                else
+                    PresentationPane(vm)
+                Column(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    EditRowItem(value = vm.nameValue, onChange = vm::setName, label = "Full Name", errorText = vm.nameError)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    EditRowItem(value = vm.nicknameValue, onChange = vm::setNickname, label = "Nickname", errorText = vm.nicknameError)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    EditRowItem(value = vm.emailValue, keyboardType = KeyboardType.Email ,onChange = vm::setEmail, label = "Email", errorText = vm.emailError)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    EditRowItem(value = vm.locationValue, onChange = vm::setLocation, label = "Location", errorText = vm.locationError)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    EditRowItem(value = vm.descriptionValue, onChange = vm::setDescription, label = "Description", errorText = vm.descriptionError)
+                }
+            }
             if (vm.isEditing)
                 EditProfile(vm)
             else
-                PresentationPane(vm)
+                PresentationPane(vm)*/
 
         }
     }
