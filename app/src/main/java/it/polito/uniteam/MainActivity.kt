@@ -46,9 +46,9 @@ class MainActivity : ComponentActivity() {
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
-            Log.i("kilo", "Permission granted")
+            Log.i("Uniteam", "Permission granted")
         } else {
-            Log.i("kilo", "Permission denied")
+            Log.i("Uniteam", "Permission denied")
         }
     }
 
@@ -94,14 +94,14 @@ class MainActivity : ComponentActivity() {
                 this,
                 Manifest.permission.CAMERA
             ) == PackageManager.PERMISSION_GRANTED -> {
-                Log.i("kilo", "Permission previously granted")
+                Log.i("Uniteam", "Permission previously granted")
                 //vm.shouldShowCamera.value = true
             }
 
             ActivityCompat.shouldShowRequestPermissionRationale(
                 this,
                 Manifest.permission.CAMERA
-            ) -> Log.i("kilo", "Show camera permissions dialog")
+            ) -> Log.i("Uniteam", "Show camera permissions dialog")
 
             else -> requestPermissionLauncher.launch(Manifest.permission.CAMERA)
         }

@@ -7,9 +7,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -17,6 +24,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
@@ -31,16 +40,16 @@ class taskCreation : ViewModel(){
 
     var taskName by mutableStateOf("")
         private set
-    var taskError by mutableStateOf("")
+    var nameError by mutableStateOf("")
         private set
     fun changeTaskName(s: String){
         taskName = s
     }
     private fun checkTaskName(){
         if(taskName.isBlank())
-            taskError = "Task name cannot be blank!"
+            nameError = "Task name cannot be blank!"
         else
-            taskError = ""
+            nameError = ""
     }
 
 
@@ -125,8 +134,8 @@ class taskCreation : ViewModel(){
         private set
     var estimatedHoursError by mutableStateOf("")
 
-    fun changeEstimatedHours(h: Int){
-        estimatedHours = h
+    fun changeEstimatedHours(h: String){
+        estimatedHours = h.toInt()
     }
     private fun checkEstimatedHours(){
         if(estimatedHours < 0)
@@ -141,8 +150,8 @@ class taskCreation : ViewModel(){
         private set
     var spentHoursError by mutableStateOf("")
 
-    fun changeSpentHours(h: Int){
-        spentHours = h
+    fun changeSpentHours(h: String){
+        spentHours = h.toInt()
     }
     private fun checkSpentHours(){
         if(spentHours < 0)
@@ -188,63 +197,51 @@ fun TaskDetailView(vm: taskCreation = viewModel() ){
     Column(modifier = Modifier
         .fillMaxSize()
         .verticalScroll(rememberScrollState())){
-        RowItem(title = "Name:", value =vm.taskName)
-        RowItem(title = "Description:", value =vm.description)
-        RowItem(title = "Category:", value =vm.category)
-        RowItem(title = "Priority:", value =vm.priority)
-        RowItem(title = "Deadline:", value =vm.deadline)
-        RowItem(title = "Estimated Hours:", value =vm.estimatedHours)
-        RowItem(title = "Spent Hours:", value =vm.spentHours)
-        RowItem(title = "Repeatable:", value =vm.repeatable)
-        RowItem(title = "Members:", value =vm.members)
-        RowItem(title = "Status:", value =vm.state)
+        EditRowItem(label = "Name:", value = vm.taskName, errorText =vm.nameError, onChange = vm::changeTaskName )
+        EditRowItem(label = "Description:", value =vm.description, errorText =vm.descriptionError, onChange =vm::changeDescription )
+        EditRowItem(label = "Category:", value =vm.category, errorText =vm.categoryError, onChange = vm::changeCategory )
+        EditRowItem(label = "Priority:", value =vm.priority, errorText =vm.priorityError, onChange =vm::changePriority )
+        EditRowItem(label = "Deadline:", value =vm.deadline, errorText =vm.deadlineError, onChange = vm::changeDeadline )
+        EditRowItem(label = "Estimated Hours:", value =vm.estimatedHours.toString(), errorText =vm.estimatedHoursError, onChange = vm::changeEstimatedHours)
+        EditRowItem(label = "Spent Hours:", value =vm.spentHours.toString(), errorText =vm.spentHoursError, onChange = vm::changeSpentHours )
+        DropdownMenuItem(
+            text = { Text("Label text") },
+            onClick = { /* Handle click */ },
+            leadingIcon = {
+                Icon(
+                    Icons.Default.Edit,
+                    contentDescription = null
+                )
+            })
 
+        //EditRowItem(label = "Repeatable:", value =vm.repeatable.toString(), errorText ="", onChange = vm::changeRepetition)
+        //EditRowItem(label = "Members:", value =vm.members, errorText =vm.membersError, onChange = vm:: )
+        //EditRowItem(label = "Status:", value =vm.state.toString(), errorText =vm.stateError, onChange = vm::changeState)
     }
 }
-/*
-@Composable
-fun RowItem(title: String, value: Any){
-    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Start){
-        Text(title)
-        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Start){
-            Text(text= value.toString())
-
-        }
-    }
 
 
-}
-
- */
 
 @Composable
-fun RowItem(modifier: Modifier = Modifier, title: String, value: Any) {
-    Row(
+fun EditRowItem(value: String, keyboardType: KeyboardType = KeyboardType.Text, onChange: (String) -> Unit, label: String, errorText: String) {
+    OutlinedTextField(
+        value = value,
         modifier = Modifier.fillMaxWidth(0.8f),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+        onValueChange = onChange,
+        label = {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)//testo
+            ) },
+        isError = errorText.isNotBlank(),
+        keyboardOptions = KeyboardOptions.Default.copy(
+            keyboardType = keyboardType,
+            imeAction = ImeAction.Done
+        ),
 
-        Text(
-            title,
-            modifier = Modifier
-                .weight(1f)
-                .padding(16.dp, 0.dp),
-            style = MaterialTheme.typography.headlineSmall,
         )
-
-    }
-    Row(
-        modifier = modifier,
-    ) {
-        Text(
-            value.toString(),
-            modifier = Modifier
-                .weight(1f)
-                .padding(16.dp, 0.dp),
-            style = MaterialTheme.typography.headlineSmall,
-        )
-    }
-    Spacer(modifier = Modifier.padding(5.dp))
+    if (errorText.isNotBlank())
+        Text(errorText, color = MaterialTheme.colorScheme.error)
 }
 
 
