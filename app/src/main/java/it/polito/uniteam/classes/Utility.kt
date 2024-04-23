@@ -1,4 +1,4 @@
-package it.polito.uniteam
+package it.polito.uniteam.classes
 
 
 enum class Repetition{
