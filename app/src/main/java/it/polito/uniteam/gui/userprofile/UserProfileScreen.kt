@@ -27,6 +27,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
@@ -814,8 +815,21 @@ fun FormScreen(
             modifier = Modifier.fillMaxSize()
         ) {
             TopAppBar(
-                title = { Text("") },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor =  MaterialTheme.colorScheme.primary),
+                title = {
+                    // Centro il titolo utilizzando un approccio basato su un trucco visuale
+                    Row(
+                        modifier = Modifier.fillMaxWidth(), // Riempie la larghezza massima
+                        horizontalArrangement = Arrangement.Center, // Allinea orizzontalmente il contenuto al centro
+                        verticalAlignment = Alignment.CenterVertically // Allinea verticalmente il contenuto al centro
+                    ) {
+                        Text("UNITEAM")
+                    }
+                },                colors = TopAppBarDefaults.topAppBarColors(containerColor =  MaterialTheme.colorScheme.primary),
+                navigationIcon = {
+                    IconButton(onClick = { /* Azione per tornare indietro */ }, colors = IconButtonDefaults.iconButtonColors(MaterialTheme.colorScheme.secondary),) {
+                        Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSecondary)
+                    }
+                },
                 actions = {
                     if (vm.isEditing)
                         Button(onClick = { vm.validate() }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary) // Imposta il colore di sfondo del bottone a rosso
