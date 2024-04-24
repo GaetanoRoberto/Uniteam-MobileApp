@@ -56,12 +56,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
+import it.polito.uniteam.gui.calendar.Calendar
+import it.polito.uniteam.gui.calendar.CalendarAppPreview
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var outputDirectory: File
     private var cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor();
     private val vm: UserProfileScreen by viewModels()
+    private val vm2: Calendar by viewModels()
+
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { activity: ActivityResult? ->
         // Handle the selected image URI here
         val uri = activity?.data?.data
@@ -111,13 +115,14 @@ class MainActivity : ComponentActivity() {
                     Column(
                         modifier = Modifier.weight(1f)
                     ) {
-                        //MyTopAppBar()
-                        FormScreen(
+                        MyTopAppBar()
+                        /*FormScreen(
                             vm = viewModel(),
                             outputDirectory = getOutputDirectory(),
                             cameraExecutor = cameraExecutor,
                             pickImageLauncher = pickImageLauncher
-                        )
+                        )*/
+                        CalendarAppPreview()
                     }
                     BottomBar()
                 }}
