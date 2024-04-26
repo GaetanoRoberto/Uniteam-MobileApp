@@ -6,9 +6,11 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -109,40 +111,73 @@ fun CalendarAppPreview() {
 
 @Composable
 fun CalendarApp(modifier: Modifier = Modifier) {
-    //val scrollState = rememberScrollState()
     val dataSource = Calendar()
     // get CalendarUiModel from CalendarDataSource, and the lastSelectedDate is Today.
     var calendarUiModel by remember { mutableStateOf(dataSource.getData(lastSelectedDate = dataSource.today)) }
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            //.verticalScroll(scrollState)  // Abilita lo scrolling verticale
-    ) {
-        Header(startDate = calendarUiModel.startDate,endDate = calendarUiModel.endDate,
-            onPrevClickListener = { startDate ->
-                // refresh the CalendarUiModel with new data
-                // by get data with new Start Date (which is the startDate-1 from the visibleDates)
-                val finalStartDate = startDate.minusDays(1)
-                calendarUiModel = dataSource.getData(startDate = finalStartDate, lastSelectedDate = calendarUiModel.selectedDate.date)
-            },
-            onNextClickListener = { endDate ->
-                // refresh the CalendarUiModel with new data
-                // by get data with new Start Date (which is the endDate+2 from the visibleDates)
-                val finalStartDate = endDate.plusDays(2)
-                calendarUiModel = dataSource.getData(startDate = finalStartDate, lastSelectedDate = calendarUiModel.selectedDate.date)
-            },
-            onTodayClickListener = {
-                val finalStartDate = calendarUiModel.selectedDate.date
-                calendarUiModel = dataSource.getData(startDate = finalStartDate, lastSelectedDate = calendarUiModel.selectedDate.date)
+    BoxWithConstraints {
+        if (this.maxHeight > this.maxWidth) {//vertical
+            Column(
+                modifier = modifier
+                    .fillMaxSize()
 
-            }
+            ) {
+                Header(startDate = calendarUiModel.startDate,endDate = calendarUiModel.endDate,
+                    onPrevClickListener = { startDate ->
+                        // refresh the CalendarUiModel with new data
+                        // by get data with new Start Date (which is the startDate-1 from the visibleDates)
+                        val finalStartDate = startDate.minusDays(1)
+                        calendarUiModel = dataSource.getData(startDate = finalStartDate, lastSelectedDate = calendarUiModel.selectedDate.date)
+                    },
+                    onNextClickListener = { endDate ->
+                        // refresh the CalendarUiModel with new data
+                        // by get data with new Start Date (which is the endDate+2 from the visibleDates)
+                        val finalStartDate = endDate.plusDays(2)
+                        calendarUiModel = dataSource.getData(startDate = finalStartDate, lastSelectedDate = calendarUiModel.selectedDate.date)
+                    },
+                    onTodayClickListener = {
+                        val finalStartDate = calendarUiModel.selectedDate.date
+                        calendarUiModel = dataSource.getData(startDate = finalStartDate, lastSelectedDate = calendarUiModel.selectedDate.date)
 
-        )
-        //Conte nt()
-        DayEventScheduler(data = calendarUiModel)
-        TasksToAssign()
+                    }
+
+                )
+                //VERTICALE
+                VerticalDayEventScheduler(data = calendarUiModel)
+                VerticalTasksToAssign()
+        }
+        }else{//orizzontale
+            Column(
+                modifier = modifier
+                    .fillMaxSize()
+            ) {
+            Header(startDate = calendarUiModel.startDate,endDate = calendarUiModel.endDate,
+                onPrevClickListener = { startDate ->
+                    // refresh the CalendarUiModel with new data
+                    // by get data with new Start Date (which is the startDate-1 from the visibleDates)
+                    val finalStartDate = startDate.minusDays(1)
+                    calendarUiModel = dataSource.getData(startDate = finalStartDate, lastSelectedDate = calendarUiModel.selectedDate.date)
+                },
+                onNextClickListener = { endDate ->
+                    // refresh the CalendarUiModel with new data
+                    // by get data with new Start Date (which is the endDate+2 from the visibleDates)
+                    val finalStartDate = endDate.plusDays(2)
+                    calendarUiModel = dataSource.getData(startDate = finalStartDate, lastSelectedDate = calendarUiModel.selectedDate.date)
+                },
+                onTodayClickListener = {
+                    val finalStartDate = calendarUiModel.selectedDate.date
+                    calendarUiModel = dataSource.getData(startDate = finalStartDate, lastSelectedDate = calendarUiModel.selectedDate.date)
+
+                }
+
+            )
+            HorizontalDayEventScheduler(data = calendarUiModel)
+
+        }
+        }}
+
+
     }
-}
+
 //OGGETTO TASK
 @Composable
 fun EventItem() {
@@ -217,8 +252,7 @@ fun DayItem(date: CalendarUiModel.Date) {
 }
 //RIGA CON GIORNO E TASK
 @Composable
-fun DayEventScheduler(data: CalendarUiModel) {
-    // Utilizzando LazyColumn per gestire una lista di giorni con eventi accanto
+fun VerticalDayEventScheduler(data: CalendarUiModel) {
     Box(modifier = Modifier.height(420.dp)) { // Imposta un'altezza fissa e abilita lo scrolling verticale
         LazyColumn {
             items(items = data.visibleDates) { date ->
@@ -245,128 +279,196 @@ fun DayEventScheduler(data: CalendarUiModel) {
             }
         }
     }
-}
+    }
+
 @Composable
 fun Header(startDate: CalendarUiModel.Date,endDate: CalendarUiModel.Date,
            onPrevClickListener: (LocalDate) -> Unit,
            onNextClickListener: (LocalDate) -> Unit,
            onTodayClickListener: () -> Unit
     ) {
-    Column(
-        //verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row {
-            Text(
-                text = "Team #1 - Tasks ",
-                modifier = Modifier
-                    .weight(1f)
-                    .align(Alignment.CenterVertically),
-            )
-            Spacer(modifier = Modifier.weight(0.4f)) // Spazio flessibile per allineare la checkbox e il testo "My Tasks" alla fine
-            Checkbox(
-                checked = true, // Imposta il valore desiderato della checkbox
-                onCheckedChange = { /* Azione quando la checkbox viene selezionata */ }
-            )
-            Text(
-                text = "My Tasks",
-                modifier = Modifier
-                    .weight(1f)
-                    .align(Alignment.CenterVertically),
-                //modifier = Modifier.padding(start = 4.dp),
-            )
-        }
+    BoxWithConstraints {
+        if (this.maxHeight > this.maxWidth) {//Verticale
+            Column(
+            //verticalAlignment = Alignment.CenterVertically
+        ) {
 
-          Row {
-          Text(
-              text = startDate.date.month.toString() +" "+ startDate.date.dayOfMonth +" - " + endDate.date.dayOfMonth + ", " + startDate.date.year,// " MAY, 22 - 28  (2024)",
-              modifier = Modifier
-                  .weight(1f)
-                  .align(Alignment.CenterVertically),
-          )
-          IconButton(onClick =  {onPrevClickListener(startDate.date)}) {
-              Icon(
-                  imageVector = Icons.Filled.ArrowBack,
-                  contentDescription = "Previous"
-              )
-          }
-          IconButton(onClick =  {onNextClickListener(endDate.date)}) {
-              Icon(
-                  imageVector = Icons.Filled.ArrowForward,
-                  contentDescription = "Next"
-              )
-          }
-              Button(onClick = onTodayClickListener) {
+            Row {
+                Text(
+                    text = "Team #1 - Tasks ",
+                    modifier = Modifier
+                        .weight(1f)
+                        .align(Alignment.CenterVertically),
+                )
+                Spacer(modifier = Modifier.weight(0.4f)) // Spazio flessibile per allineare la checkbox e il testo "My Tasks" alla fine
+                Checkbox(
+                    checked = true, // Imposta il valore desiderato della checkbox
+                    onCheckedChange = { /* Azione quando la checkbox viene selezionata */ }
+                )
+                Text(
+                    text = "My Tasks",
+                    modifier = Modifier
+                        .weight(1f)
+                        .align(Alignment.CenterVertically),
+                    //modifier = Modifier.padding(start = 4.dp),
+                )
+            }
+
+            Row {
+                Text(
+                    text = startDate.date.month.toString() + " " + startDate.date.dayOfMonth + " - " + endDate.date.dayOfMonth + ", " + startDate.date.year,// " MAY, 22 - 28  (2024)",
+                    modifier = Modifier
+                        .weight(1f)
+                        .align(Alignment.CenterVertically),
+                )
+                IconButton(onClick = { onPrevClickListener(startDate.date) }) {
+                    Icon(
+                        imageVector = Icons.Filled.ArrowBack,
+                        contentDescription = "Previous"
+                    )
+                }
+                IconButton(onClick = { onNextClickListener(endDate.date) }) {
+                    Icon(
+                        imageVector = Icons.Filled.ArrowForward,
+                        contentDescription = "Next"
+                    )
+                }
+                Button(onClick = onTodayClickListener) {
                     Text("Today")
-              }
-      }
+                }
+            }
 
-    }
+        }
+    }else{//orizzontale
+                Row {
+                    Text(
+                        text = startDate.date.month.toString() + " " + startDate.date.dayOfMonth + " - " + endDate.date.dayOfMonth + ", " + startDate.date.year,// " MAY, 22 - 28  (2024)",
+                        modifier = Modifier
+                            .weight(1f)
+                            .align(Alignment.CenterVertically),
+                    )
+                    Checkbox(
+                        checked = true, // Imposta il valore desiderato della checkbox
+                        onCheckedChange = { /* Azione quando la checkbox viene selezionata */ }
+                    )
+                    Text(
+                        text = "My Tasks",
+                        modifier = Modifier
+                            .weight(1f)
+                            .align(Alignment.CenterVertically),
+                        //modifier = Modifier.padding(start = 4.dp),
+                    )
+                    IconButton(onClick = { onPrevClickListener(startDate.date) }) {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowBack,
+                            contentDescription = "Previous"
+                        )
+                    }
+                    IconButton(onClick = { onNextClickListener(endDate.date) }) {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowForward,
+                            contentDescription = "Next"
+                        )
+                    }
+                    Button(onClick = onTodayClickListener) {
+                        Text("Today")
+                    }
+                }
+
+            }
+        }
 }
 
-
 @Composable
-fun TasksToAssign() {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 2.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column {
+fun VerticalTasksToAssign() {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(vertical = 2.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Text(
+                    text = "Your Tasks to complete",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+                LazyRow(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 4.dp)
+                    //.border(1.dp, Color.Gray),  // Aggiunge un bordo per visibilità
+                ) {
+                    items(5) {  // Assumiamo che ci possano essere 5 eventi per giorno
+                        EventItem()  // Questo elemento viene ripetuto, dovresti passare i dati reali qui
+                    }
+                }
+            }
+
+        }
+    }
+@Composable
+fun HorizontalDayEventScheduler(data: CalendarUiModel) {
+    Row(modifier = Modifier.fillMaxSize()) {
+        // Colonna sinistra con le date e gli eventi
+        Box(
+            modifier = Modifier
+                .weight(2.5f)//modifico questo per cambiare quanto è stretta la colonna di destra
+
+        ) {
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                items(items = data.visibleDates) { date ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(68.dp)
+                            .padding(vertical = 2.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        DayItem(date)
+                        // Row con i task assegnati per quel giorno
+                        LazyRow(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 4.dp)
+                                .border(1.dp, Color.Gray)  // Aggiunge un bordo per visibilità
+                        ) {
+                            items(5) { // Assumiamo che ci possano essere 5 eventi per giorno
+                                EventItem() // Questo elemento viene ripetuto, dovresti passare i dati reali qui
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Colonna destra con "Your Tasks to complete"
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+        ) {
             Text(
                 text = "Your Tasks to complete",
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.padding(start = 8.dp)
             )
-            LazyRow(
+            LazyColumn(
                 modifier = Modifier
-                    .weight(1f)
+                    .fillMaxWidth()
                     .padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 4.dp)
-                    //.border(1.dp, Color.Gray),  // Aggiunge un bordo per visibilità
             ) {
-                items(5) {  // Assumiamo che ci possano essere 5 eventi per giorno
-                    EventItem()  // Questo elemento viene ripetuto, dovresti passare i dati reali qui
+                items(5) { index -> // Sostituisci il 3 con il numero corretto di righe necessarie
+                    Row(
+                        //horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        EventItem() // Primo EventItem della riga
+                        EventItem() // Secondo EventItem della riga
+                    }
                 }
             }
         }
-
-    }
-}
-/*
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ContentItem(day: String, date: String) {
-    Card(
-        modifier = Modifier
-            .padding(vertical = 4.dp, horizontal = 4.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.tertiary
-        ),
-    ) {
-        Column(
-            modifier = Modifier
-                .width(40.dp)
-                .height(48.dp)
-                .padding(4.dp)
-        ) {
-            Text(
-                text = day,
-                modifier = Modifier.align(Alignment.CenterHorizontally),
-                style = MaterialTheme.typography.bodySmall
-            )
-            Text(
-                text = date,
-                modifier = Modifier.align(Alignment.CenterHorizontally),
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        }
     }
 }
 
-@Composable
-fun Content() {
-    LazyColumn {
-        items(items = List(7) { Pair("Sun", "21") }) { date ->
-            ContentItem(date.first, date.second)
-        }
-    }*/
