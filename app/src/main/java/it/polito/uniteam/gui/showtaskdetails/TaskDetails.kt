@@ -1,6 +1,6 @@
 package it.polito.uniteam.gui.showtaskdetails
 
-/*
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,8 +11,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -23,6 +29,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
@@ -31,6 +39,7 @@ import it.polito.uniteam.R
 import it.polito.uniteam.classes.MemberPreview
 import it.polito.uniteam.classes.Repetition
 import it.polito.uniteam.classes.Status
+import it.polito.uniteam.gui.newtask.taskCreation
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -129,15 +138,26 @@ class taskDetails : ViewModel(){
 
 
 
-    var estimatedHours by mutableIntStateOf(0)
+    var estimatedHours by mutableStateOf("")
         private set
     var estimatedHoursError by mutableStateOf("")
 
-    fun changeEstimatedHours(h: Int){
-        estimatedHours = h
+    fun changeEstimatedHours(h: String){
+        var check = h.toIntOrNull()
+        if(h == ""){
+            estimatedHours = ""
+        }
+        else if (check != null){
+            estimatedHours = h
+            estimatedHoursError = ""
+
+        }
+        else{
+            estimatedHoursError = "The value must be an Integer"
+        }
     }
     private fun checkEstimatedHours(){
-        if(estimatedHours < 0)
+        if(estimatedHours.toInt() < 0)
             estimatedHoursError = "Task estimated hours must be greater than 0"
         else
             estimatedHoursError = ""
@@ -145,15 +165,26 @@ class taskDetails : ViewModel(){
 
 
 
-    var spentHours by mutableIntStateOf(0)
+    var spentHours by mutableStateOf("")
         private set
     var spentHoursError by mutableStateOf("")
 
-    fun changeSpentHours(h: Int){
-        spentHours = h
+    fun changeSpentHours(h: String){
+        var check = h.toIntOrNull()
+        if(h == ""){
+            spentHours = ""
+        }
+        else if (check != null){
+            spentHours = h
+            spentHoursError = ""
+
+        }
+        else{
+            spentHoursError = "The value must be an Integer"
+        }
     }
     private fun checkSpentHours(){
-        if(spentHours < 0)
+        if(spentHours.toInt() < 0)
             spentHoursError = "Task spent hours must be greater than 0"
         else
             spentHoursError = ""
@@ -191,7 +222,7 @@ class taskDetails : ViewModel(){
 
 @Preview
 @Composable
-fun TaskDetailView(vm: taskDetails = viewModel() ){
+fun TaskDetailsView(vm: taskDetails = viewModel() ){
 
     Column(modifier = Modifier
         .fillMaxSize()
@@ -202,6 +233,7 @@ fun TaskDetailView(vm: taskDetails = viewModel() ){
         RowItem(title = "Category:", value =vm.category)
         RowItem(title = "Priority:", value =vm.priority)
         RowItem(title = "Deadline:", value =vm.deadline)
+        
         RowItem(title = "Estimated Hours:", value =vm.estimatedHours)
         RowItem(title = "Spent Hours:", value =vm.spentHours)
         RowItem(title = "Repeatable:", value =vm.repeatable)
@@ -277,6 +309,64 @@ fun RowMemberItem(modifier: Modifier = Modifier, title: String, value:List<Membe
     Spacer(modifier = Modifier.padding(5.dp))
 }
 
-*/
+
+
+
+@Preview
+@Composable
+fun EditTaskView(vm: taskDetails = viewModel() ){
+
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .verticalScroll(rememberScrollState())
+        .padding(10.dp, 0.dp)){
+        Spacer(modifier = Modifier.padding(10.dp))
+        EditRowItem(label = "Name:", value = vm.taskName, errorText =vm.taskError, onChange = vm::changeTaskName )
+        EditRowItem(label = "Description:", value =vm.description, errorText =vm.descriptionError, onChange =vm::changeDescription )
+        EditRowItem(label = "Category:", value =vm.category, errorText =vm.categoryError, onChange = vm::changeCategory )
+        EditRowItem(label = "Priority:", value =vm.priority, errorText =vm.priorityError, onChange =vm::changePriority )
+        EditRowItem(label = "Deadline:", value =vm.deadline, errorText =vm.deadlineError, onChange = vm::changeDeadline )
+        EditRowItem(label = "Estimated Hours:", value =vm.estimatedHours.toString(), errorText =vm.estimatedHoursError, onChange = vm::changeEstimatedHours)
+        EditRowItem(label = "Spent Hours:", value =vm.spentHours.toString(), errorText =vm.spentHoursError, onChange = vm::changeSpentHours )
+        DropdownMenuItem(
+            text = { Text("Label text") },
+            onClick = { /* Handle click */ },
+            leadingIcon = {
+                Icon(
+                    Icons.Default.Edit,
+                    contentDescription = null
+                )
+            })
+
+        //EditRowItem(label = "Repeatable:", value =vm.repeatable.toString(), errorText ="", onChange = vm::changeRepetition)
+        //EditRowItem(label = "Members:", value =vm.members, errorText =vm.membersError, onChange = vm:: )
+        //EditRowItem(label = "Status:", value =vm.state.toString(), errorText =vm.stateError, onChange = vm::changeState)
+    }
+}
+
+
+
+@Composable
+fun EditRowItem(value: String, keyboardType: KeyboardType = KeyboardType.Text, onChange: (String) -> Unit, label: String, errorText: String) {
+    OutlinedTextField(
+        value = value,
+        modifier = Modifier.fillMaxWidth(1f),
+        onValueChange = onChange,
+        label = {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)//testo
+            ) },
+        isError = errorText.isNotBlank(),
+        keyboardOptions = KeyboardOptions.Default.copy(
+            keyboardType = keyboardType,
+            imeAction = ImeAction.Done
+        ),
+
+        )
+    if (errorText.isNotBlank())
+        Text(errorText, color = MaterialTheme.colorScheme.error)
+}
+
 
 

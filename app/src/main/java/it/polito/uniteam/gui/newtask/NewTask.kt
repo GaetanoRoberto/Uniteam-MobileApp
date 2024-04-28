@@ -135,7 +135,15 @@ class taskCreation : ViewModel(){
     var estimatedHoursError by mutableStateOf("")
 
     fun changeEstimatedHours(h: String){
-        estimatedHours = h.toInt()
+        var check = h.toIntOrNull()
+        if (check != null){
+            estimatedHours = h.toInt()
+            estimatedHoursError = ""
+
+        }
+        else{
+            estimatedHoursError = "The value must be an Integer"
+        }
     }
     private fun checkEstimatedHours(){
         if(estimatedHours < 0)
@@ -192,11 +200,13 @@ class taskCreation : ViewModel(){
 
 @Preview
 @Composable
-fun TaskDetailView(vm: taskCreation = viewModel() ){
+fun NewTaskView(vm: taskCreation = viewModel() ){
 
     Column(modifier = Modifier
         .fillMaxSize()
-        .verticalScroll(rememberScrollState())){
+        .verticalScroll(rememberScrollState())
+        .padding(10.dp, 0.dp)){
+        Spacer(modifier = Modifier.padding(10.dp))
         EditRowItem(label = "Name:", value = vm.taskName, errorText =vm.nameError, onChange = vm::changeTaskName )
         EditRowItem(label = "Description:", value =vm.description, errorText =vm.descriptionError, onChange =vm::changeDescription )
         EditRowItem(label = "Category:", value =vm.category, errorText =vm.categoryError, onChange = vm::changeCategory )
@@ -226,7 +236,7 @@ fun TaskDetailView(vm: taskCreation = viewModel() ){
 fun EditRowItem(value: String, keyboardType: KeyboardType = KeyboardType.Text, onChange: (String) -> Unit, label: String, errorText: String) {
     OutlinedTextField(
         value = value,
-        modifier = Modifier.fillMaxWidth(0.8f),
+        modifier = Modifier.fillMaxWidth(1f),
         onValueChange = onChange,
         label = {
             Text(
