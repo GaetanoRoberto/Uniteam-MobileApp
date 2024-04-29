@@ -61,11 +61,10 @@ class taskDetails : ViewModel(){
     }
 
 
-
     var description by mutableStateOf("Description value")
         private set
     var descriptionError by mutableStateOf("")
-
+        private set
     fun changeDescription(s: String){
         description = s
     }
@@ -80,7 +79,7 @@ class taskDetails : ViewModel(){
     var category by mutableStateOf("Category value")
         private set
     var categoryError by mutableStateOf("")
-
+        private set
     fun changeCategory(s: String){
         category = s
     }
@@ -95,7 +94,7 @@ class taskDetails : ViewModel(){
     var priority by mutableStateOf("Priority value")
         private set
     var priorityError by mutableStateOf("")
-
+        private set
     fun changePriority(s: String){
         priority = s
     }
@@ -111,7 +110,7 @@ class taskDetails : ViewModel(){
     var deadline by mutableStateOf("Deadline value")
         private set
     var deadlineError by mutableStateOf("")
-
+        private set
     fun changeDeadline(s: String){
         deadline = s
     }
@@ -131,7 +130,7 @@ class taskDetails : ViewModel(){
     var state by mutableStateOf(Status.TODO)
         private set
     var stateError by mutableStateOf("")
-
+        private set
     fun changeState(s: Status){
         state = s
     }
@@ -141,7 +140,7 @@ class taskDetails : ViewModel(){
     var estimatedHours by mutableStateOf("")
         private set
     var estimatedHoursError by mutableStateOf("")
-
+        private set
     fun changeEstimatedHours(h: String){
         var check = h.toIntOrNull()
         if(h == ""){
@@ -150,7 +149,6 @@ class taskDetails : ViewModel(){
         else if (check != null){
             estimatedHours = h
             estimatedHoursError = ""
-
         }
         else{
             estimatedHoursError = "The value must be an Integer"
@@ -168,7 +166,7 @@ class taskDetails : ViewModel(){
     var spentHours by mutableStateOf("")
         private set
     var spentHoursError by mutableStateOf("")
-
+        private set
     fun changeSpentHours(h: String){
         var check = h.toIntOrNull()
         if(h == ""){
@@ -177,7 +175,6 @@ class taskDetails : ViewModel(){
         else if (check != null){
             spentHours = h
             spentHoursError = ""
-
         }
         else{
             spentHoursError = "The value must be an Integer"
@@ -194,7 +191,7 @@ class taskDetails : ViewModel(){
     var members = mutableStateOf<List<MemberPreview>>(listOf(MemberPreview("Nick"), MemberPreview("Nick2", R.drawable.user_icon_blue)))
         private set
     var membersError by mutableStateOf("")
-
+        private set
     fun addMembers(m: MemberPreview){
         members.value.toMutableList().add(m)
     }
@@ -208,17 +205,14 @@ class taskDetails : ViewModel(){
             spentHoursError = ""
     }
 
+
     var repeatable by mutableStateOf(Repetition.NONE)
         private set
     fun changeRepetition(r: Repetition){
         repeatable = r
     }
-
-
-
-
-
 }
+
 
 @Preview
 @Composable
@@ -244,72 +238,6 @@ fun TaskDetailsView(vm: taskDetails = viewModel() ){
 }
 
 
-@Composable
-fun RowItem(modifier: Modifier = Modifier, title: String, value: Any) {
-    Row(
-        modifier = Modifier.fillMaxWidth(0.8f),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-
-        Text(
-            title,
-            modifier = Modifier
-                .weight(1f)
-                .padding(16.dp, 0.dp),
-            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-        )
-
-    }
-    Row(
-        modifier = modifier,
-    ) {
-
-        Text(
-            value.toString(),
-            modifier = Modifier
-                .weight(1f)
-                .padding(16.dp, 0.dp),
-            style = MaterialTheme.typography.headlineSmall,
-        )
-    }
-    Spacer(modifier = Modifier.padding(5.dp))
-}
-
-@Composable
-fun RowMemberItem(modifier: Modifier = Modifier, title: String, value:List<MemberPreview> ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(0.8f),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-
-        Text(
-            title,
-            modifier = Modifier
-                .weight(1f)
-                .padding(16.dp, 0.dp),
-            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-        )
-
-    }
-    Row(
-        modifier = modifier,
-    ) {
-        for((i, member) in value.withIndex()){
-            Image(painter = painterResource(id = member.profileImage), contentDescription = "Image", modifier = Modifier.padding(12.dp,0.dp,0.dp,0.dp).size(30.dp, 30.dp))
-            Text(
-                member.username.toString() + if(i< value.size -1){","} else{""},
-                modifier = Modifier
-                    .padding(6.dp, 0.dp),
-                style = MaterialTheme.typography.headlineSmall,
-            )
-
-        }
-
-    }
-    Spacer(modifier = Modifier.padding(5.dp))
-}
-
-
 
 
 @Preview
@@ -326,8 +254,8 @@ fun EditTaskView(vm: taskDetails = viewModel() ){
         EditRowItem(label = "Category:", value =vm.category, errorText =vm.categoryError, onChange = vm::changeCategory )
         EditRowItem(label = "Priority:", value =vm.priority, errorText =vm.priorityError, onChange =vm::changePriority )
         EditRowItem(label = "Deadline:", value =vm.deadline, errorText =vm.deadlineError, onChange = vm::changeDeadline )
-        EditRowItem(label = "Estimated Hours:", value =vm.estimatedHours.toString(), errorText =vm.estimatedHoursError, onChange = vm::changeEstimatedHours)
-        EditRowItem(label = "Spent Hours:", value =vm.spentHours.toString(), errorText =vm.spentHoursError, onChange = vm::changeSpentHours )
+        EditRowItem(label = "Estimated Hours:", value =vm.estimatedHours, errorText =vm.estimatedHoursError, onChange = vm::changeEstimatedHours)
+        EditRowItem(label = "Spent Hours:", value =vm.spentHours, errorText =vm.spentHoursError, onChange = vm::changeSpentHours )
         DropdownMenuItem(
             text = { Text("Label text") },
             onClick = { /* Handle click */ },
@@ -337,11 +265,72 @@ fun EditTaskView(vm: taskDetails = viewModel() ){
                     contentDescription = null
                 )
             })
-
         //EditRowItem(label = "Repeatable:", value =vm.repeatable.toString(), errorText ="", onChange = vm::changeRepetition)
         //EditRowItem(label = "Members:", value =vm.members, errorText =vm.membersError, onChange = vm:: )
         //EditRowItem(label = "Status:", value =vm.state.toString(), errorText =vm.stateError, onChange = vm::changeState)
     }
+}
+
+
+
+@Composable
+fun RowItem(modifier: Modifier = Modifier, title: String, value: Any) {
+    Row(
+        modifier = Modifier.fillMaxWidth(0.8f),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            title,
+            modifier = Modifier
+                .weight(1f)
+                .padding(16.dp, 0.dp),
+            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+        )
+    }
+    Row(
+        modifier = modifier,
+    ) {
+        Text(
+            value.toString(),
+            modifier = Modifier
+                .weight(1f)
+                .padding(16.dp, 0.dp),
+            style = MaterialTheme.typography.headlineSmall,
+        )
+    }
+    Spacer(modifier = Modifier.padding(5.dp))
+}
+
+
+
+@Composable
+fun RowMemberItem(modifier: Modifier = Modifier, title: String, value:List<MemberPreview> ) {
+    Row(
+        modifier = Modifier.fillMaxWidth(0.8f),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            title,
+            modifier = Modifier
+                .weight(1f)
+                .padding(16.dp, 0.dp),
+            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+        )
+    }
+    Row(
+        modifier = modifier,
+    ) {
+        for((i, member) in value.withIndex()){
+            Image(painter = painterResource(id = member.profileImage), contentDescription = "Image", modifier = Modifier.padding(12.dp,0.dp,0.dp,0.dp).size(30.dp, 30.dp))
+            Text(
+                member.username.toString() + if(i< value.size -1){","} else{""},
+                modifier = Modifier
+                    .padding(6.dp, 0.dp),
+                style = MaterialTheme.typography.headlineSmall,
+            )
+        }
+    }
+    Spacer(modifier = Modifier.padding(5.dp))
 }
 
 
