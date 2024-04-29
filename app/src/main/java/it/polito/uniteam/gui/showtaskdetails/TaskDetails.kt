@@ -1,8 +1,10 @@
 package it.polito.uniteam.gui.showtaskdetails
 
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,17 +18,23 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -39,6 +47,7 @@ import it.polito.uniteam.R
 import it.polito.uniteam.classes.MemberPreview
 import it.polito.uniteam.classes.Repetition
 import it.polito.uniteam.classes.Status
+import it.polito.uniteam.classes.isRepetition
 import it.polito.uniteam.gui.newtask.taskCreation
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -206,11 +215,15 @@ class taskDetails : ViewModel(){
     }
 
 
-    var repeatable by mutableStateOf(Repetition.NONE)
+    var repeatable by mutableStateOf("")
         private set
-    fun changeRepetition(r: Repetition){
-        repeatable = r
+    val repeatableValues = listOf<String>(Repetition.NONE.toString(), Repetition.DAILY.toString(), Repetition.WEEKLY.toString(), Repetition.MONTHLY.toString())
+    fun changeRepetition(r: String){
+        if(r.isRepetition()){
+            repeatable = r
+        }
     }
+
 }
 
 
@@ -256,6 +269,9 @@ fun EditTaskView(vm: taskDetails = viewModel() ){
         EditRowItem(label = "Deadline:", value =vm.deadline, errorText =vm.deadlineError, onChange = vm::changeDeadline )
         EditRowItem(label = "Estimated Hours:", value =vm.estimatedHours, errorText =vm.estimatedHoursError, onChange = vm::changeEstimatedHours)
         EditRowItem(label = "Spent Hours:", value =vm.spentHours, errorText =vm.spentHoursError, onChange = vm::changeSpentHours )
+        Demo_ExposedDropdownMenuBox(vm.repeatableValues)
+
+        /*
         DropdownMenuItem(
             text = { Text("Label text") },
             onClick = { /* Handle click */ },
@@ -265,6 +281,7 @@ fun EditTaskView(vm: taskDetails = viewModel() ){
                     contentDescription = null
                 )
             })
+*/
         //EditRowItem(label = "Repeatable:", value =vm.repeatable.toString(), errorText ="", onChange = vm::changeRepetition)
         //EditRowItem(label = "Members:", value =vm.members, errorText =vm.membersError, onChange = vm:: )
         //EditRowItem(label = "Status:", value =vm.state.toString(), errorText =vm.stateError, onChange = vm::changeState)
@@ -321,7 +338,9 @@ fun RowMemberItem(modifier: Modifier = Modifier, title: String, value:List<Membe
         modifier = modifier,
     ) {
         for((i, member) in value.withIndex()){
-            Image(painter = painterResource(id = member.profileImage), contentDescription = "Image", modifier = Modifier.padding(12.dp,0.dp,0.dp,0.dp).size(30.dp, 30.dp))
+            Image(painter = painterResource(id = member.profileImage), contentDescription = "Image", modifier = Modifier
+                .padding(12.dp, 0.dp, 0.dp, 0.dp)
+                .size(30.dp, 30.dp))
             Text(
                 member.username.toString() + if(i< value.size -1){","} else{""},
                 modifier = Modifier
@@ -356,6 +375,57 @@ fun EditRowItem(value: String, keyboardType: KeyboardType = KeyboardType.Text, o
     if (errorText.isNotBlank())
         Text(errorText, color = MaterialTheme.colorScheme.error)
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun Demo_ExposedDropdownMenuBox(values: List<String>) {
+    val context = LocalContext.current
+    val values = values
+    var expanded by remember { mutableStateOf(false) }
+    var selectedText by remember { mutableStateOf(values[0]) }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(0.dp, 8.dp)
+
+    ) {
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = {
+                expanded = !expanded
+            },
+            modifier = Modifier.fillMaxWidth()
+
+        ) {
+            TextField(
+                value = selectedText,
+                onValueChange = {},
+                readOnly = true,
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                modifier = Modifier.menuAnchor().fillMaxWidth()
+            )
+
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                values.forEach { item ->
+                    DropdownMenuItem(
+                        text = { Text(text = item) },
+                        onClick = {
+                            selectedText = item
+                            expanded = false
+                            Toast.makeText(context, item, Toast.LENGTH_SHORT).show()
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+
 
 
 
