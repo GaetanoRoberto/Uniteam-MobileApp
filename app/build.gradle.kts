@@ -60,6 +60,9 @@ dependencies {
     implementation ("androidx.camera:camera-extensions:${cameraxVersion}")
     implementation("io.coil-kt:coil-compose:2.6.0")
 
+    implementation("com.maxkeppeler.sheets-compose-dialogs:core:1.2.0")
+    implementation("com.maxkeppeler.sheets-compose-dialogs:calendar:1.2.0")
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
