@@ -288,12 +288,11 @@ fun EditTaskView(vm: taskDetails = viewModel() ){
         EditRowItem(label = "Description:", value =vm.description, errorText =vm.descriptionError, onChange =vm::changeDescription )
         EditRowItem(label = "Category:", value =vm.category, errorText =vm.categoryError, onChange = vm::changeCategory )
         EditRowItem(label = "Priority:", value =vm.priority, errorText =vm.priorityError, onChange =vm::changePriority )
-        EditRowItem(label = "Deadline:", value =vm.deadline, errorText =vm.deadlineError, onChange = vm::changeDeadline )
+        CustomDatePickerPreview("Deadline", vm.deadline, vm::changeDeadline)
         EditRowItem(label = "Estimated Hours:", value =vm.estimatedHours, errorText =vm.estimatedHoursError, onChange = vm::changeEstimatedHours)
         EditRowItem(label = "Spent Hours:", value =vm.spentHours, errorText =vm.spentHoursError, onChange = vm::changeSpentHours )
         Demo_ExposedDropdownMenuBox("Repeatable", vm.repeatable, vm.repeatableValues, vm::changeRepetition)
         Demo_ExposedDropdownMenuBox("Status",vm.state, vm.possibleStates, vm::changeState)
-        CustomDatePickerPreview("Deadline", vm.deadline, vm::changeDeadline)
         //EditRowItem(label = "Members:", value =vm.members, errorText =vm.membersError, onChange = vm:: )
     }
 }
@@ -388,6 +387,8 @@ fun EditRowItem(value: String, keyboardType: KeyboardType = KeyboardType.Text, o
 
 }
 
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Demo_ExposedDropdownMenuBox(label: String, currentValue: String, values: List<String>, onChange: (String) -> Unit) {
@@ -410,7 +411,7 @@ fun Demo_ExposedDropdownMenuBox(label: String, currentValue: String, values: Lis
             modifier = Modifier.fillMaxWidth()
 
         ) {
-            TextField(
+            OutlinedTextField(
                 label = {
                     Text(
                         text = label,
@@ -482,7 +483,7 @@ fun CustomDatePicker(
         )
     }
 
-    TextField(
+    OutlinedTextField(
         label = {
             Text(
                 text = label,
@@ -515,6 +516,8 @@ fun CustomDatePickerPreview(label: String, value: String, onChange: (String) -> 
          value = dt,
          onValueChange = {onChange(it.toString())}
         )
+    Spacer(modifier = Modifier.padding(5.dp))
+
 
 }
 
