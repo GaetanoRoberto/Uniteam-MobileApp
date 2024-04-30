@@ -1,6 +1,7 @@
 package it.polito.uniteam.gui.showtaskdetails
 
 
+import android.graphics.drawable.Icon
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -19,11 +20,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -423,7 +427,10 @@ fun MembersDropdownMenuBox(label: String, currentValue: MutableState<MutableList
                 leadingIcon = {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(0.dp, 0.dp, 5.dp, 0.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState())
+                            .padding(0.dp, 0.dp, 5.dp, 0.dp)
                     ) {
                         selectedText.forEachIndexed { index, pair ->
                             Image(
@@ -459,24 +466,31 @@ fun MembersDropdownMenuBox(label: String, currentValue: MutableState<MutableList
                 ) {
                     values.forEachIndexed {i, item ->
                         val isSelected = selectedText.contains(item)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            DropdownMenuItem(
 
-                        DropdownMenuItem(
-                            text = { Text(text = item.username.toString()) },
-                            onClick = {
+                                text = { Text(text = item.username.toString()) },
+                                onClick = {
                                     if (isSelected) {
                                         removeMember(item)
                                     } else {
                                         addMember(item)
                                     }
-                                expanded = false
-                                Toast.makeText(context, item.username.toString(), Toast.LENGTH_SHORT).show()
-                            },
+                                    expanded = false
+                                    Toast.makeText(context, item.username.toString(), Toast.LENGTH_SHORT).show()
+                                },
+                                modifier = Modifier.fillMaxWidth(0.8f)
 
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                                )
+                            if(item in currentValue.value){
+                                Icon(Icons.Default.Check, contentDescription= "Check icon", tint = Color.Green)
+                            }
+
+                        }
                         if(i != values.size -1){
                             Divider(modifier = Modifier.padding(8.dp, 0.dp, 8.dp, 0.dp))
                         }
+
 
                     }
                 }
