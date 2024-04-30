@@ -2,15 +2,12 @@ package it.polito.uniteam.gui.showtaskdetails
 
 
 import android.widget.Toast
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,34 +17,26 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -67,10 +56,8 @@ import it.polito.uniteam.classes.MemberPreview
 import it.polito.uniteam.classes.Repetition
 import it.polito.uniteam.classes.Status
 import it.polito.uniteam.classes.isRepetition
-import it.polito.uniteam.gui.newtask.taskCreation
 import java.text.SimpleDateFormat
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -220,15 +207,16 @@ class taskDetails : ViewModel(){
     }
 
 
-    var members = mutableStateOf<List<MemberPreview>>(listOf(MemberPreview("Nick"), MemberPreview("Nick2", R.drawable.user_icon_blue)))
+    var members = mutableStateOf(mutableListOf(MemberPreview("Nick"),MemberPreview("Nick2", R.drawable.user_icon_blue)))
         private set
+    val possilbleMembersPreview = listOf(MemberPreview("Nick"),MemberPreview("Nick2", R.drawable.user_icon_blue),MemberPreview("Nick3", R.drawable.user_icon_blue) )
     var membersError by mutableStateOf("")
         private set
     fun addMembers(m: MemberPreview){
-        members.value.toMutableList().add(m)
+        members.value = members.value.toMutableList().apply { add(m) }
     }
     fun removeMembers(m: MemberPreview){
-        members.value.toMutableList().remove(m)
+        members.value = members.value.toMutableList().apply { remove(m) }
     }
     private fun checkMembers(){
         if(members.value.count() <0)
@@ -293,6 +281,7 @@ fun EditTaskView(vm: taskDetails = viewModel() ){
         EditRowItem(label = "Spent Hours:", value =vm.spentHours, errorText =vm.spentHoursError, onChange = vm::changeSpentHours )
         Demo_ExposedDropdownMenuBox("Repeatable", vm.repeatable, vm.repeatableValues, vm::changeRepetition)
         Demo_ExposedDropdownMenuBox("Status",vm.state, vm.possibleStates, vm::changeState)
+        MembersDropdownMenuBox("AddMembers",vm.members, vm.possilbleMembersPreview, vm::addMembers, vm::removeMembers)
         //EditRowItem(label = "Members:", value =vm.members, errorText =vm.membersError, onChange = vm:: )
     }
 }
@@ -323,7 +312,10 @@ fun RowItem(modifier: Modifier = Modifier, title: String, value: Any) {
                 .padding(16.dp, 0.dp),
             style = MaterialTheme.typography.headlineSmall,
         )
+
     }
+    Divider(modifier = Modifier.padding(10.dp, 0.dp, 10.dp, 0.dp))
+
     Spacer(modifier = Modifier.padding(5.dp))
 }
 
@@ -358,6 +350,7 @@ fun RowMemberItem(modifier: Modifier = Modifier, title: String, value:List<Membe
             )
         }
     }
+    Divider(modifier = Modifier.padding(10.dp, 2.dp, 10.dp, 0.dp))
     Spacer(modifier = Modifier.padding(5.dp))
 }
 
@@ -385,6 +378,111 @@ fun EditRowItem(value: String, keyboardType: KeyboardType = KeyboardType.Text, o
         Text(errorText, color = MaterialTheme.colorScheme.error)
     Spacer(modifier = Modifier.padding(5.dp))
 
+}
+
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MembersDropdownMenuBox(label: String, currentValue: MutableState<MutableList<MemberPreview>>, possibleValues: List<MemberPreview>, addMember: (MemberPreview) -> Unit, removeMember: (MemberPreview) -> Unit) {
+    val context = LocalContext.current
+    val values = possibleValues
+    var expanded by remember { mutableStateOf(false) }
+    var selectedText = currentValue.value.toMutableList()
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(0.dp, 8.dp)
+
+    ) {
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = {
+                expanded = !expanded
+            },
+            modifier = Modifier.fillMaxWidth()
+
+        ) {
+
+            OutlinedTextField(
+                label = {
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)
+                    )
+                },
+                value = " ",
+                onValueChange = {},
+                readOnly = true,
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)  },
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth()
+                    ,
+                leadingIcon = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(0.dp, 0.dp, 5.dp, 0.dp)
+                    ) {
+                        selectedText.forEachIndexed { index, pair ->
+                            Image(
+                                painter = painterResource(id = pair.profileImage),
+                                contentDescription = "Image",
+                                modifier = Modifier
+                                    .padding(start = if (index == 0) 12.dp else 0.dp) // Add padding only for the first image
+                                    .size(25.dp, 25.dp)
+                            )
+                            Text(
+                                text = pair.username.toString() + if(index < selectedText.size -1){" ,"}else{""},
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(start = 4.dp)
+                            )
+                            if (index < selectedText.size - 1) {
+                                Spacer(modifier = Modifier.width(4.dp)) // Add spacing between images and texts
+                            }
+                        }
+                    }
+                }
+                
+            )
+
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.background(color = Color.White) // Set background color to avoid transparency
+            ) {
+                Column(
+                    modifier = Modifier
+                        .background(color = Color.White)
+                        .heightIn(0.dp, 200.dp) // Set max height to limit the dropdown size
+                ) {
+                    values.forEachIndexed {i, item ->
+                        val isSelected = selectedText.contains(item)
+
+                        DropdownMenuItem(
+                            text = { Text(text = item.username.toString()) },
+                            onClick = {
+                                    if (isSelected) {
+                                        removeMember(item)
+                                    } else {
+                                        addMember(item)
+                                    }
+                                expanded = false
+                                Toast.makeText(context, item.username.toString(), Toast.LENGTH_SHORT).show()
+                            },
+
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        if(i != values.size -1){
+                            Divider(modifier = Modifier.padding(8.dp, 0.dp, 8.dp, 0.dp))
+                        }
+
+                    }
+                }
+            }
+        }
+    }
 }
 
 
@@ -489,10 +587,11 @@ fun CustomDatePicker(
                 text = label,
                 style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)//testo
             ) },
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .clickable { //Click event
-            open.value = true
-        },
+                open.value = true
+            },
         enabled = false,// <- Add this to make click event work
         value = value.format(DateTimeFormatter.ISO_DATE) ,
         onValueChange = {},
