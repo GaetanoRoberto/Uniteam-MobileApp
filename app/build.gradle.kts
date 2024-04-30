@@ -59,7 +59,7 @@ dependencies {
     implementation ("androidx.camera:camera-view:${cameraxVersion}")
     implementation ("androidx.camera:camera-extensions:${cameraxVersion}")
     implementation("io.coil-kt:coil-compose:2.6.0")
-
+    implementation("com.mohamedrejeb.dnd:compose-dnd:0.2.0")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

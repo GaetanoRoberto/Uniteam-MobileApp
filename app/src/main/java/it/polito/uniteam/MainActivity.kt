@@ -2,7 +2,7 @@ package it.polito.uniteam
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.graphics.drawable.Icon
+import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -20,7 +20,6 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
-import it.polito.uniteam.gui.userprofile.FormScreen
 import it.polito.uniteam.gui.userprofile.UserProfileScreen
 import it.polito.uniteam.ui.theme.UniTeamTheme
 import java.io.File
@@ -30,13 +29,11 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
@@ -45,19 +42,17 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import it.polito.uniteam.gui.calendar.Calendar
-import it.polito.uniteam.gui.calendar.CalendarAppPreview
+import it.polito.uniteam.gui.calendar.CalendarAppContainer
 
 class MainActivity : ComponentActivity() {
 
@@ -122,7 +117,7 @@ class MainActivity : ComponentActivity() {
                             cameraExecutor = cameraExecutor,
                             pickImageLauncher = pickImageLauncher
                         )*/
-                        CalendarAppPreview()
+                        CalendarAppContainer(vm = viewModel())
                     }
                     BottomBar()
                 }}
@@ -227,6 +222,8 @@ fun BottomBar(vm: UserProfileScreen = viewModel()){
     )
 }
 
-
-
-
+@Composable
+fun isVertical(): Boolean {
+    val context = LocalContext.current
+    return context.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
+}
