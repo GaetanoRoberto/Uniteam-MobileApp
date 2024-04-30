@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +22,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenuItem
@@ -28,6 +30,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -40,6 +43,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -213,7 +217,7 @@ class taskDetails : ViewModel(){
 
     var members = mutableStateOf(mutableListOf(MemberPreview("Nick"),MemberPreview("Nick2", R.drawable.user_icon_blue)))
         private set
-    val possilbleMembersPreview = listOf(MemberPreview("Nick"),MemberPreview("Nick2", R.drawable.user_icon_blue),MemberPreview("Nick3", R.drawable.user_icon_blue) )
+    val possilbleMembersPreview = listOf(MemberPreview("Nick"),MemberPreview("Nick2", R.drawable.user_icon_blue),MemberPreview("Nick3", R.drawable.user_icon_blue),MemberPreview("Nick4", R.drawable.user_icon_blue),MemberPreview("Nick5", R.drawable.user_icon_blue),MemberPreview("Nick6", R.drawable.user_icon_blue),MemberPreview("Nick7", R.drawable.user_icon_blue) )
     var membersError by mutableStateOf("")
         private set
     fun addMembers(m: MemberPreview){
@@ -419,7 +423,7 @@ fun MembersDropdownMenuBox(label: String, currentValue: MutableState<MutableList
                 value = " ",
                 onValueChange = {},
                 readOnly = true,
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)  },
+                trailingIcon = { Icon(Icons.Default.Add, contentDescription = "Add ") },
                 modifier = Modifier
                     .menuAnchor()
                     .fillMaxWidth()
@@ -428,7 +432,7 @@ fun MembersDropdownMenuBox(label: String, currentValue: MutableState<MutableList
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .fillMaxWidth(0.85f)
                             .horizontalScroll(rememberScrollState())
                             .padding(0.dp, 0.dp, 5.dp, 0.dp)
                     ) {
@@ -463,6 +467,7 @@ fun MembersDropdownMenuBox(label: String, currentValue: MutableState<MutableList
                     modifier = Modifier
                         .background(color = Color.White)
                         .heightIn(0.dp, 200.dp) // Set max height to limit the dropdown size
+                        .verticalScroll(rememberScrollState())
                 ) {
                     values.forEachIndexed {i, item ->
                         val isSelected = selectedText.contains(item)
@@ -476,15 +481,18 @@ fun MembersDropdownMenuBox(label: String, currentValue: MutableState<MutableList
                                     } else {
                                         addMember(item)
                                     }
-                                    expanded = false
+                                    //expanded = false if you want to close the dropdown any time you click on a member item
                                     Toast.makeText(context, item.username.toString(), Toast.LENGTH_SHORT).show()
                                 },
-                                modifier = Modifier.fillMaxWidth(0.8f)
+                                modifier = Modifier.fillMaxWidth(),
+                                trailingIcon = {if(item in currentValue.value){
+                                    Icon(Icons.Default.Check, contentDescription= "Check icon", tint = Color.Green)
+                                }}
 
-                                )
-                            if(item in currentValue.value){
-                                Icon(Icons.Default.Check, contentDescription= "Check icon", tint = Color.Green)
-                            }
+
+                            )
+
+
 
                         }
                         if(i != values.size -1){
