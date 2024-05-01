@@ -1,6 +1,7 @@
 package it.polito.uniteam.gui.showtaskdetails
 
 
+import android.graphics.Paint.Align
 import android.graphics.drawable.Icon
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -26,6 +27,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -144,12 +146,12 @@ class taskDetails : ViewModel(){
     fun changeDeadline(s: String){
         deadline = s
     }
-    private fun checkDeadline(dateStr: String, format: String){
+    private fun checkDeadline(){
         val dateFormat = "yyyy-MM-dd"
-        val sdf = SimpleDateFormat(format, Locale.getDefault())
+        val sdf = SimpleDateFormat(dateFormat, Locale.getDefault())
         sdf.isLenient = false
         try {
-            sdf.parse(dateStr)
+            sdf.parse(deadline)
             deadlineError = ""
         } catch (e: Exception) {
             deadlineError = "Invalid date"
@@ -186,7 +188,10 @@ class taskDetails : ViewModel(){
         }
     }
     private fun checkEstimatedHours(){
-        if(estimatedHours.toInt() < 0)
+        if(estimatedHours == ""){
+            estimatedHoursError = "Task estimated hours cannot be blank!"
+        }
+        else if(estimatedHours.toInt() < 0)
             estimatedHoursError = "Task estimated hours must be greater than 0"
         else
             estimatedHoursError = ""
@@ -212,7 +217,10 @@ class taskDetails : ViewModel(){
         }
     }
     private fun checkSpentHours(){
-        if(spentHours.toInt() < 0)
+        if(spentHours == ""){
+            spentHoursError = "Task estimated hours cannot be blank!"
+        }
+        else if(spentHours.toInt() < 0)
             spentHoursError = "Task spent hours must be greater than 0"
         else
             spentHoursError = ""
@@ -231,10 +239,10 @@ class taskDetails : ViewModel(){
         members.value = members.value.toMutableList().apply { remove(m) }
     }
     private fun checkMembers(){
-        if(members.value.count() <0)
-            spentHoursError = "Almost a member should be assigned"
+        if(members.value.count() <=0)
+            membersError = "Almost a member should be assigned"
         else
-            spentHoursError = ""
+            membersError = ""
     }
 
 
@@ -245,6 +253,83 @@ class taskDetails : ViewModel(){
         if(r.isRepetition()){
             repeatable = r
         }
+    }
+
+    fun validate(){
+        checkTaskName()
+        checkDescription()
+        checkCategory()
+        checkPriority()
+        checkDeadline()
+        checkEstimatedHours()
+        checkSpentHours()
+        //checkMembers()
+
+    }
+
+    var editing by mutableStateOf(false)
+    fun changeEditing(){
+        editing = !editing
+    }
+
+
+    // before states to cancel an edit
+    var taskNameBefore = ""
+    var descriptionBefore= ""
+    var categoryBefore = ""
+    var priorityBefore = ""
+    var deadlineBefore = ""
+    var estimateHoursBefore = ""
+    var spentHoursBefore = ""
+    var repeatableBefore = ""
+    var statusBefore = ""
+    var membersBefore = mutableListOf<MemberPreview>()
+
+    fun enterEditingMode(){
+        taskNameBefore = taskName
+        descriptionBefore = description
+        categoryBefore = category
+        priorityBefore = priority
+        deadlineBefore = deadline
+        estimateHoursBefore = estimatedHours
+        spentHoursBefore = spentHours
+        repeatableBefore = repeatable
+        statusBefore = state
+        membersBefore = members.value
+    }
+
+    fun cancelEdit(){
+         taskName = taskNameBefore
+         description =descriptionBefore
+         category = categoryBefore
+         priority = priorityBefore
+         deadline = deadlineBefore
+         estimatedHours = estimateHoursBefore
+         spentHours = spentHoursBefore
+         repeatable = repeatableBefore
+         state = statusBefore
+         members.value = membersBefore
+
+        taskError = ""
+        descriptionError = ""
+        categoryError= ""
+        priorityError = ""
+        deadlineError = ""
+        estimatedHoursError = ""
+        spentHoursError = ""
+        membersError = ""
+    }
+
+}
+
+@Preview
+@Composable
+fun TaskScreen(vm: taskDetails = viewModel()) {
+    if(vm.editing){
+        EditTaskView()
+    }
+    else{
+        TaskDetailsView()
     }
 
 }
@@ -258,6 +343,15 @@ fun TaskDetailsView(vm: taskDetails = viewModel() ){
         .fillMaxSize()
         .verticalScroll(rememberScrollState())){
         Spacer(modifier = Modifier.padding(10.dp))
+        Row(modifier = Modifier.fillMaxWidth(0.95f), horizontalArrangement = Arrangement.End) {
+            IconButton(onClick = {
+                vm.changeEditing()
+                vm.enterEditingMode()
+            }) {
+                Icon(Icons.Default.Edit, contentDescription = "Add ")
+            }
+        }
+
         RowItem(title = "Name:", value =vm.taskName)
         RowItem(title = "Description:", value =vm.description)
         RowItem(title = "Category:", value =vm.category)
@@ -293,7 +387,7 @@ fun EditTaskView(vm: taskDetails = viewModel() ){
         EditRowItem(label = "Spent Hours:", value =vm.spentHours, errorText =vm.spentHoursError, onChange = vm::changeSpentHours )
         Demo_ExposedDropdownMenuBox("Repeatable", vm.repeatable, vm.repeatableValues, vm::changeRepetition)
         Demo_ExposedDropdownMenuBox("Status",vm.state, vm.possibleStates, vm::changeState)
-        MembersDropdownMenuBox("AddMembers",vm.members, vm.possilbleMembersPreview, vm::addMembers, vm::removeMembers)
+        MembersDropdownMenuBox("AddMembers",vm.members, vm.possilbleMembersPreview, vm::addMembers, vm::removeMembers, vm.membersError)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -302,13 +396,21 @@ fun EditTaskView(vm: taskDetails = viewModel() ){
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(modifier = Modifier.weight(1f)) {
-                TextButton(onClick = { /*TODO*/ }, modifier = Modifier.fillMaxWidth()) {
+                TextButton(onClick = {
+                    vm.validate()
+                    if(vm.taskError == "" && vm.descriptionError == "" && vm.categoryError == "" && vm.deadlineError == "" && vm.estimatedHoursError == "" && vm.spentHoursError == "" && vm.priorityError == "" ){
+                        vm.changeEditing()
+                    }
+                                     }, modifier = Modifier.fillMaxWidth()) {
                     Text(text = "Save", style = MaterialTheme.typography.bodyLarge)
                 }
             }
             Spacer(modifier = Modifier.width(15.dp))
             Box(modifier = Modifier.weight(1f)) {
-                TextButton(onClick = { /*TODO*/ }, modifier = Modifier.fillMaxWidth()) {
+                TextButton(onClick = {
+                    vm.cancelEdit()
+                    vm.changeEditing()
+                                     }, modifier = Modifier.fillMaxWidth()) {
                     Text(text = "Cancel", style = MaterialTheme.typography.bodyLarge)
                 }
             }
@@ -415,7 +517,7 @@ fun EditRowItem(value: String, keyboardType: KeyboardType = KeyboardType.Text, o
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MembersDropdownMenuBox(label: String, currentValue: MutableState<MutableList<MemberPreview>>, possibleValues: List<MemberPreview>, addMember: (MemberPreview) -> Unit, removeMember: (MemberPreview) -> Unit) {
+fun MembersDropdownMenuBox(label: String, currentValue: MutableState<MutableList<MemberPreview>>, possibleValues: List<MemberPreview>, addMember: (MemberPreview) -> Unit, removeMember: (MemberPreview) -> Unit, errorText: String) {
     val context = LocalContext.current
     val values = possibleValues
     var expanded by remember { mutableStateOf(false) }
@@ -451,6 +553,7 @@ fun MembersDropdownMenuBox(label: String, currentValue: MutableState<MutableList
                     .menuAnchor()
                     .fillMaxWidth()
                     ,
+                //isError = errorText.isNotBlank(),
                 leadingIcon = {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -480,6 +583,7 @@ fun MembersDropdownMenuBox(label: String, currentValue: MutableState<MutableList
                 }
                 
             )
+
 
             ExposedDropdownMenu(
                 expanded = expanded,
@@ -518,16 +622,25 @@ fun MembersDropdownMenuBox(label: String, currentValue: MutableState<MutableList
 
 
                         }
+
                         if(i != values.size -1){
                             Divider(modifier = Modifier.padding(8.dp, 0.dp, 8.dp, 0.dp))
                         }
 
 
+
                     }
                 }
             }
+
         }
+
+
     }
+    /*
+    if (errorText.isNotBlank())
+        Text(errorText, color = MaterialTheme.colorScheme.error)*/
+
 }
 
 
