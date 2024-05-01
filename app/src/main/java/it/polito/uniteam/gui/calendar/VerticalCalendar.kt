@@ -51,6 +51,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -62,6 +63,7 @@ import com.mohamedrejeb.compose.dnd.drag.DraggableItem
 import com.mohamedrejeb.compose.dnd.drop.dropTarget
 import com.mohamedrejeb.compose.dnd.rememberDragAndDropState
 import it.polito.uniteam.R
+import it.polito.uniteam.classes.MemberIcon
 import it.polito.uniteam.classes.Task
 import it.polito.uniteam.isVertical
 import java.time.LocalDate
@@ -88,10 +90,18 @@ fun CalendarAppContainer(vm: Calendar = viewModel()) {
         }
     }
     if (vm.taskToSchedule != null) {
-        ScheduleTaskDialog(taskScheduleDatePair = vm.taskToSchedule!!, vm = vm)
-    }
-    if (vm.haveNoPermission) {
-        NoPermissionDialog(vm = vm)
+        when (vm.selectedShowDialog) {
+            showDialog.schedule_task -> {
+                ScheduleTaskDialog(vm = vm)
+            }
+            showDialog.no_permission -> {
+                NoPermissionDialog(vm = vm)
+            }
+            showDialog.schedule_in_past -> {
+                ScheduleBackInTimeDialog(vm = vm)
+            }
+            showDialog.none -> {}
+        }
     }
 }
 
@@ -240,23 +250,18 @@ fun EventItem(task: Task, date: LocalDate? = null, isScheduled: Boolean) {
                 .padding(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            task.members.forEach { member ->
-                val painter = if (member.profileImage != null) {
-                    rememberAsyncImagePainter(
-                        ImageRequest
-                            .Builder(LocalContext.current)
-                            .data(data = member.profileImage)
-                            .build()
+            // handle if more than two members, display ...
+            task.members.forEachIndexed { index, member ->
+                if (index < 2) {
+                    MemberIcon(
+                        modifierScale = Modifier.scale(0.6f),
+                        modifierPadding = Modifier.padding(0.dp, 0.dp, 10.dp, 10.dp),
+                        member = member
                     )
-                } else {
-                    painterResource(id = R.drawable.user_icon)
                 }
-                Icon(
-                    painter = painter,
-                    contentDescription = "Profile",
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))  // Distanziamento tra le icone
+            }
+            if (task.members.size > 2) {
+                Text(text = "...", color = Color.White)
             }
         }
     }
@@ -319,32 +324,52 @@ fun VerticalDayEventScheduler(
                                     state = dragAndDropState,
                                     key = date.hashCode(), // Unique key for each drop target
                                     onDrop = { state -> // Data passed from the draggable item
-                                        // Check if the user is a member and can edit this task, otherwise block
                                         // take the date to schedule from the currentDate
-                                        vm.checkPermission(state.data.first)
-                                        if (!vm.haveNoPermission) {
-                                            if (state.data.second != null) {
-                                                // data passed from the DraggableItem, so move from 1 day to another
-                                                val task = state.data.first
-                                                val oldDate = state.data.second
-                                                val hoursToSchedule = task.schedules.get(oldDate)
-                                                // remove the old day scheduled and add the new one
-                                                vm.unScheduleTask(task, oldDate!!)
-                                                if (hoursToSchedule != null) {
-                                                    vm.scheduleTask(
-                                                        task,
-                                                        currentDate.value.date,
-                                                        hoursToSchedule
-                                                    )
-                                                }
-                                            } else {
-                                                // no data passed from the DraggableItem, so coming from the bottom
-                                                // trigger the alert as usual
-                                                vm.assignTaskToSchedule(
-                                                    Pair(
-                                                        state.data.first,
-                                                        currentDate.value.date
-                                                    )
+                                        if (state.data.second != null) {
+                                            // data passed from the DraggableItem, so move from 1 day to another
+                                            vm.checkDialogs(
+                                                state.data.first,
+                                                currentDate.value.date,
+                                                isNewSchedule = false
+                                            )
+                                            // trigger dialog
+                                            vm.assignTaskToSchedule(
+                                                Triple(
+                                                    state.data.first,
+                                                    state.data.second!!,
+                                                    currentDate.value.date
+                                                )
+                                            )
+                                        } else {
+                                            // no data passed from the DraggableItem, so coming from the bottom
+                                            vm.checkDialogs(
+                                                state.data.first,
+                                                currentDate.value.date,
+                                                isNewSchedule = true
+                                            )
+                                            // trigger dialog
+                                            vm.assignTaskToSchedule(
+                                                Triple(
+                                                    state.data.first,
+                                                    null,
+                                                    currentDate.value.date
+                                                )
+                                            )
+                                        }
+
+                                        if (vm.selectedShowDialog == showDialog.none) {
+                                            // no new schedule, simply reschedule without dialogs
+                                            // data passed from the DraggableItem, so move from 1 day to another
+                                            val task = state.data.first
+                                            val oldDate = state.data.second
+                                            val hoursToSchedule = task.schedules.get(oldDate)
+                                            // remove the old day scheduled and add the new one
+                                            vm.unScheduleTask(task, oldDate!!)
+                                            if (hoursToSchedule != null) {
+                                                vm.scheduleTask(
+                                                    task,
+                                                    currentDate.value.date,
+                                                    hoursToSchedule
                                                 )
                                             }
                                         }
@@ -409,12 +434,22 @@ fun VerticalTasksToAssign(
                         state = dragAndDropState,
                         key = Int.MAX_VALUE, // Unique key for each drop target
                         onDrop = { state -> // Data passed from the draggable item
-                            // Check if the user is a member and can edit this task, otherwise block
-                            vm.checkPermission(state.data.first)
-                            if (!vm.haveNoPermission) {
-                                // Unschedule only if the data was passed, otherwise already unscheduled
-                                if (state.data.second != null)
+                            // Unschedule only if the data was passed, otherwise already unscheduled
+                            if (state.data.second != null) {
+                                vm.checkDialogs(state.data.first, state.data.second!!)
+                                // Unschedule only if i have the permission to do it
+                                if (vm.selectedShowDialog != showDialog.no_permission) {
                                     vm.unScheduleTask(state.data.first, state.data.second!!)
+                                } else {
+                                    // trigger the no permission alert
+                                    vm.assignTaskToSchedule(
+                                        Triple(
+                                            state.data.first,
+                                            null,
+                                            state.data.second!!
+                                        )
+                                    )
+                                }
                             }
                         }
                     )
@@ -435,95 +470,3 @@ fun VerticalTasksToAssign(
     }
 }
 
-// BOTH VERTICAL AND HORIZONTAL
-@Composable
-fun ScheduleTaskDialog(
-    taskScheduleDatePair: Pair<Task, LocalDate?>,
-    vm: Calendar = viewModel()
-) {
-    val scheduledHours = remember { mutableStateOf("") }
-    val isError = remember { mutableStateOf("") }
-    val onConfirmation = {
-        val schedulableHours =
-            taskScheduleDatePair.first.estimatedHours - taskScheduleDatePair.first.schedules.values.sumOf { it }
-        if (scheduledHours.value.isNotEmpty() && scheduledHours.value.toInt() > schedulableHours) {
-            isError.value = "The Hours Inserted exceed The Schedulable Ones."
-        } else if (scheduledHours.value.isNotEmpty() && scheduledHours.value.toInt() == 0) {
-            isError.value = "You Need To Schedule At Least One Hour."
-        } else {
-            isError.value = ""
-            vm.scheduleTask(
-                taskScheduleDatePair.first,
-                taskScheduleDatePair.second!!,
-                scheduledHours.value.toInt()
-            )
-            vm.assignTaskToSchedule(null)
-        }
-    }
-
-    AlertDialog(
-        modifier = Modifier.scale(0.8f),
-        icon = {
-            Icon(Icons.Default.DateRange, contentDescription = "Schedule Task")
-        },
-        title = {
-            Text(text = "Insert The Hours to Schedule the Task:", color = Color.White)
-        },
-        text = {
-            Column {
-                TextField(value = scheduledHours.value,
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Number,
-                        imeAction = ImeAction.Done
-                    ),
-                    onValueChange = { value ->
-                        scheduledHours.value = value
-                    })
-                if (isError.value.isNotEmpty())
-                    Text(isError.value, color = MaterialTheme.colorScheme.error)
-            }
-        },
-        onDismissRequest = {},
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    onConfirmation()
-                }
-            ) {
-                Text("Schedule Task", color = MaterialTheme.colorScheme.onPrimary)
-            }
-        },
-        dismissButton = {
-            TextButton(
-                onClick = {
-                    vm.assignTaskToSchedule(null)
-                }
-            ) {
-                Text("Undo", color = MaterialTheme.colorScheme.onPrimary)
-            }
-        }
-    )
-}
-
-@Composable
-fun NoPermissionDialog(vm: Calendar = viewModel()) {
-    AlertDialog(
-        icon = {
-            Icon(Icons.Default.Close, contentDescription = "Permission Denied")
-        },
-        title = {
-            Text(text = "Permission Denied")
-        },
-        text = {
-            Text(text = "You cannot edit this task, since you are not a member of it.")
-        },
-        onDismissRequest = {},
-        confirmButton = {
-            TextButton(
-                onClick = { vm.closePermissionDialog() }
-            ) {
-                Text("Ok", color = Color.White)
-            }
-        }
-    )
-}

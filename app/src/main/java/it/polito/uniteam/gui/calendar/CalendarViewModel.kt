@@ -1,11 +1,9 @@
 package it.polito.uniteam.gui.calendar
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
 import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.Task
@@ -20,30 +18,43 @@ class Calendar : ViewModel() {
     var memberProfile by mutableStateOf<Member?>(null)
         private set
 
-    var haveNoPermission by mutableStateOf(false)
+    var selectedShowDialog by mutableStateOf(showDialog.none)
         private set
 
-    fun closePermissionDialog() {
-        haveNoPermission = false
+    fun openDialog(showDialog: showDialog) {
+        selectedShowDialog = showDialog
     }
 
-    fun checkPermission(task: Task) {
+    fun closeDialog() {
+        selectedShowDialog = showDialog.none
+    }
+
+    fun checkDialogs(task: Task, date: LocalDate, isNewSchedule: Boolean = true) {
+        // check permissions
         if (task.members.contains(memberProfile)) {
-            haveNoPermission = false
+            // if permissions, check if back in time
+            if(date.isBefore(LocalDate.now())) {
+                selectedShowDialog = showDialog.schedule_in_past
+            } else if(isNewSchedule) {
+                selectedShowDialog = showDialog.schedule_task
+            } else {
+                selectedShowDialog = showDialog.none
+            }
         } else {
-            haveNoPermission = true
+            selectedShowDialog = showDialog.no_permission
         }
+    }
+
+    // task to schedule, old date (if moving from an already scheduled), new date
+    var taskToSchedule by mutableStateOf<Triple<Task, LocalDate?, LocalDate>?>(null)
+        private set
+
+    fun assignTaskToSchedule(task: Triple<Task, LocalDate?, LocalDate>?) {
+        taskToSchedule = task
     }
 
     var tasksToAssign by mutableStateOf(emptyList<Task>())
         private set
-
-    var taskToSchedule by mutableStateOf<Pair<Task, LocalDate?>?>(null)
-        private set
-
-    fun assignTaskToSchedule(task: Pair<Task, LocalDate?>?) {
-        taskToSchedule = task
-    }
 
     var allScheduledTasks = mutableStateListOf<Task>()
         private set
@@ -150,4 +161,18 @@ class Calendar : ViewModel() {
         date = date,
     )
 
+}
+
+enum class showDialog {
+    schedule_task,
+    no_permission,
+    schedule_in_past,
+    none
+}
+
+enum class handleDialog {
+    schedule_task,
+    no_permission,
+    schedule_in_past,
+    none
 }

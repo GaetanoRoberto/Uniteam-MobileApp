@@ -162,32 +162,52 @@ fun HorizontalDayEventScheduler(data: CalendarUiModel,
                                     state = dragAndDropState,
                                     key = date.hashCode(), // Unique key for each drop target
                                     onDrop = { state -> // Data passed from the draggable item
-                                        // Check if the user is a member and can edit this task, otherwise block
                                         // take the date to schedule from the currentDate
-                                        vm.checkPermission(state.data.first)
-                                        if (!vm.haveNoPermission) {
-                                            if (state.data.second != null) {
-                                                // data passed from the DraggableItem, so move from 1 day to another
-                                                val task = state.data.first
-                                                val oldDate = state.data.second
-                                                val hoursToSchedule = task.schedules.get(oldDate)
-                                                // remove the old day scheduled and add the new one
-                                                vm.unScheduleTask(task, oldDate!!)
-                                                if (hoursToSchedule != null) {
-                                                    vm.scheduleTask(
-                                                        task,
-                                                        currentDate.value.date,
-                                                        hoursToSchedule
-                                                    )
-                                                }
-                                            } else {
-                                                // no data passed from the DraggableItem, so coming from the bottom
-                                                // trigger the alert as usual
-                                                vm.assignTaskToSchedule(
-                                                    Pair(
-                                                        state.data.first,
-                                                        currentDate.value.date
-                                                    )
+                                        if (state.data.second != null) {
+                                            // data passed from the DraggableItem, so move from 1 day to another
+                                            vm.checkDialogs(
+                                                state.data.first,
+                                                currentDate.value.date,
+                                                isNewSchedule = false
+                                            )
+                                            // trigger dialog
+                                            vm.assignTaskToSchedule(
+                                                Triple(
+                                                    state.data.first,
+                                                    state.data.second!!,
+                                                    currentDate.value.date
+                                                )
+                                            )
+                                        } else {
+                                            // no data passed from the DraggableItem, so coming from the bottom
+                                            vm.checkDialogs(
+                                                state.data.first,
+                                                currentDate.value.date,
+                                                isNewSchedule = true
+                                            )
+                                            // trigger dialog
+                                            vm.assignTaskToSchedule(
+                                                Triple(
+                                                    state.data.first,
+                                                    null,
+                                                    currentDate.value.date
+                                                )
+                                            )
+                                        }
+
+                                        if (vm.selectedShowDialog == showDialog.none) {
+                                            // no new schedule, simply reschedule without dialogs
+                                            // data passed from the DraggableItem, so move from 1 day to another
+                                            val task = state.data.first
+                                            val oldDate = state.data.second
+                                            val hoursToSchedule = task.schedules.get(oldDate)
+                                            // remove the old day scheduled and add the new one
+                                            vm.unScheduleTask(task, oldDate!!)
+                                            if (hoursToSchedule != null) {
+                                                vm.scheduleTask(
+                                                    task,
+                                                    currentDate.value.date,
+                                                    hoursToSchedule
                                                 )
                                             }
                                         }
@@ -256,12 +276,22 @@ fun HorizontalTasksToAssign(
                     state = dragAndDropState,
                     key = Int.MAX_VALUE, // Unique key for each drop target
                     onDrop = { state -> // Data passed from the draggable item
-                        // Check if the user is a member and can edit this task, otherwise block
-                        vm.checkPermission(state.data.first)
-                        if (!vm.haveNoPermission) {
-                            // Unschedule only if the data was passed, otherwise already unscheduled
-                            if (state.data.second != null)
+                        // Unschedule only if the data was passed, otherwise already unscheduled
+                        if (state.data.second != null) {
+                            vm.checkDialogs(state.data.first, state.data.second!!)
+                            // Unschedule only if i have the permission to do it
+                            if (vm.selectedShowDialog != showDialog.no_permission) {
                                 vm.unScheduleTask(state.data.first, state.data.second!!)
+                            } else {
+                                // trigger the no permission alert
+                                vm.assignTaskToSchedule(
+                                    Triple(
+                                        state.data.first,
+                                        null,
+                                        state.data.second!!
+                                    )
+                                )
+                            }
                         }
                     }
                 )
