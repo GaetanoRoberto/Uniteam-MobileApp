@@ -1,20 +1,17 @@
 package it.polito.uniteam.gui.showtaskdetails
 
 
-import android.graphics.Paint.Align
-import android.graphics.drawable.Icon
+
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,7 +23,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Edit
@@ -41,9 +37,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,15 +45,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -70,16 +61,23 @@ import com.maxkeppeler.sheets.calendar.models.CalendarSelection
 import com.maxkeppeler.sheets.calendar.models.CalendarStyle
 import it.polito.uniteam.R
 import it.polito.uniteam.classes.Comment
+import it.polito.uniteam.classes.File
+import it.polito.uniteam.classes.History
 import it.polito.uniteam.classes.MemberPreview
 import it.polito.uniteam.classes.Repetition
 import it.polito.uniteam.classes.Status
 import it.polito.uniteam.classes.isRepetition
-import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.media3.exoplayer.offline.Download
 
 class taskDetails : ViewModel(){
 
@@ -325,7 +323,24 @@ class taskDetails : ViewModel(){
         membersError = ""
     }
 
-    var comments by mutableStateOf(mutableListOf(Comment("Marco", "Ciao", "")))
+    var commentHistoryFileSelection by mutableStateOf("comments")
+    fun cangeCommentHistoryFileSelection(s: String){
+        if(s.trim().lowercase() == "comments" ){
+            commentHistoryFileSelection = "comments"
+        }
+        else if(s.trim().lowercase() == "files"){
+            commentHistoryFileSelection = "files"
+
+        }
+        else if(s.trim().lowercase() =="history"){
+            commentHistoryFileSelection = "history"
+
+        }
+    }
+
+    var comments by mutableStateOf(mutableListOf(Comment("Marco", "Ciao", "05/05/2024", "18:31"),Comment("Luca", "Ciao", "05/05/2024", "18:40"),Comment("Giovanni", "Ciao", "06/05/2024", "18:31"),Comment("Francesco", "Ciao", "07/05/2024", "18:50"), ))
+    var files by mutableStateOf(mutableListOf( File("User", "filename", "22/05/2024")))
+    var history by mutableStateOf(mutableListOf(History("file x deleted", "04/05/2024", "Marco"), History("file x deleted", "04/05/2025", "Marco")))
 
 }
 
@@ -369,7 +384,6 @@ fun TaskDetailsView(vm: taskDetails = viewModel() ){
         RowItem(title = "Repeatable:", value =vm.repeatable)
         RowMemberItem(title = "Members:", value =vm.members.value)
         RowItem(title = "Status:", value =vm.state)
-
     }
 }
 
@@ -395,7 +409,15 @@ fun EditTaskView(vm: taskDetails = viewModel() ){
         Demo_ExposedDropdownMenuBox("Repeatable", vm.repeatable, vm.repeatableValues, vm::changeRepetition)
         Demo_ExposedDropdownMenuBox("Status",vm.state, vm.possibleStates, vm::changeState)
         MembersDropdownMenuBox("AddMembers",vm.members, vm.possilbleMembersPreview, vm::addMembers, vm::removeMembers, vm.membersError)
-        CommentsView("",vm.members, vm.possilbleMembersPreview, vm::addMembers, vm::removeMembers, vm.membersError)
+        if(vm.commentHistoryFileSelection == "comments"){
+            CommentsView("Comments", vm.comments, vm::cangeCommentHistoryFileSelection)
+        }
+        else if(vm.commentHistoryFileSelection == "files"){
+            FilesView("Files", vm.files, vm::cangeCommentHistoryFileSelection)
+        }
+        else if(vm.commentHistoryFileSelection == "history"){
+            HistoryView("History", vm.history, vm::cangeCommentHistoryFileSelection)
+        }
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -790,21 +812,21 @@ fun CustomDatePickerPreview(label: String, value: String, onChange: (String) -> 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CommentsView(label: String, currentValue: MutableState<MutableList<MemberPreview>>, possibleValues: List<MemberPreview>, addMember: (MemberPreview) -> Unit, removeMember: (MemberPreview) -> Unit, errorText: String) {
+fun CommentsView(label: String, comments: MutableList<Comment>, changeSelection: (String) -> Unit) {
     val context = LocalContext.current
-    val values = possibleValues
+    val values = comments
+    var date = ""
     var expanded by remember { mutableStateOf(false) }
-    var selectedText = currentValue.value.toMutableList()
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.Center) {
-        TextButton(onClick = { /*TODO*/ }, modifier = Modifier.weight(1f)) {
+        TextButton(onClick = { changeSelection("comments") }, modifier = Modifier.weight(1f)) {
             Text(text = "Comments", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center )
         }
 
-        TextButton(onClick = { /*TODO*/ }, modifier = Modifier.weight(1f)) {
+        TextButton(onClick = { changeSelection("history") }, modifier = Modifier.weight(1f)) {
             Text(text = "History", modifier = Modifier.fillMaxWidth(),textAlign = TextAlign.Center // Aligning text to the center
             )
         }
-        TextButton(onClick = { /*TODO*/ }, modifier = Modifier.weight(1f)) {
+        TextButton(onClick = { changeSelection("files") }, modifier = Modifier.weight(1f)) {
             Text(text = "Files", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
         }
     }
@@ -817,7 +839,7 @@ fun CommentsView(label: String, currentValue: MutableState<MutableList<MemberPre
             OutlinedTextField(
                 label = {
                     Text(
-                        text = label,
+                        text = "",
                         style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)
                     )
                 },
@@ -835,12 +857,21 @@ fun CommentsView(label: String, currentValue: MutableState<MutableList<MemberPre
                 .height(199.dp)
                 .padding(0.dp, 10.dp, 0.dp, 0.dp)
                 .verticalScroll(rememberScrollState())) {
-                values.forEachIndexed { index, memberPreview ->
+                values.forEachIndexed { index, comment ->
+
+                    if(comment.date != date){
+                        Row(modifier = Modifier.fillMaxWidth()) {
+                            Text(text = comment.date, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                            date = comment.date
+                        }
+
+                    }
                     Row {
+
                         OutlinedTextField(
                             label = {
                                 Text(
-                                    text = label,
+                                    text = comment.user,
                                     style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)//testo
                                 ) },
                             modifier = Modifier
@@ -850,8 +881,11 @@ fun CommentsView(label: String, currentValue: MutableState<MutableList<MemberPre
 
                                 ,
                             enabled = false,// <- Add this to make click event work
-                            value = "additional",
+                            value = comment.commentValue,
                             onValueChange = {},
+                            trailingIcon = {
+                                           Text(text = comment.hour, textAlign = TextAlign.End)
+                            },
                             colors = TextFieldDefaults.outlinedTextFieldColors(
                                 disabledTextColor = MaterialTheme.colorScheme.onSurface,
                                 disabledBorderColor = MaterialTheme.colorScheme.primary,
@@ -868,6 +902,197 @@ fun CommentsView(label: String, currentValue: MutableState<MutableList<MemberPre
         }
 
     }
+
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HistoryView(label: String, history: MutableList<History>, changeSelection: (String) -> Unit) {
+    val context = LocalContext.current
+    val values = history
+    var date = ""
+    var expanded by remember { mutableStateOf(false) }
+    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.Center) {
+        TextButton(onClick = { changeSelection("comments") }, modifier = Modifier.weight(1f)) {
+            Text(text = "Comments", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center )
+        }
+
+        TextButton(onClick = { changeSelection("history") }, modifier = Modifier.weight(1f)) {
+            Text(text = "History", modifier = Modifier.fillMaxWidth(),textAlign = TextAlign.Center // Aligning text to the center
+            )
+        }
+        TextButton(onClick = { changeSelection("files") }, modifier = Modifier.weight(1f)) {
+            Text(text = "Files", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+        }
+    }
+
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        OutlinedTextField(
+            label = {
+                Text(
+                    text = "",
+                    style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)
+                )
+            },
+            value = "",
+            onValueChange = {},
+            readOnly = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .verticalScroll(rememberScrollState()),
+        )
+
+        Column(modifier = Modifier
+            .fillMaxWidth(0.9f)
+            .height(199.dp)
+            .padding(0.dp, 10.dp, 0.dp, 0.dp)
+            .verticalScroll(rememberScrollState())) {
+            values.forEachIndexed { index, history ->
+
+                if(history.date != date){
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        Text(text = history.date, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                        date = history.date
+                    }
+
+                }
+                Row {
+
+                    OutlinedTextField(
+                        label = {
+                            Text(
+                                text = history.user,
+                                style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)//testo
+                            ) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp, 0.dp, 0.dp, 3.dp)
+                            .widthIn(10.dp, 100.dp)
+
+                        ,
+                        enabled = false,// <- Add this to make click event work
+                        value = history.comment,
+                        onValueChange = {},
+                        trailingIcon = {
+                        },
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                            disabledBorderColor = MaterialTheme.colorScheme.primary,
+                            focusedBorderColor = Color.Black,
+                            disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant)
+                    )                    }
+            }
+        }
+
+
+    }
+
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FilesView(label: String, comments: MutableList<File>, changeSelection: (String) -> Unit) {
+    val context = LocalContext.current
+    val values = comments
+    var date = ""
+    var expanded by remember { mutableStateOf(false) }
+    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.Center) {
+        TextButton(onClick = { changeSelection("comments") }, modifier = Modifier.weight(1f)) {
+            Text(text = "Comments", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center )
+        }
+
+        TextButton(onClick = { changeSelection("history") }, modifier = Modifier.weight(1f)) {
+            Text(text = "History", modifier = Modifier.fillMaxWidth(),textAlign = TextAlign.Center // Aligning text to the center
+            )
+        }
+        TextButton(onClick = { changeSelection("files") }, modifier = Modifier.weight(1f)) {
+            Text(text = "Files", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+        }
+    }
+
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        OutlinedTextField(
+            label = {
+                Text(
+                    text = "",
+                    style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)
+                )
+            },
+            value = "",
+            onValueChange = {},
+            readOnly = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .verticalScroll(rememberScrollState()),
+        )
+
+        Column(modifier = Modifier
+            .fillMaxWidth(0.9f)
+            .height(199.dp)
+            .padding(0.dp, 10.dp, 0.dp, 0.dp)
+            .verticalScroll(rememberScrollState())) {
+            values.forEachIndexed { index, file ->
+
+                if(file.date != date){
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        Text(text = file.date, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                        date = file.date
+                    }
+
+                }
+                Row {
+
+                    OutlinedTextField(
+                        label = {
+                            Text(
+                                text = file.user,
+                                style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)//testo
+                            ) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp, 0.dp, 0.dp, 3.dp)
+                            .widthIn(10.dp, 100.dp)
+
+                        ,
+                        enabled = false,// <- Add this to make click event work
+                        value = file.filename,
+                        onValueChange = {},
+                        trailingIcon = {
+                            IconButton(onClick = { /*TODO*/ }) {
+                                Icon(Icons.Default.Download, contentDescription = null)
+
+                            }
+                        },
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                            disabledBorderColor = MaterialTheme.colorScheme.primary,
+                            focusedBorderColor = Color.Black,
+                            disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant)
+                    )                    }
+            }
+        }
+
+
+    }
+
+}
 
 
 
