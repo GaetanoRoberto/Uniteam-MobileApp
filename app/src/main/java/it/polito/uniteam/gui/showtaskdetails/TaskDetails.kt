@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -40,6 +41,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -786,6 +788,7 @@ fun CustomDatePickerPreview(label: String, value: String, onChange: (String) -> 
 
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CommentsView(label: String, currentValue: MutableState<MutableList<MemberPreview>>, possibleValues: List<MemberPreview>, addMember: (MemberPreview) -> Unit, removeMember: (MemberPreview) -> Unit, errorText: String) {
     val context = LocalContext.current
@@ -834,11 +837,30 @@ fun CommentsView(label: String, currentValue: MutableState<MutableList<MemberPre
                 .verticalScroll(rememberScrollState())) {
                 values.forEachIndexed { index, memberPreview ->
                     Row {
-                        Text(
-                            text = "Additional Text 1",
-                            modifier = Modifier.padding(8.dp, 15.dp, 8.dp, 8.dp)
-                        )
-                    }
+                        OutlinedTextField(
+                            label = {
+                                Text(
+                                    text = label,
+                                    style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)//testo
+                                ) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp, 0.dp, 0.dp, 3.dp)
+                                .widthIn(10.dp, 100.dp)
+
+                                ,
+                            enabled = false,// <- Add this to make click event work
+                            value = "additional",
+                            onValueChange = {},
+                            colors = TextFieldDefaults.outlinedTextFieldColors(
+                                disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                                disabledBorderColor = MaterialTheme.colorScheme.primary,
+                                focusedBorderColor = Color.Black,
+                                disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant)
+                        )                    }
                 }
             }
 
