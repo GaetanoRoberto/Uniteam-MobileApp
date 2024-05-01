@@ -77,19 +77,15 @@ import androidx.compose.material.icons.filled.Download
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.media3.exoplayer.offline.Download
-
 
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Button
 import androidx.compose.runtime.*
-
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
+import kotlin.reflect.KFunction0
 
 class taskDetails : ViewModel(){
 
@@ -351,6 +347,19 @@ class taskDetails : ViewModel(){
     }
 
     var comments by mutableStateOf(mutableListOf(Comment("Marco", "Ciao", "05/05/2024", "18:31"),Comment("Luca", "Ciao", "05/05/2024", "18:40"),Comment("Giovanni", "Ciao", "06/05/2024", "18:31"),Comment("Francesco", "Ciao", "07/05/2024", "18:50"), ))
+    var addComment by mutableStateOf(Comment("", "", "", ""))
+    var addedComment = addComment
+
+    fun changeAddComment(s: String){
+        addComment = Comment(addComment.user, s, LocalDate.now().toString(), addComment.hour)
+    }
+    val username = "User1"
+
+
+    fun addNewComment(){
+    }
+
+
     var files by mutableStateOf(mutableListOf( File("User", "filename", "22/05/2024")))
     var realFiles by mutableStateOf(mutableListOf<Uri>())
     var history by mutableStateOf(mutableListOf(History("file x deleted", "04/05/2024", "Marco"), History("file x deleted", "04/05/2025", "Marco")))
@@ -423,7 +432,7 @@ fun EditTaskView(vm: taskDetails = viewModel() ){
         Demo_ExposedDropdownMenuBox("Status",vm.state, vm.possibleStates, vm::changeState)
         MembersDropdownMenuBox("AddMembers",vm.members, vm.possilbleMembersPreview, vm::addMembers, vm::removeMembers, vm.membersError)
         if(vm.commentHistoryFileSelection == "comments"){
-            CommentsView("Comments", vm.comments, vm::cangeCommentHistoryFileSelection)
+            CommentsView("Comments", vm.comments, vm::cangeCommentHistoryFileSelection, vm.addComment, vm::changeAddComment)
         }
         else if(vm.commentHistoryFileSelection == "files"){
             FilesView("Files", vm.files, vm::cangeCommentHistoryFileSelection, vm.realFiles)
@@ -825,7 +834,13 @@ fun CustomDatePickerPreview(label: String, value: String, onChange: (String) -> 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CommentsView(label: String, comments: MutableList<Comment>, changeSelection: (String) -> Unit) {
+fun CommentsView(
+    label: String,
+    comments: MutableList<Comment>,
+    changeSelection: (String) -> Unit,
+    addComment: Comment,
+    changeAddComment: (String) -> Unit
+) {
     val context = LocalContext.current
     val values = comments
     var date = ""
@@ -869,7 +884,7 @@ fun CommentsView(label: String, comments: MutableList<Comment>, changeSelection:
                 .fillMaxWidth(0.9f)
                 .height(199.dp)
                 .padding(0.dp, 10.dp, 0.dp, 0.dp)
-                .verticalScroll(rememberScrollState(initial = Int.MAX_VALUE ))) {
+                .verticalScroll(rememberScrollState(initial = Int.MAX_VALUE))) {
                 values.forEachIndexed { index, comment ->
 
                     if(comment.date != date){
@@ -913,8 +928,21 @@ fun CommentsView(label: String, comments: MutableList<Comment>, changeSelection:
 
 
         }
+    Row(modifier = Modifier.fillMaxWidth()) {
+        OutlinedTextField(label = { Text(text = "Add a comment")}, value = addComment.commentValue, onValueChange = { it -> changeAddComment(it) }, modifier = Modifier.fillMaxWidth(),
+            trailingIcon = {
+                IconButton(onClick = { /*TODO*/ }) {
+                    Icon(Icons.Default.Send,
+                        contentDescription = "Send Icon"
+                    )
+                }
+                })
 
     }
+
+    }
+
+
 
 
 
@@ -957,14 +985,14 @@ fun HistoryView(label: String, history: MutableList<History>, changeSelection: (
             modifier = Modifier
                 .fillMaxWidth()
                 .height(200.dp)
-                .verticalScroll(rememberScrollState(initial = Int.MAX_VALUE )),
+                .verticalScroll(rememberScrollState(initial = Int.MAX_VALUE)),
         )
 
         Column(modifier = Modifier
             .fillMaxWidth(0.9f)
             .height(199.dp)
             .padding(0.dp, 10.dp, 0.dp, 0.dp)
-            .verticalScroll(rememberScrollState(initial = Int.MAX_VALUE ))) {
+            .verticalScroll(rememberScrollState(initial = Int.MAX_VALUE))) {
             values.forEachIndexed { index, history ->
 
                 if(history.date != date){
