@@ -829,7 +829,8 @@ fun CommentsView(label: String, currentValue: MutableState<MutableList<MemberPre
 
             Column(modifier = Modifier
                 .fillMaxWidth(0.9f)
-                .height(200.dp)
+                .height(199.dp)
+                .padding(0.dp, 10.dp, 0.dp, 0.dp)
                 .verticalScroll(rememberScrollState())) {
                 values.forEachIndexed { index, memberPreview ->
                     Row {
