@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -55,6 +56,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
@@ -65,6 +67,7 @@ import com.maxkeppeler.sheets.calendar.models.CalendarConfig
 import com.maxkeppeler.sheets.calendar.models.CalendarSelection
 import com.maxkeppeler.sheets.calendar.models.CalendarStyle
 import it.polito.uniteam.R
+import it.polito.uniteam.classes.Comment
 import it.polito.uniteam.classes.MemberPreview
 import it.polito.uniteam.classes.Repetition
 import it.polito.uniteam.classes.Status
@@ -320,6 +323,8 @@ class taskDetails : ViewModel(){
         membersError = ""
     }
 
+    var comments by mutableStateOf(mutableListOf(Comment("Marco", "Ciao", "")))
+
 }
 
 @Preview
@@ -388,6 +393,7 @@ fun EditTaskView(vm: taskDetails = viewModel() ){
         Demo_ExposedDropdownMenuBox("Repeatable", vm.repeatable, vm.repeatableValues, vm::changeRepetition)
         Demo_ExposedDropdownMenuBox("Status",vm.state, vm.possibleStates, vm::changeState)
         MembersDropdownMenuBox("AddMembers",vm.members, vm.possilbleMembersPreview, vm::addMembers, vm::removeMembers, vm.membersError)
+        CommentsView("",vm.members, vm.possilbleMembersPreview, vm::addMembers, vm::removeMembers, vm.membersError)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -777,6 +783,71 @@ fun CustomDatePickerPreview(label: String, value: String, onChange: (String) -> 
 
 
 }
+
+
+
+@Composable
+fun CommentsView(label: String, currentValue: MutableState<MutableList<MemberPreview>>, possibleValues: List<MemberPreview>, addMember: (MemberPreview) -> Unit, removeMember: (MemberPreview) -> Unit, errorText: String) {
+    val context = LocalContext.current
+    val values = possibleValues
+    var expanded by remember { mutableStateOf(false) }
+    var selectedText = currentValue.value.toMutableList()
+    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.Center) {
+        TextButton(onClick = { /*TODO*/ }, modifier = Modifier.weight(1f)) {
+            Text(text = "Comments", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center )
+        }
+
+        TextButton(onClick = { /*TODO*/ }, modifier = Modifier.weight(1f)) {
+            Text(text = "History", modifier = Modifier.fillMaxWidth(),textAlign = TextAlign.Center // Aligning text to the center
+            )
+        }
+        TextButton(onClick = { /*TODO*/ }, modifier = Modifier.weight(1f)) {
+            Text(text = "Files", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+        }
+    }
+
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            OutlinedTextField(
+                label = {
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)
+                    )
+                },
+                value = "",
+                onValueChange = {},
+                readOnly = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .verticalScroll(rememberScrollState()),
+            )
+
+            Column(modifier = Modifier
+                .fillMaxWidth(0.9f)
+                .height(200.dp)
+                .verticalScroll(rememberScrollState())) {
+                values.forEachIndexed { index, memberPreview ->
+                    Row {
+                        Text(
+                            text = "Additional Text 1",
+                            modifier = Modifier.padding(8.dp, 15.dp, 8.dp, 8.dp)
+                        )
+                    }
+                }
+            }
+
+
+        }
+
+    }
+
+
+
 
 
 
