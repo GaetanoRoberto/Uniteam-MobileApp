@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -65,6 +66,7 @@ import com.mohamedrejeb.compose.dnd.rememberDragAndDropState
 import it.polito.uniteam.R
 import it.polito.uniteam.classes.MemberIcon
 import it.polito.uniteam.classes.Task
+import it.polito.uniteam.classes.TextTrim
 import it.polito.uniteam.isVertical
 import java.time.LocalDate
 
@@ -164,11 +166,12 @@ fun VerticalHeader(
     Column(
     ) {
         Row {
-            Text(
-                text = "Team #1 - Tasks ",
+            TextTrim(
+                inputText = "Team #1 - Tasks",
+                desiredLength = 16,
                 modifier = Modifier
                     .weight(1f)
-                    .align(Alignment.CenterVertically),
+                    .align(Alignment.CenterVertically)
             )
             Spacer(modifier = Modifier.weight(0.4f)) // Spazio flessibile per allineare la checkbox e il testo "My Tasks" alla fine
             Checkbox(
@@ -234,7 +237,7 @@ fun EventItem(task: Task, date: LocalDate? = null, isScheduled: Boolean) {
             modifier = Modifier
                 .padding(8.dp)
         ) {
-            Text(text = task.name, style = MaterialTheme.typography.bodyMedium)
+            TextTrim(inputText = task.name, desiredLength = 5, style = MaterialTheme.typography.bodyMedium)
             Spacer(modifier = Modifier.weight(1f))  // Usa il peso per spingere il testo a destra
             Text(
                 text = hours.toString() + "h",
@@ -304,7 +307,7 @@ fun VerticalDayEventScheduler(
     dragAndDropState: DragAndDropState<Pair<Task, LocalDate?>>,
     vm: Calendar = viewModel()
 ) {
-    Box(modifier = Modifier.height(420.dp)) { // Imposta un'altezza fissa e abilita lo scrolling verticale
+    Box(modifier = Modifier.fillMaxHeight(0.8f)) {
         LazyColumn {
             items(items = data.visibleDates) { date ->
                 val currentDate =

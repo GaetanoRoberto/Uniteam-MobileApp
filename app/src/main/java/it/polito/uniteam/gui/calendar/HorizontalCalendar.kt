@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -142,7 +143,7 @@ fun HorizontalHeader(
 fun HorizontalDayEventScheduler(data: CalendarUiModel,
                                 dragAndDropState: DragAndDropState<Pair<Task, LocalDate?>>,
                                 vm: Calendar = viewModel()) {
-    Box(modifier = Modifier.height(420.dp)) { // Imposta un'altezza fissa e abilita lo scrolling verticale
+    Box(modifier = Modifier.fillMaxHeight()) {
         LazyColumn {
             items(items = data.visibleDates) { date ->
                 val currentDate =
