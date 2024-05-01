@@ -2,6 +2,7 @@ package it.polito.uniteam.gui.showtaskdetails
 
 
 
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -78,6 +79,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.media3.exoplayer.offline.Download
+
+
+
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Button
+import androidx.compose.runtime.*
+
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 
 class taskDetails : ViewModel(){
 
@@ -340,6 +352,7 @@ class taskDetails : ViewModel(){
 
     var comments by mutableStateOf(mutableListOf(Comment("Marco", "Ciao", "05/05/2024", "18:31"),Comment("Luca", "Ciao", "05/05/2024", "18:40"),Comment("Giovanni", "Ciao", "06/05/2024", "18:31"),Comment("Francesco", "Ciao", "07/05/2024", "18:50"), ))
     var files by mutableStateOf(mutableListOf( File("User", "filename", "22/05/2024")))
+    var realFiles by mutableStateOf(mutableListOf<Uri>())
     var history by mutableStateOf(mutableListOf(History("file x deleted", "04/05/2024", "Marco"), History("file x deleted", "04/05/2025", "Marco")))
 
 }
@@ -413,7 +426,7 @@ fun EditTaskView(vm: taskDetails = viewModel() ){
             CommentsView("Comments", vm.comments, vm::cangeCommentHistoryFileSelection)
         }
         else if(vm.commentHistoryFileSelection == "files"){
-            FilesView("Files", vm.files, vm::cangeCommentHistoryFileSelection)
+            FilesView("Files", vm.files, vm::cangeCommentHistoryFileSelection, vm.realFiles)
         }
         else if(vm.commentHistoryFileSelection == "history"){
             HistoryView("History", vm.history, vm::cangeCommentHistoryFileSelection)
@@ -1000,7 +1013,7 @@ fun HistoryView(label: String, history: MutableList<History>, changeSelection: (
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FilesView(label: String, comments: MutableList<File>, changeSelection: (String) -> Unit) {
+fun FilesView(label: String, comments: MutableList<File>, changeSelection: (String) -> Unit, files: MutableList<Uri>) {
     val context = LocalContext.current
     val values = comments
     var date = ""
@@ -1091,8 +1104,43 @@ fun FilesView(label: String, comments: MutableList<File>, changeSelection: (Stri
 
 
     }
+    FileUpload(files)
 
 }
+
+
+
+@Composable
+fun FileUpload(realFiles: MutableList<Uri>) {
+    var selectedFileUri by remember { mutableStateOf<Uri?>(null) }
+    val context = LocalContext.current
+
+    val chooseFileLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        selectedFileUri = uri
+        if(uri != null){
+            realFiles.add(uri)
+        }
+
+
+    }
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Button(onClick = { chooseFileLauncher.launch("files/*") }) {
+            Text("Upload File")
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        selectedFileUri?.let {
+            Text("Selected File: ${it.path}")
+        }
+    }
+}
+
 
 
 
