@@ -856,7 +856,7 @@ fun CommentsView(label: String, comments: MutableList<Comment>, changeSelection:
                 .fillMaxWidth(0.9f)
                 .height(199.dp)
                 .padding(0.dp, 10.dp, 0.dp, 0.dp)
-                .verticalScroll(rememberScrollState())) {
+                .verticalScroll(rememberScrollState(initial = Int.MAX_VALUE ))) {
                 values.forEachIndexed { index, comment ->
 
                     if(comment.date != date){
@@ -944,14 +944,14 @@ fun HistoryView(label: String, history: MutableList<History>, changeSelection: (
             modifier = Modifier
                 .fillMaxWidth()
                 .height(200.dp)
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(rememberScrollState(initial = Int.MAX_VALUE )),
         )
 
         Column(modifier = Modifier
             .fillMaxWidth(0.9f)
             .height(199.dp)
             .padding(0.dp, 10.dp, 0.dp, 0.dp)
-            .verticalScroll(rememberScrollState())) {
+            .verticalScroll(rememberScrollState(initial = Int.MAX_VALUE ))) {
             values.forEachIndexed { index, history ->
 
                 if(history.date != date){
