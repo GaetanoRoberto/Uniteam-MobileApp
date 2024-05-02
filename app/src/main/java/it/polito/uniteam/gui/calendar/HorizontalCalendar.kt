@@ -100,9 +100,26 @@ fun HorizontalHeader(
     onTodayClickListener: () -> Unit
 ) {
     val isCheched = remember { mutableStateOf(false) }
+    val month = if (startDate.date.month != endDate.date.month) {
+        startDate.date.month.toString().substring(0,3) + "/" + endDate.date.month.toString().substring(0,3)
+    } else {
+        startDate.date.month.toString().substring(0,3)
+    }
+    val year = if (startDate.date.year != endDate.date.year) {
+        val year_len = endDate.date.year.toString().length
+        startDate.date.year.toString() + "/" + endDate.date.year.toString().substring(year_len - 2)
+    } else {
+        startDate.date.year.toString()
+    }
     Row {
         Text(
-            text = startDate.date.month.toString() + " " + startDate.date.dayOfMonth + " - " + endDate.date.dayOfMonth + ", " + startDate.date.year,// " MAY, 22 - 28  (2024)",
+            text = month + " " + startDate.date.dayOfMonth + " - " + endDate.date.dayOfMonth,
+            modifier = Modifier
+                .weight(1f)
+                .align(Alignment.CenterVertically),
+        )
+        Text(
+            text = year,
             modifier = Modifier
                 .weight(1f)
                 .align(Alignment.CenterVertically),
@@ -211,6 +228,8 @@ fun HorizontalDayEventScheduler(data: CalendarUiModel,
                                                     hoursToSchedule
                                                 )
                                             }
+                                            // reset the task status
+                                            vm.assignTaskToSchedule(null)
                                         }
                                     }
                                 ),
