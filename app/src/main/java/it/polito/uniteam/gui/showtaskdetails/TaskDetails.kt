@@ -2,7 +2,9 @@ package it.polito.uniteam.gui.showtaskdetails
 
 
 
+import android.annotation.SuppressLint
 import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -81,12 +83,13 @@ import androidx.compose.ui.tooling.preview.Preview
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Button
-import androidx.compose.runtime.*
-import kotlin.reflect.KFunction0
+import java.time.LocalTime
+import kotlin.reflect.KFunction1
 
+@SuppressLint("MutableCollectionMutableState")
 class taskDetails : ViewModel(){
 
     var taskName by mutableStateOf("Task Name value")
@@ -345,24 +348,33 @@ class taskDetails : ViewModel(){
 
         }
     }
-
-    var comments by mutableStateOf(mutableListOf(Comment("Marco", "Ciao", "05/05/2024", "18:31"),Comment("Luca", "Ciao", "05/05/2024", "18:40"),Comment("Giovanni", "Ciao", "06/05/2024", "18:31"),Comment("Francesco", "Ciao", "07/05/2024", "18:50"), ))
-    var addComment by mutableStateOf(Comment("", "", "", ""))
-    var addedComment = addComment
-
-    fun changeAddComment(s: String){
-        addComment = Comment(addComment.user, s, LocalDate.now().toString(), addComment.hour)
-    }
     val username = "User1"
 
 
-    fun addNewComment(){
+    var comments by mutableStateOf(mutableListOf(Comment("Marco", "Ciao", "2024-02-05", "18:31"),Comment("Luca", "Ciao", "2024-02-05", "18:40"),Comment("Giovanni", "Ciao", "2024-02-06", "18:31"),Comment("Francesco", "Ciao", "2024-02-07", "18:50")))
+    var addComment by mutableStateOf(Comment(username, "", "", ""))
+
+    fun changeAddComment(s: String){
+        addComment = Comment(addComment.user, s, LocalDate.now().toString(), LocalTime.now().hour.toString() + ":" + LocalTime.now().minute.toString())
     }
 
 
-    var files by mutableStateOf(mutableListOf( File("User", "filename", "22/05/2024")))
+    fun addNewComment(){
+        if(addComment.commentValue.trim() != ""){
+            comments.add(addComment)
+        }
+        addComment = Comment(addComment.user, "", LocalDate.now().toString(), LocalTime.now().hour.toString() + ":" + LocalTime.now().minute.toString())
+    }
+
+
+    var files by mutableStateOf(mutableListOf( File("User", "filename", "2024-02-05")))
     var realFiles by mutableStateOf(mutableListOf<Uri>())
-    var history by mutableStateOf(mutableListOf(History("file x deleted", "04/05/2024", "Marco"), History("file x deleted", "04/05/2025", "Marco")))
+    fun addFile(f: Uri){
+        realFiles.add(f)
+        files.add(File(username, f.path.toString(), LocalDate.now().toString()))
+        Log.d("file",files.size.toString())
+    }
+    var history by mutableStateOf(mutableListOf(History("file x deleted", "04/05/2024", "Marco"), History("file x deleted", "2024-02-05", "Marco")))
 
 }
 
@@ -432,10 +444,10 @@ fun EditTaskView(vm: taskDetails = viewModel() ){
         Demo_ExposedDropdownMenuBox("Status",vm.state, vm.possibleStates, vm::changeState)
         MembersDropdownMenuBox("AddMembers",vm.members, vm.possilbleMembersPreview, vm::addMembers, vm::removeMembers, vm.membersError)
         if(vm.commentHistoryFileSelection == "comments"){
-            CommentsView("Comments", vm.comments, vm::cangeCommentHistoryFileSelection, vm.addComment, vm::changeAddComment)
+            CommentsView("Comments", vm.comments, vm::cangeCommentHistoryFileSelection, vm.addComment, vm::changeAddComment, vm::addNewComment)
         }
         else if(vm.commentHistoryFileSelection == "files"){
-            FilesView("Files", vm.files, vm::cangeCommentHistoryFileSelection, vm.realFiles)
+            FilesView("Files", vm.files, vm::cangeCommentHistoryFileSelection, vm::addFile)
         }
         else if(vm.commentHistoryFileSelection == "history"){
             HistoryView("History", vm.history, vm::cangeCommentHistoryFileSelection)
@@ -839,12 +851,15 @@ fun CommentsView(
     comments: MutableList<Comment>,
     changeSelection: (String) -> Unit,
     addComment: Comment,
-    changeAddComment: (String) -> Unit
+    changeAddComment: (String) -> Unit,
+    kFunction0: () -> Unit
 ) {
     val context = LocalContext.current
     val values = comments
     var date = ""
     var expanded by remember { mutableStateOf(false) }
+
+
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.Center) {
         TextButton(onClick = { changeSelection("comments") }, modifier = Modifier.weight(1f)) {
             Text(text = "Comments", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center )
@@ -877,7 +892,6 @@ fun CommentsView(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(200.dp)
-                    .verticalScroll(rememberScrollState()),
             )
 
             Column(modifier = Modifier
@@ -905,7 +919,7 @@ fun CommentsView(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(8.dp, 0.dp, 0.dp, 3.dp)
-                                .widthIn(10.dp, 100.dp)
+                                .width(IntrinsicSize.Max)
 
                                 ,
                             enabled = false,// <- Add this to make click event work
@@ -931,7 +945,7 @@ fun CommentsView(
     Row(modifier = Modifier.fillMaxWidth()) {
         OutlinedTextField(label = { Text(text = "Add a comment")}, value = addComment.commentValue, onValueChange = { it -> changeAddComment(it) }, modifier = Modifier.fillMaxWidth(),
             trailingIcon = {
-                IconButton(onClick = { /*TODO*/ }) {
+                IconButton(onClick = { kFunction0() }) {
                     Icon(Icons.Default.Send,
                         contentDescription = "Send Icon"
                     )
@@ -1041,11 +1055,14 @@ fun HistoryView(label: String, history: MutableList<History>, changeSelection: (
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FilesView(label: String, comments: MutableList<File>, changeSelection: (String) -> Unit, files: MutableList<Uri>) {
+fun FilesView(label: String, filesList: MutableList<File>, changeSelection: (String) -> Unit, addfile: KFunction1<Uri, Unit>) {
     val context = LocalContext.current
-    val values = comments
+    val filevalues = filesList
     var date = ""
     var expanded by remember { mutableStateOf(false) }
+    Log.d("file","Rerendered")
+
+
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.Center) {
         TextButton(onClick = { changeSelection("comments") }, modifier = Modifier.weight(1f)) {
             Text(text = "Comments", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center )
@@ -1078,15 +1095,15 @@ fun FilesView(label: String, comments: MutableList<File>, changeSelection: (Stri
             modifier = Modifier
                 .fillMaxWidth()
                 .height(200.dp)
-                .verticalScroll(rememberScrollState()),
+
         )
 
         Column(modifier = Modifier
             .fillMaxWidth(0.9f)
             .height(199.dp)
             .padding(0.dp, 10.dp, 0.dp, 0.dp)
-            .verticalScroll(rememberScrollState())) {
-            values.forEachIndexed { index, file ->
+            .verticalScroll(rememberScrollState(initial = Int.MAX_VALUE))) {
+            filevalues.forEachIndexed { index, file ->
 
                 if(file.date != date){
                     Row(modifier = Modifier.fillMaxWidth()) {
@@ -1132,14 +1149,14 @@ fun FilesView(label: String, comments: MutableList<File>, changeSelection: (Stri
 
 
     }
-    FileUpload(files)
+    FileUpload(addfile)
 
 }
 
 
 
 @Composable
-fun FileUpload(realFiles: MutableList<Uri>) {
+fun FileUpload(addFile: (Uri)-> Unit) {
     var selectedFileUri by remember { mutableStateOf<Uri?>(null) }
     val context = LocalContext.current
 
@@ -1148,7 +1165,7 @@ fun FileUpload(realFiles: MutableList<Uri>) {
     ) { uri: Uri? ->
         selectedFileUri = uri
         if(uri != null){
-            realFiles.add(uri)
+            addFile(uri)
         }
 
 
@@ -1159,13 +1176,11 @@ fun FileUpload(realFiles: MutableList<Uri>) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Button(onClick = { chooseFileLauncher.launch("files/*") }) {
+        Button(onClick = { chooseFileLauncher.launch("image/*") }) {
             Text("Upload File")
         }
         Spacer(modifier = Modifier.height(16.dp))
-        selectedFileUri?.let {
-            Text("Selected File: ${it.path}")
-        }
+
     }
 }
 
