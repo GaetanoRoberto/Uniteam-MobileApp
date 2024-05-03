@@ -63,6 +63,7 @@ fun ScheduleTaskDialog(
             Column {
                 TextField(value = scheduledHours.value,
                     keyboardOptions = KeyboardOptions.Default.copy(
+                        autoCorrectEnabled = true,
                         keyboardType = KeyboardType.Number,
                         imeAction = ImeAction.Done
                     ),

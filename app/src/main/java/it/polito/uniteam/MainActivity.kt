@@ -53,6 +53,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import it.polito.uniteam.gui.calendar.Calendar
 import it.polito.uniteam.gui.calendar.CalendarAppContainer
+import it.polito.uniteam.gui.showtaskdetails.TaskScreen
+import it.polito.uniteam.gui.tasklist.TaskListView
 
 class MainActivity : ComponentActivity() {
 
@@ -117,7 +119,9 @@ class MainActivity : ComponentActivity() {
                             cameraExecutor = cameraExecutor,
                             pickImageLauncher = pickImageLauncher
                         )*/
-                        CalendarAppContainer(vm = viewModel())
+                        //CalendarAppContainer(vm = viewModel())
+                        //TaskScreen(vm = viewModel())
+                        TaskListView(vm = viewModel())
                     }
                     BottomBar()
                 }}

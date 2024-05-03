@@ -17,7 +17,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Orange,
+    primary = Color.Yellow,
     secondary = Blue,
     tertiary = Color(0xff018FF3),//Azzurro fotocamera
     background =  Blue,

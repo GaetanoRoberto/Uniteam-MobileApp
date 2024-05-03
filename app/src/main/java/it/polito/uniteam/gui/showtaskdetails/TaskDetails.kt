@@ -587,6 +587,7 @@ fun EditRowItem(value: String, keyboardType: KeyboardType = KeyboardType.Text, o
             ) },
         isError = errorText.isNotBlank(),
         keyboardOptions = KeyboardOptions.Default.copy(
+            autoCorrectEnabled = true,
             keyboardType = keyboardType,
             imeAction = ImeAction.Done
         ),
@@ -838,14 +839,14 @@ fun CustomDatePicker(
         enabled = false,// <- Add this to make click event work
         value = value.format(DateTimeFormatter.ISO_DATE) ,
         onValueChange = {},
-        colors = TextFieldDefaults.outlinedTextFieldColors(
+        /*colors = TextFieldDefaults.outlinedTextFieldColors(
             disabledTextColor = MaterialTheme.colorScheme.onSurface,
             disabledBorderColor = MaterialTheme.colorScheme.primary,
             focusedBorderColor = Color.Black,
             disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
             disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
             disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant)
+            disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant)*/
     )
 }
 
@@ -865,7 +866,6 @@ fun CustomDatePickerPreview(label: String, value: String, onChange: (String) -> 
 
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CommentsView(
     label: String,
@@ -950,14 +950,14 @@ fun CommentsView(
                             trailingIcon = {
                                            Text(text = comment.hour, textAlign = TextAlign.End)
                             },
-                            colors = TextFieldDefaults.outlinedTextFieldColors(
+                            /*colors = TextFieldDefaults.outlinedTextFieldColors(
                                 disabledTextColor = MaterialTheme.colorScheme.onSurface,
                                 disabledBorderColor = MaterialTheme.colorScheme.primary,
                                 focusedBorderColor = Color.Black,
                                 disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
                                 disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
                                 disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant)
+                                disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant)*/
                         )                    }
                 }
             }
@@ -1062,14 +1062,14 @@ fun HistoryView(
                         onValueChange = {},
                         trailingIcon = {
                         },
-                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                        /*colors = TextFieldDefaults.outlinedTextFieldColors(
                             disabledTextColor = MaterialTheme.colorScheme.onSurface,
                             disabledBorderColor = MaterialTheme.colorScheme.primary,
                             focusedBorderColor = Color.Black,
                             disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
                             disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
                             disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant)
+                            disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant)*/
                     )                    }
             }
         }
@@ -1169,14 +1169,14 @@ fun FilesView(
 
                             }
                         },
-                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                        /*colors = TextFieldDefaults.outlinedTextFieldColors(
                             disabledTextColor = MaterialTheme.colorScheme.onSurface,
                             disabledBorderColor = MaterialTheme.colorScheme.primary,
                             focusedBorderColor = Color.Black,
                             disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
                             disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
                             disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant)
+                            disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant)*/
                     )                    }
             }
         }
