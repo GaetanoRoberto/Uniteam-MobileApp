@@ -120,8 +120,8 @@ class MainActivity : ComponentActivity() {
                             pickImageLauncher = pickImageLauncher
                         )*/
                         //CalendarAppContainer(vm = viewModel())
-                        //TaskScreen(vm = viewModel())
-                        TaskListView(vm = viewModel())
+                        TaskScreen(vm = viewModel())
+                        //TaskListView(vm = viewModel())
                     }
                     BottomBar()
                 }}
