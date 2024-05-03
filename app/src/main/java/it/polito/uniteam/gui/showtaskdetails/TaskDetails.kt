@@ -322,9 +322,9 @@ class taskDetails : ViewModel(){
         repeatableBefore = repeatable
         statusBefore = state
         membersBefore = members.value
-        commentsBefore = comments.toMutableList()
-        filesBefore = files.toMutableList()
-        historyBefore = history.toMutableList()
+        commentsBefore = comments
+        filesBefore = files
+        historyBefore = history
     }
 
     fun cancelEdit(){
@@ -386,7 +386,7 @@ class taskDetails : ViewModel(){
     }
 
 
-    val files = mutableStateListOf(File("User", "filename", "2024-02-05"))
+    var files = mutableStateListOf(File("User", "filename", "2024-02-05"))
     var filesBefore = files
     var realFiles by mutableStateOf(mutableListOf<Uri>())
     fun addFile(f: Uri){
@@ -414,9 +414,9 @@ class taskDetails : ViewModel(){
         members.value = mutableListOf()
     var history = mutableStateListOf(History("file x deleted", "04/05/2024", "Marco"), History("file x deleted", "2024-02-05", "Marco"))
 
-        comments = mutableListOf()
-        files = mutableListOf()
-        history = mutableListOf()
+        comments = mutableStateListOf()
+        files = mutableStateListOf()
+        history = mutableStateListOf()
 
 
     }
@@ -1327,12 +1327,9 @@ fun FilesView(
             }
         }
         }
-
-
-    }
     FileUpload(addfile)
-
 }
+
 
 
 
