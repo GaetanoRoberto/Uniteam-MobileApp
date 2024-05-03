@@ -320,6 +320,9 @@ class taskDetails : ViewModel(){
         repeatableBefore = repeatable
         statusBefore = state
         membersBefore = members.value
+        commentsBefore = comments.toMutableList()
+        filesBefore = files.toMutableList()
+        historyBefore = history.toMutableList()
     }
 
     fun cancelEdit(){
@@ -333,6 +336,9 @@ class taskDetails : ViewModel(){
          repeatable = repeatableBefore
          state = statusBefore
          members.value = membersBefore
+         comments = commentsBefore
+        files = filesBefore
+        history = historyBefore
 
         taskError = ""
         descriptionError = ""
@@ -362,6 +368,7 @@ class taskDetails : ViewModel(){
 
 
     var comments by mutableStateOf(mutableListOf(Comment("Marco", "Ciao", "2024-02-05", "18:31"),Comment("Luca", "Ciao", "2024-02-05", "18:40"),Comment("Giovanni", "Ciao", "2024-02-06", "18:31"),Comment("Francesco", "Ciao", "2024-02-07", "18:50")))
+    var commentsBefore = comments
     var addComment by mutableStateOf(Comment(username, "", "", ""))
 
     fun changeAddComment(s: String){
@@ -378,6 +385,7 @@ class taskDetails : ViewModel(){
 
 
     var files by mutableStateOf(mutableListOf(File("User", "filename", "2024-02-05")))
+    var filesBefore = files
     var realFiles by mutableStateOf(mutableListOf<Uri>())
     fun addFile(f: Uri){
         Log.d("file", files.size.toString())
@@ -386,7 +394,29 @@ class taskDetails : ViewModel(){
         Log.d("file",files.size.toString())
     }
     var history by mutableStateOf(mutableListOf(History("file x deleted", "04/05/2024", "Marco"), History("file x deleted", "2024-02-05", "Marco")))
+    var historyBefore = history
 
+    fun newTask(){
+
+
+        taskName = ""
+        description = ""
+        category = ""
+        priority =""
+        //deadline =""
+        estimatedHours= ""
+        spentHours = ""
+        repeatable =""
+        state = ""
+
+        members.value = mutableListOf()
+
+        comments = mutableListOf()
+        files = mutableListOf()
+        history = mutableListOf()
+
+
+    }
 }
 
 @Preview
@@ -414,8 +444,15 @@ fun TaskDetailsView(vm: taskDetails = viewModel() ){
             IconButton(onClick = {
                 vm.changeEditing()
                 vm.enterEditingMode()
+                vm.newTask()
             }) {
-                Icon(Icons.Default.Edit, contentDescription = "Add ")
+                Icon(Icons.Default.Add, contentDescription = "Add ")
+            }
+            IconButton(onClick = {
+                vm.changeEditing()
+                vm.enterEditingMode()
+            }) {
+                Icon(Icons.Default.Edit, contentDescription = "Edit ")
             }
         }
 
