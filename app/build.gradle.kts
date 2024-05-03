@@ -51,6 +51,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.media3.exoplayer)
     val cameraxVersion = "1.2.2"
     implementation ("androidx.camera:camera-core:${cameraxVersion}")
     implementation ("androidx.camera:camera-camera2:${cameraxVersion}")
@@ -60,6 +61,14 @@ dependencies {
     implementation ("androidx.camera:camera-extensions:${cameraxVersion}")
     implementation("io.coil-kt:coil-compose:2.6.0")
     implementation("com.mohamedrejeb.dnd:compose-dnd:0.2.0")
+
+    implementation("com.maxkeppeler.sheets-compose-dialogs:core:1.2.0")
+    implementation("com.maxkeppeler.sheets-compose-dialogs:calendar:1.2.0")
+    implementation ("androidx.compose.ui:ui:1.5.1")
+    implementation ("androidx.compose.material:material:1.5.1")
+    implementation ("androidx.compose.material:material-icons-core:1.5.1")
+    implementation ("androidx.compose.material:material-icons-extended:1.5.1")
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

@@ -2,6 +2,21 @@
 <project version="4">
   <component name="deploymentTargetDropDown">
     <value>
+      <entry key="EditTaskView">
+        <State />
+      </entry>
+      <entry key="EditTaskView (1)">
+        <State />
+      </entry>
+      <entry key="TaskDetailsView">
+        <State />
+      </entry>
+      <entry key="TaskScreen">
+        <State />
+      </entry>
+      <entry key="TaskScreen (1)">
+        <State />
+      </entry>
       <entry key="app">
         <State />
       </entry>
