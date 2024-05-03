@@ -514,13 +514,13 @@ fun EditTaskView(vm: taskDetails = viewModel() ){
                 //.fillMaxHeight()
                 .height(50.dp)
                 //.padding(0.dp, 8.dp, 0.dp, 5.dp)
-                .border(1.dp, Color.Black),
+                ,
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.Bottom
         ) {
             Column(modifier = Modifier
                 .fillMaxWidth(0.5f)
-                .border(1.dp, Color.Black)) {
+                ) {
                 Box(modifier = Modifier.weight(1f)) {
                     TextButton(onClick = {
                         vm.validate()
@@ -536,7 +536,7 @@ fun EditTaskView(vm: taskDetails = viewModel() ){
             //Spacer(modifier = Modifier.width(15.dp))
             Column(modifier = Modifier
                 .fillMaxWidth()
-                .border(1.dp, Color.Black)) {
+                ) {
                 Box(modifier = Modifier.weight(1f)) {
                     TextButton(onClick = {
                         vm.cancelEdit()
