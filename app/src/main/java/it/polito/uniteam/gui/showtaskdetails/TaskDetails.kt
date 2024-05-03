@@ -27,7 +27,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenuItem
@@ -40,7 +39,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -86,9 +84,18 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.window.Dialog
+import it.polito.uniteam.isVertical
 import java.time.LocalTime
 import kotlin.reflect.KFunction1
 
@@ -245,8 +252,8 @@ class taskDetails : ViewModel(){
 
 
     var members = mutableStateOf(mutableListOf(MemberPreview("Nick"),MemberPreview("Nick2", R.drawable.user_icon_blue)))
-        private set
     val possilbleMembersPreview = listOf(MemberPreview("Nick"),MemberPreview("Nick2", R.drawable.user_icon_blue),MemberPreview("Nick3", R.drawable.user_icon_blue),MemberPreview("Nick4", R.drawable.user_icon_blue),MemberPreview("Nick5", R.drawable.user_icon_blue),MemberPreview("Nick6", R.drawable.user_icon_blue),MemberPreview("Nick7", R.drawable.user_icon_blue) )
+    var openAssignDialog = mutableStateOf(false)
     var membersError by mutableStateOf("")
         private set
     fun addMembers(m: MemberPreview){
@@ -446,8 +453,11 @@ fun EditTaskView(vm: taskDetails = viewModel() ){
                 EditRowItem(label = "Estimated Hours:", value =vm.estimatedHours, errorText =vm.estimatedHoursError, onChange = vm::changeEstimatedHours)
                 EditRowItem(label = "Spent Hours:", value =vm.spentHours, errorText =vm.spentHoursError, onChange = vm::changeSpentHours )
                 Demo_ExposedDropdownMenuBox("Repeatable", vm.repeatable, vm.repeatableValues, vm::changeRepetition)
+                if(vm.openAssignDialog.value){
+                    AssignMemberDialog(vm = vm)
+                }
                 Demo_ExposedDropdownMenuBox("Status",vm.state, vm.possibleStates, vm::changeState)
-                MembersDropdownMenuBox("AddMembers",vm.members, vm.possilbleMembersPreview, vm::addMembers, vm::removeMembers, vm.membersError)
+                MembersDropdownMenuBox(vm, "AddMembers",vm.members, vm.possilbleMembersPreview, vm::addMembers, vm::removeMembers, vm.membersError)
                 if(vm.commentHistoryFileSelection == "comments"){
                     CommentsView("Comments", vm.comments, vm::cangeCommentHistoryFileSelection, vm.addComment, vm::changeAddComment, vm::addNewComment, vm.commentHistoryFileSelection)
                 }
@@ -585,12 +595,12 @@ fun EditRowItem(value: String, keyboardType: KeyboardType = KeyboardType.Text, o
                 text = label,
                 style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)//testo
             ) },
-        isError = errorText.isNotBlank(),
+        isError = errorText.isNotBlank(),/*
         keyboardOptions = KeyboardOptions.Default.copy(
-            autoCorrectEnabled = true,
+            //autoCorrectEnabled = true,
             keyboardType = keyboardType,
             imeAction = ImeAction.Done
-        ),
+        ),*/
 
         )
     if (errorText.isNotBlank())
@@ -603,7 +613,15 @@ fun EditRowItem(value: String, keyboardType: KeyboardType = KeyboardType.Text, o
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MembersDropdownMenuBox(label: String, currentValue: MutableState<MutableList<MemberPreview>>, possibleValues: List<MemberPreview>, addMember: (MemberPreview) -> Unit, removeMember: (MemberPreview) -> Unit, errorText: String) {
+fun MembersDropdownMenuBox(
+    vm: taskDetails,
+    label: String,
+    currentValue: MutableState<MutableList<MemberPreview>>,
+    possibleValues: List<MemberPreview>,
+    addMember: (MemberPreview) -> Unit,
+    removeMember: (MemberPreview) -> Unit,
+    errorText: String
+) {
     val context = LocalContext.current
     val values = possibleValues
     var expanded by remember { mutableStateOf(false) }
@@ -634,11 +652,12 @@ fun MembersDropdownMenuBox(label: String, currentValue: MutableState<MutableList
                 value = " ",
                 onValueChange = {},
                 readOnly = true,
-                trailingIcon = { Icon(Icons.Default.Add, contentDescription = "Add ") },
+                trailingIcon = { IconButton(onClick = { vm.openAssignDialog.value = true }) {
+                    Icon(Icons.Default.Add, contentDescription = "Add ")
+                } },
                 modifier = Modifier
                     .menuAnchor()
-                    .fillMaxWidth()
-                    ,
+                    .fillMaxWidth(),
                 //isError = errorText.isNotBlank(),
                 leadingIcon = {
                     Row(
@@ -657,7 +676,11 @@ fun MembersDropdownMenuBox(label: String, currentValue: MutableState<MutableList
                                     .size(25.dp, 25.dp)
                             )
                             Text(
-                                text = pair.username.toString() + if(index < selectedText.size -1){" ,"}else{""},
+                                text = pair.username.toString() + if (index < selectedText.size - 1) {
+                                    " ,"
+                                } else {
+                                    ""
+                                },
                                 style = MaterialTheme.typography.bodyMedium,
                                 modifier = Modifier.padding(start = 4.dp)
                             )
@@ -667,10 +690,14 @@ fun MembersDropdownMenuBox(label: String, currentValue: MutableState<MutableList
                         }
                     }
                 }
-                
+
             )
-
-
+            if (vm.openAssignDialog.value) {
+                AssignMemberDialog(vm)
+            }
+        }
+    }
+/*
             ExposedDropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
@@ -722,10 +749,84 @@ fun MembersDropdownMenuBox(label: String, currentValue: MutableState<MutableList
         }
 
 
-    }
+    }*/
     /*
     if (errorText.isNotBlank())
         Text(errorText, color = MaterialTheme.colorScheme.error)*/
+
+}
+
+@Composable
+fun AssignMemberDialog(vm: taskDetails) {
+
+        val selectedMembers = remember { mutableStateMapOf<MemberPreview, Boolean>() }
+        vm.possilbleMembersPreview.forEach { member ->
+            selectedMembers[member] = vm.members.value.toMutableList().contains(member)
+        }
+        Dialog(onDismissRequest = { vm.openAssignDialog.value = false }) {
+            Card(modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Column(
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Row(modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(10.dp), horizontalArrangement = Arrangement.Center) {
+                        if (isVertical())
+                            Text(text = vm.taskName, style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center)
+                        else
+                            Text(text = vm.taskName, style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center, overflow = TextOverflow.Ellipsis, maxLines = 1)
+                    }
+                    Row(modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(10.dp, 0.dp, 0.dp, 5.dp), horizontalArrangement = Arrangement.Start) {
+                        Text(text = "Members assigned :", style = MaterialTheme.typography.bodyMedium)
+                    }
+
+                    LazyColumn(modifier = if (isVertical()) Modifier.heightIn(0.dp, 265.dp) else Modifier.heightIn(0.dp, 165.dp)) {
+                        items(vm.possilbleMembersPreview) { member ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        selectedMembers[member] =
+                                            !(selectedMembers[member] ?: false)
+                                    },
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Checkbox(
+                                    checked = selectedMembers[member] ?: false,
+                                    onCheckedChange = { selectedMembers[member] = it }
+                                )
+                                Text(text = member.username.toString(), textAlign = TextAlign.Center)
+                            }
+                        }
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(10.dp),
+                        horizontalArrangement = Arrangement.Center,
+                    ) {
+                        TextButton(onClick = { vm.openAssignDialog.value = false }) {
+                            Text("Cancel")
+                        }
+                        Spacer(modifier = Modifier.padding(10.dp))
+                        TextButton(onClick = {
+                            vm.members.value = selectedMembers.filterValues{ it }.keys.toMutableList()
+                            vm.openAssignDialog.value = false
+                        }
+                        ) {
+                            Text("Confirm")
+                        }
+                    }
+                }
+            }
+
+        }
 
 }
 
