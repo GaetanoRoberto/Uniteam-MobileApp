@@ -89,6 +89,8 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateListOf
 import java.time.LocalTime
 import kotlin.reflect.KFunction1
 
@@ -354,7 +356,7 @@ class taskDetails : ViewModel(){
     val username = "User1"
 
 
-    var comments by mutableStateOf(mutableListOf(Comment("Marco", "Ciao", "2024-02-05", "18:31"),Comment("Luca", "Ciao", "2024-02-05", "18:40"),Comment("Giovanni", "Ciao", "2024-02-06", "18:31"),Comment("Francesco", "Ciao", "2024-02-07", "18:50")))
+    var comments = mutableStateListOf(Comment("Marco", "Ciao", "2024-02-05", "18:31"),Comment("Luca", "Ciao", "2024-02-05", "18:40"),Comment("Giovanni", "Ciao", "2024-02-06", "18:31"),Comment("Francesco", "Ciao", "2024-02-07", "18:50"))
     var addComment by mutableStateOf(Comment(username, "", "", ""))
 
     fun changeAddComment(s: String){
@@ -370,7 +372,7 @@ class taskDetails : ViewModel(){
     }
 
 
-    var files by mutableStateOf(mutableListOf(File("User", "filename", "2024-02-05")))
+    val files = mutableStateListOf(File("User", "filename", "2024-02-05"))
     var realFiles by mutableStateOf(mutableListOf<Uri>())
     fun addFile(f: Uri){
         Log.d("file", files.size.toString())
@@ -378,7 +380,7 @@ class taskDetails : ViewModel(){
         files.add(File(username, f.path.toString(), LocalDate.now().toString()))
         Log.d("file",files.size.toString())
     }
-    var history by mutableStateOf(mutableListOf(History("file x deleted", "04/05/2024", "Marco"), History("file x deleted", "2024-02-05", "Marco")))
+    var history = mutableStateListOf(History("file x deleted", "04/05/2024", "Marco"), History("file x deleted", "2024-02-05", "Marco"))
 
 }
 
@@ -916,50 +918,52 @@ fun CommentsView(
                     .height(200.dp)
             )
 
-            Column(modifier = Modifier
-                .fillMaxWidth(0.9f)
-                .height(199.dp)
-                .padding(0.dp, 10.dp, 0.dp, 0.dp)
-                .verticalScroll(rememberScrollState(initial = Int.MAX_VALUE))) {
-                values.forEachIndexed { index, comment ->
+            key(values.size) {
+                Column(modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .height(199.dp)
+                    .padding(0.dp, 10.dp, 0.dp, 0.dp)
+                    .verticalScroll(rememberScrollState(initial = Int.MAX_VALUE))) {
+                    values.forEachIndexed { index, comment ->
 
-                    if(comment.date != date){
-                        Row(modifier = Modifier.fillMaxWidth()) {
-                            Text(text = comment.date, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
-                            date = comment.date
+                        if(comment.date != date){
+                            Row(modifier = Modifier.fillMaxWidth()) {
+                                Text(text = comment.date, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                                date = comment.date
+                            }
+
                         }
+                        Row {
 
-                    }
-                    Row {
-
-                        OutlinedTextField(
-                            label = {
-                                Text(
-                                    text = comment.user,
-                                    style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)//testo
-                                ) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(8.dp, 0.dp, 0.dp, 3.dp)
-                                .width(IntrinsicSize.Max)
+                            OutlinedTextField(
+                                label = {
+                                    Text(
+                                        text = comment.user,
+                                        style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)//testo
+                                    ) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(8.dp, 0.dp, 0.dp, 3.dp)
+                                    .width(IntrinsicSize.Max)
 
                                 ,
-                            enabled = false,// <- Add this to make click event work
-                            value = comment.commentValue,
-                            onValueChange = {},
-                            trailingIcon = {
-                                           Text(text = comment.hour, textAlign = TextAlign.End)
-                            },
-                            /*colors = TextFieldDefaults.outlinedTextFieldColors(
-                                disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                                disabledBorderColor = MaterialTheme.colorScheme.primary,
-                                focusedBorderColor = Color.Black,
-                                disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant)*/
-                        )                    }
-                }
+                                enabled = false,// <- Add this to make click event work
+                                value = comment.commentValue,
+                                onValueChange = {},
+                                trailingIcon = {
+                                    Text(text = comment.hour, textAlign = TextAlign.End)
+                                },
+                                /*colors = TextFieldDefaults.outlinedTextFieldColors(
+                                    disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                                    disabledBorderColor = MaterialTheme.colorScheme.primary,
+                                    focusedBorderColor = Color.Black,
+                                    disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant)*/
+                            )                    }
+                    }
+            }
             }
 
 
@@ -1029,49 +1033,52 @@ fun HistoryView(
                 .verticalScroll(rememberScrollState(initial = Int.MAX_VALUE)),
         )
 
-        Column(modifier = Modifier
-            .fillMaxWidth(0.9f)
-            .height(199.dp)
-            .padding(0.dp, 10.dp, 0.dp, 0.dp)
-            .verticalScroll(rememberScrollState(initial = Int.MAX_VALUE))) {
-            values.forEachIndexed { index, history ->
+        key(values.size) {
+            Column(modifier = Modifier
+                .fillMaxWidth(0.9f)
+                .height(199.dp)
+                .padding(0.dp, 10.dp, 0.dp, 0.dp)
+                .verticalScroll(rememberScrollState(initial = Int.MAX_VALUE))) {
+                values.forEachIndexed { index, history ->
 
-                if(history.date != date){
-                    Row(modifier = Modifier.fillMaxWidth()) {
-                        Text(text = history.date, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
-                        date = history.date
+                    if(history.date != date){
+                        Row(modifier = Modifier.fillMaxWidth()) {
+                            Text(text = history.date, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                            date = history.date
+                        }
+
                     }
+                    Row {
 
+                        OutlinedTextField(
+                            label = {
+                                Text(
+                                    text = history.user,
+                                    style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)//testo
+                                ) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp, 0.dp, 0.dp, 3.dp)
+                                .widthIn(10.dp, 100.dp)
+
+                            ,
+                            enabled = false,// <- Add this to make click event work
+                            value = history.comment,
+                            onValueChange = {},
+                            trailingIcon = {
+                            },
+                            /*colors = TextFieldDefaults.outlinedTextFieldColors(
+                                disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                                disabledBorderColor = MaterialTheme.colorScheme.primary,
+                                focusedBorderColor = Color.Black,
+                                disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant)*/
+                        )                    }
                 }
-                Row {
+        }
 
-                    OutlinedTextField(
-                        label = {
-                            Text(
-                                text = history.user,
-                                style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)//testo
-                            ) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp, 0.dp, 0.dp, 3.dp)
-                            .widthIn(10.dp, 100.dp)
-
-                        ,
-                        enabled = false,// <- Add this to make click event work
-                        value = history.comment,
-                        onValueChange = {},
-                        trailingIcon = {
-                        },
-                        /*colors = TextFieldDefaults.outlinedTextFieldColors(
-                            disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                            disabledBorderColor = MaterialTheme.colorScheme.primary,
-                            focusedBorderColor = Color.Black,
-                            disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant)*/
-                    )                    }
-            }
         }
 
 
@@ -1132,6 +1139,7 @@ fun FilesView(
 
         )
 
+        key(filevalues.size) {
         Column(modifier = Modifier
             .fillMaxWidth(0.9f)
             .height(199.dp)
@@ -1180,6 +1188,7 @@ fun FilesView(
                     )                    }
             }
         }
+        }
 
 
     }
@@ -1209,7 +1218,7 @@ fun FileUpload(addFile: (Uri) -> Unit) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Button(onClick = { chooseFileLauncher.launch("image/*") }) {
+        Button(onClick = { chooseFileLauncher.launch("file/*") }) {
             Text("Upload File")
         }
         Spacer(modifier = Modifier.height(16.dp))
