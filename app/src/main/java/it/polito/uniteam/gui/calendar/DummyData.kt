@@ -1,6 +1,8 @@
 package it.polito.uniteam.gui.calendar
 
+import it.polito.uniteam.classes.Category
 import it.polito.uniteam.classes.Member
+import it.polito.uniteam.classes.Priority
 import it.polito.uniteam.classes.Repetition
 import it.polito.uniteam.classes.Status
 import it.polito.uniteam.classes.Task
@@ -78,8 +80,8 @@ object DummyDataProvider {
                 id = 4
                 name = "Task4"
                 description = "Description1"
-                category = "Category1"
-                priority = "High"
+                category = Category.MEETING
+                priority = Priority.HIGH
                 creationDate = LocalDate.of(2024,Month.MARCH,20)
                 estimatedHours = 8
                 spentHours = 2
@@ -91,8 +93,8 @@ object DummyDataProvider {
                 id = 5
                 name = "Task5"
                 description = "Description2"
-                category = "Category2"
-                priority = "Medium"
+                category = Category.PROGRAMMING
+                priority = Priority.MEDIUM
                 creationDate = LocalDate.of(2024,Month.MARCH,21)
                 estimatedHours = 10
                 spentHours = 3
@@ -104,8 +106,8 @@ object DummyDataProvider {
                 id = 6
                 name = "Task6"
                 description = "Description3"
-                category = "Category3"
-                priority = "Low"
+                category = Category.DESIGN
+                priority = Priority.LOW
                 creationDate = LocalDate.of(2024,Month.MARCH,22)
                 estimatedHours = 5
                 spentHours = 1
@@ -122,8 +124,8 @@ object DummyDataProvider {
                 id = 1
                 name = "Task1"
                 description = "Description1"
-                category = "Category1"
-                priority = "High"
+                category = Category.MEETING
+                priority = Priority.HIGH
                 creationDate = LocalDate.of(2024,Month.MARCH,19)
                 deadline = LocalDate.of(2024, Month.MAY, 3)
                 estimatedHours = 5
@@ -137,8 +139,8 @@ object DummyDataProvider {
                 id = 2
                 name = "Task2"
                 description = "Description2"
-                category = "Category2"
-                priority = "Medium"
+                category = Category.PROGRAMMING
+                priority = Priority.MEDIUM
                 creationDate = LocalDate.of(2024,Month.MARCH,18)
                 deadline = LocalDate.of(2024, Month.MAY, 5)
                 estimatedHours = 4
@@ -152,8 +154,8 @@ object DummyDataProvider {
                 id = 3
                 name = "Task3"
                 description = "Description3"
-                category = "Category3"
-                priority = "Low"
+                category = Category.DESIGN
+                priority = Priority.LOW
                 creationDate = LocalDate.of(2024,Month.MARCH,17)
                 deadline = LocalDate.of(2024, Month.MAY, 7)
                 estimatedHours = 3

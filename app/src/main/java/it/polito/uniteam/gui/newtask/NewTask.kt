@@ -236,6 +236,7 @@ fun EditRowItem(value: String, keyboardType: KeyboardType = KeyboardType.Text, o
         isError = errorText.isNotBlank(),
         keyboardOptions = KeyboardOptions.Default.copy(
             keyboardType = keyboardType,
+            autoCorrectEnabled = true,
             imeAction = ImeAction.Done
         ),
 
