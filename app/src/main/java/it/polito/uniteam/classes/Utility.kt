@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -95,4 +97,14 @@ fun MemberIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: 
             }
         }
     }
+}
+
+@Composable
+fun TextTrim(inputText: String, desiredLength: Int, modifier: Modifier = Modifier, style: TextStyle = LocalTextStyle.current) {
+    val text = if (inputText.length > desiredLength) {
+         inputText.substring(0, desiredLength) + "..."
+    } else {
+        inputText
+    }
+    Text(text = text, modifier = modifier, style = style)
 }

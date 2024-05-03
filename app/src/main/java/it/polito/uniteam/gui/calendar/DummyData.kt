@@ -132,7 +132,7 @@ object DummyDataProvider {
                 spentHours = 2
                 status = Status.IN_PROGRESS
                 repetition = Repetition.NONE
-                members = listOf(member5, member6)
+                members = listOf(member4, member5, member6)
                 schedules = hashMapOf(LocalDate.of(2024, Month.APRIL, 30) to 5)
             },
             Task().apply {

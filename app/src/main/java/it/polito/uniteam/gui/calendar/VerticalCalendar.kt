@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -51,6 +52,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -62,7 +64,9 @@ import com.mohamedrejeb.compose.dnd.drag.DraggableItem
 import com.mohamedrejeb.compose.dnd.drop.dropTarget
 import com.mohamedrejeb.compose.dnd.rememberDragAndDropState
 import it.polito.uniteam.R
+import it.polito.uniteam.classes.MemberIcon
 import it.polito.uniteam.classes.Task
+import it.polito.uniteam.classes.TextTrim
 import it.polito.uniteam.isVertical
 import java.time.LocalDate
 
@@ -88,10 +92,18 @@ fun CalendarAppContainer(vm: Calendar = viewModel()) {
         }
     }
     if (vm.taskToSchedule != null) {
-        ScheduleTaskDialog(taskScheduleDatePair = vm.taskToSchedule!!, vm = vm)
-    }
-    if (vm.haveNoPermission) {
-        NoPermissionDialog(vm = vm)
+        when (vm.selectedShowDialog) {
+            showDialog.schedule_task -> {
+                ScheduleTaskDialog(vm = vm)
+            }
+            showDialog.no_permission -> {
+                NoPermissionDialog(vm = vm)
+            }
+            showDialog.schedule_in_past -> {
+                ScheduleBackInTimeDialog(vm = vm)
+            }
+            showDialog.none -> {}
+        }
     }
 }
 
@@ -151,14 +163,26 @@ fun VerticalHeader(
     onTodayClickListener: () -> Unit
 ) {
     val isCheched = remember { mutableStateOf(false) }
+    val month = if (startDate.date.month != endDate.date.month) {
+        startDate.date.month.toString().substring(0,3) + "/" + endDate.date.month.toString().substring(0,3)
+    } else {
+        startDate.date.month.toString().substring(0,3)
+    }
+    val year = if (startDate.date.year != endDate.date.year) {
+        val year_len = endDate.date.year.toString().length
+        startDate.date.year.toString() + "/" + endDate.date.year.toString().substring(year_len - 2)
+    } else {
+        startDate.date.year.toString()
+    }
     Column(
     ) {
         Row {
-            Text(
-                text = "Team #1 - Tasks ",
+            TextTrim(
+                inputText = "Team #1 - Tasks",
+                desiredLength = 16,
                 modifier = Modifier
                     .weight(1f)
-                    .align(Alignment.CenterVertically),
+                    .align(Alignment.CenterVertically)
             )
             Spacer(modifier = Modifier.weight(0.4f)) // Spazio flessibile per allineare la checkbox e il testo "My Tasks" alla fine
             Checkbox(
@@ -177,12 +201,23 @@ fun VerticalHeader(
             )
         }
         Row {
-            Text(
-                text = startDate.date.month.toString() + " " + startDate.date.dayOfMonth + " - " + endDate.date.dayOfMonth + ", " + startDate.date.year,// " MAY, 22 - 28  (2024)",
-                modifier = Modifier
-                    .weight(1f)
-                    .align(Alignment.CenterVertically),
-            )
+            Column(
+                modifier = Modifier.fillMaxHeight(0.1f).fillMaxWidth(0.4f),
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = month + " " + startDate.date.dayOfMonth + " - " + endDate.date.dayOfMonth,
+                    modifier = Modifier
+                        .weight(1f)
+                        .align(Alignment.CenterHorizontally),
+                )
+                Text(
+                    text = year,
+                    modifier = Modifier
+                        .weight(1f)
+                        .align(Alignment.CenterHorizontally),
+                )
+            }
             IconButton(onClick = { onPrevClickListener(startDate.date) }) {
                 Icon(
                     imageVector = Icons.Filled.ArrowBack,
@@ -224,7 +259,7 @@ fun EventItem(task: Task, date: LocalDate? = null, isScheduled: Boolean) {
             modifier = Modifier
                 .padding(8.dp)
         ) {
-            Text(text = task.name, style = MaterialTheme.typography.bodyMedium)
+            TextTrim(inputText = task.name, desiredLength = 5, style = MaterialTheme.typography.bodyMedium)
             Spacer(modifier = Modifier.weight(1f))  // Usa il peso per spingere il testo a destra
             Text(
                 text = hours.toString() + "h",
@@ -240,23 +275,18 @@ fun EventItem(task: Task, date: LocalDate? = null, isScheduled: Boolean) {
                 .padding(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            task.members.forEach { member ->
-                val painter = if (member.profileImage != null) {
-                    rememberAsyncImagePainter(
-                        ImageRequest
-                            .Builder(LocalContext.current)
-                            .data(data = member.profileImage)
-                            .build()
+            // handle if more than two members, display ...
+            task.members.forEachIndexed { index, member ->
+                if (index < 2) {
+                    MemberIcon(
+                        modifierScale = Modifier.scale(0.6f),
+                        modifierPadding = Modifier.padding(0.dp, 0.dp, 10.dp, 10.dp),
+                        member = member
                     )
-                } else {
-                    painterResource(id = R.drawable.user_icon)
                 }
-                Icon(
-                    painter = painter,
-                    contentDescription = "Profile",
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))  // Distanziamento tra le icone
+            }
+            if (task.members.size > 2) {
+                Text(text = "...", color = Color.White)
             }
         }
     }
@@ -299,7 +329,7 @@ fun VerticalDayEventScheduler(
     dragAndDropState: DragAndDropState<Pair<Task, LocalDate?>>,
     vm: Calendar = viewModel()
 ) {
-    Box(modifier = Modifier.height(420.dp)) { // Imposta un'altezza fissa e abilita lo scrolling verticale
+    Box(modifier = Modifier.fillMaxHeight(0.8f)) {
         LazyColumn {
             items(items = data.visibleDates) { date ->
                 val currentDate =
@@ -319,34 +349,56 @@ fun VerticalDayEventScheduler(
                                     state = dragAndDropState,
                                     key = date.hashCode(), // Unique key for each drop target
                                     onDrop = { state -> // Data passed from the draggable item
-                                        // Check if the user is a member and can edit this task, otherwise block
                                         // take the date to schedule from the currentDate
-                                        vm.checkPermission(state.data.first)
-                                        if (!vm.haveNoPermission) {
-                                            if (state.data.second != null) {
-                                                // data passed from the DraggableItem, so move from 1 day to another
-                                                val task = state.data.first
-                                                val oldDate = state.data.second
-                                                val hoursToSchedule = task.schedules.get(oldDate)
-                                                // remove the old day scheduled and add the new one
-                                                vm.unScheduleTask(task, oldDate!!)
-                                                if (hoursToSchedule != null) {
-                                                    vm.scheduleTask(
-                                                        task,
-                                                        currentDate.value.date,
-                                                        hoursToSchedule
-                                                    )
-                                                }
-                                            } else {
-                                                // no data passed from the DraggableItem, so coming from the bottom
-                                                // trigger the alert as usual
-                                                vm.assignTaskToSchedule(
-                                                    Pair(
-                                                        state.data.first,
-                                                        currentDate.value.date
-                                                    )
+                                        if (state.data.second != null) {
+                                            // data passed from the DraggableItem, so move from 1 day to another
+                                            vm.checkDialogs(
+                                                state.data.first,
+                                                currentDate.value.date,
+                                                isNewSchedule = false
+                                            )
+                                            // trigger dialog
+                                            vm.assignTaskToSchedule(
+                                                Triple(
+                                                    state.data.first,
+                                                    state.data.second!!,
+                                                    currentDate.value.date
+                                                )
+                                            )
+                                        } else {
+                                            // no data passed from the DraggableItem, so coming from the bottom
+                                            vm.checkDialogs(
+                                                state.data.first,
+                                                currentDate.value.date,
+                                                isNewSchedule = true
+                                            )
+                                            // trigger dialog
+                                            vm.assignTaskToSchedule(
+                                                Triple(
+                                                    state.data.first,
+                                                    null,
+                                                    currentDate.value.date
+                                                )
+                                            )
+                                        }
+
+                                        if (vm.selectedShowDialog == showDialog.none) {
+                                            // no new schedule, simply reschedule without dialogs
+                                            // data passed from the DraggableItem, so move from 1 day to another
+                                            val task = state.data.first
+                                            val oldDate = state.data.second
+                                            val hoursToSchedule = task.schedules.get(oldDate)
+                                            // remove the old day scheduled and add the new one
+                                            vm.unScheduleTask(task, oldDate!!)
+                                            if (hoursToSchedule != null) {
+                                                vm.scheduleTask(
+                                                    task,
+                                                    currentDate.value.date,
+                                                    hoursToSchedule
                                                 )
                                             }
+                                            // reset the task status
+                                            vm.assignTaskToSchedule(null)
                                         }
                                     }
                                 ),
@@ -409,12 +461,22 @@ fun VerticalTasksToAssign(
                         state = dragAndDropState,
                         key = Int.MAX_VALUE, // Unique key for each drop target
                         onDrop = { state -> // Data passed from the draggable item
-                            // Check if the user is a member and can edit this task, otherwise block
-                            vm.checkPermission(state.data.first)
-                            if (!vm.haveNoPermission) {
-                                // Unschedule only if the data was passed, otherwise already unscheduled
-                                if (state.data.second != null)
+                            // Unschedule only if the data was passed, otherwise already unscheduled
+                            if (state.data.second != null) {
+                                vm.checkDialogs(state.data.first, state.data.second!!)
+                                // Unschedule only if i have the permission to do it
+                                if (vm.selectedShowDialog != showDialog.no_permission) {
                                     vm.unScheduleTask(state.data.first, state.data.second!!)
+                                } else {
+                                    // trigger the no permission alert
+                                    vm.assignTaskToSchedule(
+                                        Triple(
+                                            state.data.first,
+                                            null,
+                                            state.data.second!!
+                                        )
+                                    )
+                                }
                             }
                         }
                     )
