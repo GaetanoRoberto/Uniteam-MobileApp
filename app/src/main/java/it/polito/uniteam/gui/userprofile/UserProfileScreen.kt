@@ -666,7 +666,7 @@ fun PresentationPane(vm: UserProfileScreen = viewModel()) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FormScreen(
+fun ProfileSettings(
     vm: UserProfileScreen = viewModel(),
     outputDirectory: File,
     cameraExecutor: ExecutorService,

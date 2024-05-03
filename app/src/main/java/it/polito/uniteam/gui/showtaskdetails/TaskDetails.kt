@@ -1,7 +1,6 @@
 package it.polito.uniteam.gui.showtaskdetails
 
 
-
 import android.annotation.SuppressLint
 import android.net.Uri
 import android.util.Log
@@ -102,17 +101,19 @@ import java.time.LocalTime
 import kotlin.reflect.KFunction1
 
 @SuppressLint("MutableCollectionMutableState")
-class taskDetails : ViewModel(){
+class taskDetails : ViewModel() {
 
     var taskName by mutableStateOf("Task Name value")
         private set
     var taskError by mutableStateOf("")
         private set
-    fun changeTaskName(s: String){
+
+    fun changeTaskName(s: String) {
         taskName = s
     }
-    private fun checkTaskName(){
-        if(taskName.isBlank())
+
+    private fun checkTaskName() {
+        if (taskName.isBlank())
             taskError = "Task name cannot be blank!"
         else
             taskError = ""
@@ -123,11 +124,13 @@ class taskDetails : ViewModel(){
         private set
     var descriptionError by mutableStateOf("")
         private set
-    fun changeDescription(s: String){
+
+    fun changeDescription(s: String) {
         description = s
     }
-    private fun checkDescription(){
-        if(description.isBlank())
+
+    private fun checkDescription() {
+        if (description.isBlank())
             descriptionError = "Task description cannot be blank!"
         else
             descriptionError = ""
@@ -138,11 +141,13 @@ class taskDetails : ViewModel(){
         private set
     var categoryError by mutableStateOf("")
         private set
-    fun changeCategory(s: String){
+
+    fun changeCategory(s: String) {
         category = s
     }
-    private fun checkCategory(){
-        if(category.isBlank())
+
+    private fun checkCategory() {
+        if (category.isBlank())
             categoryError = "Task category cannot be blank!"
         else
             categoryError = ""
@@ -153,26 +158,29 @@ class taskDetails : ViewModel(){
         private set
     var priorityError by mutableStateOf("")
         private set
-    fun changePriority(s: String){
+
+    fun changePriority(s: String) {
         priority = s
     }
-    private fun checkPriority(){
-        if(priority.isBlank())
+
+    private fun checkPriority() {
+        if (priority.isBlank())
             priorityError = "Task priority cannot be blank!"
         else
             priorityError = ""
     }
 
 
-
     var deadline by mutableStateOf(LocalDate.now().toString())
         private set
     var deadlineError by mutableStateOf("")
         private set
-    fun changeDeadline(s: String){
+
+    fun changeDeadline(s: String) {
         deadline = s
     }
-    private fun checkDeadline(){
+
+    private fun checkDeadline() {
         val dateFormat = "yyyy-MM-dd"
         val sdf = SimpleDateFormat(dateFormat, Locale.getDefault())
         sdf.isLenient = false
@@ -189,83 +197,98 @@ class taskDetails : ViewModel(){
         private set
     var stateError by mutableStateOf("")
         private set
-    fun changeState(s: String){
+
+    fun changeState(s: String) {
         state = s
     }
-    val possibleStates = listOf(Status.TODO.toString(),  Status.IN_PROGRESS.toString(), Status.COMPLETED.toString())
 
+    val possibleStates =
+        listOf(Status.TODO.toString(), Status.IN_PROGRESS.toString(), Status.COMPLETED.toString())
 
 
     var estimatedHours by mutableStateOf("")
         private set
     var estimatedHoursError by mutableStateOf("")
         private set
-    fun changeEstimatedHours(h: String){
+
+    fun changeEstimatedHours(h: String) {
         var check = h.toIntOrNull()
-        if(h == ""){
+        if (h == "") {
             estimatedHours = ""
-        }
-        else if (check != null){
+        } else if (check != null) {
             estimatedHours = h
             estimatedHoursError = ""
-        }
-        else{
+        } else {
             estimatedHoursError = "The value must be an Integer"
         }
     }
-    private fun checkEstimatedHours(){
-        if(estimatedHours == ""){
+
+    private fun checkEstimatedHours() {
+        if (estimatedHours == "") {
             estimatedHoursError = "Task estimated hours cannot be blank!"
-        }
-        else if(estimatedHours.toInt() < 0)
+        } else if (estimatedHours.toInt() < 0)
             estimatedHoursError = "Task estimated hours must be greater than 0"
         else
             estimatedHoursError = ""
     }
 
 
-
     var spentHours by mutableStateOf("")
         private set
     var spentHoursError by mutableStateOf("")
         private set
-    fun changeSpentHours(h: String){
+
+    fun changeSpentHours(h: String) {
         var check = h.toIntOrNull()
-        if(h == ""){
+        if (h == "") {
             spentHours = ""
-        }
-        else if (check != null){
+        } else if (check != null) {
             spentHours = h
             spentHoursError = ""
-        }
-        else{
+        } else {
             spentHoursError = "The value must be an Integer"
         }
     }
-    private fun checkSpentHours(){
-        if(spentHours == ""){
+
+    private fun checkSpentHours() {
+        if (spentHours == "") {
             spentHoursError = "Task estimated hours cannot be blank!"
-        }
-        else if(spentHours.toInt() < 0)
+        } else if (spentHours.toInt() < 0)
             spentHoursError = "Task spent hours must be greater than 0"
         else
             spentHoursError = ""
     }
 
 
-    var members = mutableStateOf(mutableListOf(MemberPreview("Nick"),MemberPreview("Nick2", R.drawable.user_icon_blue)))
-    val possilbleMembersPreview = listOf(MemberPreview("Nick"),MemberPreview("Nick2", R.drawable.user_icon_blue),MemberPreview("Nick3", R.drawable.user_icon_blue),MemberPreview("Nick4", R.drawable.user_icon_blue),MemberPreview("Nick5", R.drawable.user_icon_blue),MemberPreview("Nick6", R.drawable.user_icon_blue),MemberPreview("Nick7", R.drawable.user_icon_blue) )
+    var members = mutableStateOf(
+        mutableListOf(
+            MemberPreview("Nick"),
+            MemberPreview("Nick2", R.drawable.user_icon_blue)
+        )
+    )
+    val possilbleMembersPreview = listOf(
+        MemberPreview("Nick"),
+        MemberPreview("Nick2", R.drawable.user_icon_blue),
+        MemberPreview("Nick3", R.drawable.user_icon_blue),
+        MemberPreview("Nick4", R.drawable.user_icon_blue),
+        MemberPreview("Nick5", R.drawable.user_icon_blue),
+        MemberPreview("Nick6", R.drawable.user_icon_blue),
+        MemberPreview("Nick7", R.drawable.user_icon_blue)
+    )
     var openAssignDialog = mutableStateOf(false)
     var membersError by mutableStateOf("")
         private set
-    fun addMembers(m: MemberPreview){
+
+    fun addMembers(m: MemberPreview) {
         members.value = members.value.toMutableList().apply { add(m) }
     }
-    fun removeMembers(m: MemberPreview){
+
+    fun removeMembers(m: MemberPreview) {
         members.value = members.value.toMutableList().apply { remove(m) }
     }
-    private fun checkMembers(){
-        if(members.value.count() <=0)
+
+    private fun checkMembers() {
+        if (members.value.count() <= 0)
             membersError = "Almost a member should be assigned"
         else
             membersError = ""
@@ -274,14 +297,20 @@ class taskDetails : ViewModel(){
 
     var repeatable by mutableStateOf(Repetition.NONE.toString())
         private set
-    val repeatableValues = listOf<String>(Repetition.NONE.toString(), Repetition.DAILY.toString(), Repetition.WEEKLY.toString(), Repetition.MONTHLY.toString())
-    fun changeRepetition(r: String){
-        if(r.isRepetition()){
+    val repeatableValues = listOf<String>(
+        Repetition.NONE.toString(),
+        Repetition.DAILY.toString(),
+        Repetition.WEEKLY.toString(),
+        Repetition.MONTHLY.toString()
+    )
+
+    fun changeRepetition(r: String) {
+        if (r.isRepetition()) {
             repeatable = r
         }
     }
 
-    fun validate(){
+    fun validate() {
         checkTaskName()
         checkDescription()
         checkCategory()
@@ -294,14 +323,14 @@ class taskDetails : ViewModel(){
     }
 
     var editing by mutableStateOf(false)
-    fun changeEditing(){
+    fun changeEditing() {
         editing = !editing
     }
 
 
     // before states to cancel an edit
     var taskNameBefore = ""
-    var descriptionBefore= ""
+    var descriptionBefore = ""
     var categoryBefore = ""
     var priorityBefore = ""
     var deadlineBefore = ""
@@ -311,7 +340,7 @@ class taskDetails : ViewModel(){
     var statusBefore = ""
     var membersBefore = mutableListOf<MemberPreview>()
 
-    fun enterEditingMode(){
+    fun enterEditingMode() {
         taskNameBefore = taskName
         descriptionBefore = description
         categoryBefore = category
@@ -327,24 +356,24 @@ class taskDetails : ViewModel(){
         historyBefore = history
     }
 
-    fun cancelEdit(){
-         taskName = taskNameBefore
-         description =descriptionBefore
-         category = categoryBefore
-         priority = priorityBefore
-         deadline = deadlineBefore
-         estimatedHours = estimateHoursBefore
-         spentHours = spentHoursBefore
-         repeatable = repeatableBefore
-         state = statusBefore
-         members.value = membersBefore
-         comments = commentsBefore
+    fun cancelEdit() {
+        taskName = taskNameBefore
+        description = descriptionBefore
+        category = categoryBefore
+        priority = priorityBefore
+        deadline = deadlineBefore
+        estimatedHours = estimateHoursBefore
+        spentHours = spentHoursBefore
+        repeatable = repeatableBefore
+        state = statusBefore
+        members.value = membersBefore
+        comments = commentsBefore
         files = filesBefore
         history = historyBefore
 
         taskError = ""
         descriptionError = ""
-        categoryError= ""
+        categoryError = ""
         priorityError = ""
         deadlineError = ""
         estimatedHoursError = ""
@@ -353,66 +382,87 @@ class taskDetails : ViewModel(){
     }
 
     var commentHistoryFileSelection by mutableStateOf("comments")
-    fun cangeCommentHistoryFileSelection(s: String){
-        if(s.trim().lowercase() == "comments" ){
+    fun cangeCommentHistoryFileSelection(s: String) {
+        if (s.trim().lowercase() == "comments") {
             commentHistoryFileSelection = "comments"
-        }
-        else if(s.trim().lowercase() == "files"){
+        } else if (s.trim().lowercase() == "files") {
             commentHistoryFileSelection = "files"
 
-        }
-        else if(s.trim().lowercase() =="history"){
+        } else if (s.trim().lowercase() == "history") {
             commentHistoryFileSelection = "history"
 
         }
     }
+
     val username = "User1"
 
 
-    var comments = mutableStateListOf(Comment("Marco", "Ciao", "2024-02-05", "18:31"),Comment("Luca", "Ciao", "2024-02-05", "18:40"),Comment("Giovanni", "Ciao", "2024-02-06", "18:31"),Comment("Francesco", "Ciao", "2024-02-07", "18:50"))
+    var comments = mutableStateListOf(
+        Comment("Marco", "Ciao", "2024-02-05", "18:31"),
+        Comment("Luca", "Ciao", "2024-02-05", "18:40"),
+        Comment("Giovanni", "Ciao", "2024-02-06", "18:31"),
+        Comment("Francesco", "Ciao", "2024-02-07", "18:50")
+    )
     var commentsBefore = comments
     var addComment by mutableStateOf(Comment(username, "", "", ""))
 
-    fun changeAddComment(s: String){
-        addComment = Comment(addComment.user, s, LocalDate.now().toString(), LocalTime.now().hour.toString() + ":" + LocalTime.now().minute.toString())
+    fun changeAddComment(s: String) {
+        addComment = Comment(
+            addComment.user,
+            s,
+            LocalDate.now().toString(),
+            LocalTime.now().hour.toString() + ":" + LocalTime.now().minute.toString()
+        )
     }
 
 
-    fun addNewComment(){
-        if(addComment.commentValue.trim() != ""){
+    fun addNewComment() {
+        if (addComment.commentValue.trim() != "") {
             comments.add(addComment)
         }
-        addComment = Comment(addComment.user, "", LocalDate.now().toString(), LocalTime.now().hour.toString() + ":" + LocalTime.now().minute.toString())
+        addComment = Comment(
+            addComment.user,
+            "",
+            LocalDate.now().toString(),
+            LocalTime.now().hour.toString() + ":" + LocalTime.now().minute.toString()
+        )
     }
 
 
     var files = mutableStateListOf(File("User", "filename", "2024-02-05"))
     var filesBefore = files
     var realFiles by mutableStateOf(mutableListOf<Uri>())
-    fun addFile(f: Uri){
+    fun addFile(f: Uri) {
         Log.d("file", files.size.toString())
         realFiles.add(f)
         files.add(File(username, f.path.toString(), LocalDate.now().toString()))
-        Log.d("file",files.size.toString())
+        Log.d("file", files.size.toString())
     }
-    var history = mutableStateListOf(History("file x deleted", "04/05/2024", "Marco"), History("file x deleted", "2024-02-05", "Marco"))
+
+    var history = mutableStateListOf(
+        History("file x deleted", "04/05/2024", "Marco"),
+        History("file x deleted", "2024-02-05", "Marco")
+    )
     var historyBefore = history
 
-    fun newTask(){
+    fun newTask() {
 
 
         taskName = ""
         description = ""
         category = ""
-        priority =""
+        priority = ""
         //deadline =""
-        estimatedHours= ""
+        estimatedHours = ""
         spentHours = ""
-        repeatable =""
+        repeatable = ""
         state = ""
 
         members.value = mutableListOf()
-    var history = mutableStateListOf(History("file x deleted", "04/05/2024", "Marco"), History("file x deleted", "2024-02-05", "Marco"))
+        var history = mutableStateListOf(
+            History("file x deleted", "04/05/2024", "Marco"),
+            History("file x deleted", "2024-02-05", "Marco")
+        )
 
         comments = mutableStateListOf()
         files = mutableStateListOf()
@@ -425,10 +475,9 @@ class taskDetails : ViewModel(){
 @Preview
 @Composable
 fun TaskScreen(vm: taskDetails = viewModel()) {
-    if(vm.editing){
+    if (vm.editing) {
         EditTaskView()
-    }
-    else{
+    } else {
         TaskDetailsView()
     }
 
@@ -437,11 +486,13 @@ fun TaskScreen(vm: taskDetails = viewModel()) {
 
 @Preview
 @Composable
-fun TaskDetailsView(vm: taskDetails = viewModel() ){
+fun TaskDetailsView(vm: taskDetails = viewModel()) {
 
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .verticalScroll(rememberScrollState())){
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
         Spacer(modifier = Modifier.padding(10.dp))
         Row(modifier = Modifier.fillMaxWidth(0.95f), horizontalArrangement = Arrangement.End) {
             IconButton(onClick = {
@@ -459,72 +510,135 @@ fun TaskDetailsView(vm: taskDetails = viewModel() ){
             }
         }
 
-        RowItem(title = "Name:", value =vm.taskName)
-        RowItem(title = "Description:", value =vm.description)
-        RowItem(title = "Category:", value =vm.category)
-        RowItem(title = "Priority:", value =vm.priority)
-        RowItem(title = "Deadline:", value =vm.deadline)
-        RowItem(title = "Estimated Hours:", value =vm.estimatedHours)
-        RowItem(title = "Spent Hours:", value =vm.spentHours)
-        RowItem(title = "Repeatable:", value =vm.repeatable)
-        RowMemberItem(title = "Members:", value =vm.members.value)
-        RowItem(title = "Status:", value =vm.state)
+        RowItem(title = "Name:", value = vm.taskName)
+        RowItem(title = "Description:", value = vm.description)
+        RowItem(title = "Category:", value = vm.category)
+        RowItem(title = "Priority:", value = vm.priority)
+        RowItem(title = "Deadline:", value = vm.deadline)
+        RowItem(title = "Estimated Hours:", value = vm.estimatedHours)
+        RowItem(title = "Spent Hours:", value = vm.spentHours)
+        RowItem(title = "Repeatable:", value = vm.repeatable)
+        RowMemberItem(title = "Members:", value = vm.members.value)
+        RowItem(title = "Status:", value = vm.state)
     }
 }
 
 
-
-
 @Preview
 @Composable
-fun EditTaskView(vm: taskDetails = viewModel() ){
+fun EditTaskView(vm: taskDetails = viewModel()) {
     Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
-        Row(modifier = Modifier.fillMaxHeight(0.9f)){
-            Column(modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(10.dp, 0.dp)){
+        Row(modifier = Modifier.fillMaxHeight(0.9f)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(10.dp, 0.dp)
+            ) {
                 Spacer(modifier = Modifier.padding(10.dp))
-                EditRowItem(label = "Name:", value = vm.taskName, errorText =vm.taskError, onChange = vm::changeTaskName )
-                EditRowItem(label = "Description:", value =vm.description, errorText =vm.descriptionError, onChange =vm::changeDescription )
-                EditRowItem(label = "Category:", value =vm.category, errorText =vm.categoryError, onChange = vm::changeCategory )
-                EditRowItem(label = "Priority:", value =vm.priority, errorText =vm.priorityError, onChange =vm::changePriority )
+                EditRowItem(
+                    label = "Name:",
+                    value = vm.taskName,
+                    errorText = vm.taskError,
+                    onChange = vm::changeTaskName
+                )
+                EditRowItem(
+                    label = "Description:",
+                    value = vm.description,
+                    errorText = vm.descriptionError,
+                    onChange = vm::changeDescription
+                )
+                EditRowItem(
+                    label = "Category:",
+                    value = vm.category,
+                    errorText = vm.categoryError,
+                    onChange = vm::changeCategory
+                )
+                EditRowItem(
+                    label = "Priority:",
+                    value = vm.priority,
+                    errorText = vm.priorityError,
+                    onChange = vm::changePriority
+                )
                 CustomDatePickerPreview("Deadline", vm.deadline, vm::changeDeadline)
-                EditRowItem(label = "Estimated Hours:", value =vm.estimatedHours, errorText =vm.estimatedHoursError, onChange = vm::changeEstimatedHours)
-                EditRowItem(label = "Spent Hours:", value =vm.spentHours, errorText =vm.spentHoursError, onChange = vm::changeSpentHours )
-                Demo_ExposedDropdownMenuBox("Repeatable", vm.repeatable, vm.repeatableValues, vm::changeRepetition)
-                if(vm.openAssignDialog.value){
+                EditRowItem(
+                    label = "Estimated Hours:",
+                    value = vm.estimatedHours,
+                    errorText = vm.estimatedHoursError,
+                    onChange = vm::changeEstimatedHours
+                )
+                EditRowItem(
+                    label = "Spent Hours:",
+                    value = vm.spentHours,
+                    errorText = vm.spentHoursError,
+                    onChange = vm::changeSpentHours
+                )
+                Demo_ExposedDropdownMenuBox(
+                    "Repeatable",
+                    vm.repeatable,
+                    vm.repeatableValues,
+                    vm::changeRepetition
+                )
+                if (vm.openAssignDialog.value) {
                     AssignMemberDialog(vm = vm)
                 }
-                Demo_ExposedDropdownMenuBox("Status",vm.state, vm.possibleStates, vm::changeState)
-                MembersDropdownMenuBox(vm, "AddMembers",vm.members, vm.possilbleMembersPreview, vm::addMembers, vm::removeMembers, vm.membersError)
-                if(vm.commentHistoryFileSelection == "comments"){
-                    CommentsView("Comments", vm.comments, vm::cangeCommentHistoryFileSelection, vm.addComment, vm::changeAddComment, vm::addNewComment, vm.commentHistoryFileSelection)
+                Demo_ExposedDropdownMenuBox("Status", vm.state, vm.possibleStates, vm::changeState)
+                MembersDropdownMenuBox(
+                    vm,
+                    "AddMembers",
+                    vm.members,
+                    vm.possilbleMembersPreview,
+                    vm::addMembers,
+                    vm::removeMembers,
+                    vm.membersError
+                )
+                if (vm.commentHistoryFileSelection == "comments") {
+                    CommentsView(
+                        "Comments",
+                        vm.comments,
+                        vm::cangeCommentHistoryFileSelection,
+                        vm.addComment,
+                        vm::changeAddComment,
+                        vm::addNewComment,
+                        vm.commentHistoryFileSelection
+                    )
+                } else if (vm.commentHistoryFileSelection == "files") {
+                    FilesView(
+                        "Files",
+                        vm.files,
+                        vm::cangeCommentHistoryFileSelection,
+                        vm::addFile,
+                        vm.commentHistoryFileSelection
+                    )
+                } else if (vm.commentHistoryFileSelection == "history") {
+                    HistoryView(
+                        "History",
+                        vm.history,
+                        vm::cangeCommentHistoryFileSelection,
+                        vm.commentHistoryFileSelection
+                    )
                 }
-                else if(vm.commentHistoryFileSelection == "files"){
-                    FilesView("Files", vm.files, vm::cangeCommentHistoryFileSelection, vm::addFile, vm.commentHistoryFileSelection)
-                }
-                else if(vm.commentHistoryFileSelection == "history"){
-                    HistoryView("History", vm.history, vm::cangeCommentHistoryFileSelection, vm.commentHistoryFileSelection)
-                }
-            Spacer(modifier = Modifier.height(10.dp))}}
+                Spacer(modifier = Modifier.height(10.dp))
+            }
+        }
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 //.fillMaxHeight()
                 .height(50.dp)
-                //.padding(0.dp, 8.dp, 0.dp, 5.dp)
-                ,
+            //.padding(0.dp, 8.dp, 0.dp, 5.dp)
+            ,
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.Bottom
         ) {
-            Column(modifier = Modifier
-                .fillMaxWidth(0.5f)
-                ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth(0.5f)
+            ) {
                 Box(modifier = Modifier.weight(1f)) {
                     TextButton(onClick = {
                         vm.validate()
-                        if(vm.taskError == "" && vm.descriptionError == "" && vm.categoryError == "" && vm.deadlineError == "" && vm.estimatedHoursError == "" && vm.spentHoursError == "" && vm.priorityError == "" ){
+                        if (vm.taskError == "" && vm.descriptionError == "" && vm.categoryError == "" && vm.deadlineError == "" && vm.estimatedHoursError == "" && vm.spentHoursError == "" && vm.priorityError == "") {
                             vm.changeEditing()
                         }
                     }, modifier = Modifier.fillMaxWidth()) {
@@ -534,9 +648,10 @@ fun EditTaskView(vm: taskDetails = viewModel() ){
             }
 
             //Spacer(modifier = Modifier.width(15.dp))
-            Column(modifier = Modifier
-                .fillMaxWidth()
-                ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
                 Box(modifier = Modifier.weight(1f)) {
                     TextButton(onClick = {
                         vm.cancelEdit()
@@ -553,7 +668,6 @@ fun EditTaskView(vm: taskDetails = viewModel() ){
 
 
 }
-
 
 
 @Composable
@@ -588,9 +702,8 @@ fun RowItem(modifier: Modifier = Modifier, title: String, value: Any) {
 }
 
 
-
 @Composable
-fun RowMemberItem(modifier: Modifier = Modifier, title: String, value:List<MemberPreview> ) {
+fun RowMemberItem(modifier: Modifier = Modifier, title: String, value: List<MemberPreview>) {
     Row(
         modifier = Modifier.fillMaxWidth(0.8f),
         verticalAlignment = Alignment.CenterVertically
@@ -606,12 +719,20 @@ fun RowMemberItem(modifier: Modifier = Modifier, title: String, value:List<Membe
     Row(
         modifier = modifier,
     ) {
-        for((i, member) in value.withIndex()){
-            Image(painter = painterResource(id = member.profileImage), contentDescription = "Image", modifier = Modifier
-                .padding(12.dp, 0.dp, 0.dp, 0.dp)
-                .size(30.dp, 30.dp))
+        for ((i, member) in value.withIndex()) {
+            Image(
+                painter = painterResource(id = member.profileImage),
+                contentDescription = "Image",
+                modifier = Modifier
+                    .padding(12.dp, 0.dp, 0.dp, 0.dp)
+                    .size(30.dp, 30.dp)
+            )
             Text(
-                member.username.toString() + if(i< value.size -1){","} else{""},
+                member.username.toString() + if (i < value.size - 1) {
+                    ","
+                } else {
+                    ""
+                },
                 modifier = Modifier
                     .padding(6.dp, 0.dp),
                 style = MaterialTheme.typography.headlineSmall,
@@ -623,9 +744,14 @@ fun RowMemberItem(modifier: Modifier = Modifier, title: String, value:List<Membe
 }
 
 
-
 @Composable
-fun EditRowItem(value: String, keyboardType: KeyboardType = KeyboardType.Text, onChange: (String) -> Unit, label: String, errorText: String) {
+fun EditRowItem(
+    value: String,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    onChange: (String) -> Unit,
+    label: String,
+    errorText: String
+) {
     OutlinedTextField(
         value = value,
         modifier = Modifier.fillMaxWidth(1f),
@@ -634,21 +760,22 @@ fun EditRowItem(value: String, keyboardType: KeyboardType = KeyboardType.Text, o
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)//testo
-            ) },
-        isError = errorText.isNotBlank(),/*
-        keyboardOptions = KeyboardOptions.Default.copy(
-            //autoCorrectEnabled = true,
-            keyboardType = keyboardType,
-            imeAction = ImeAction.Done
-        ),*/
+            )
+        },
+        isError = errorText.isNotBlank(),
+        /*
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    //autoCorrectEnabled = true,
+                    keyboardType = keyboardType,
+                    imeAction = ImeAction.Done
+                ),*/
 
-        )
+    )
     if (errorText.isNotBlank())
         Text(errorText, color = MaterialTheme.colorScheme.error)
     Spacer(modifier = Modifier.padding(5.dp))
 
 }
-
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -692,9 +819,11 @@ fun MembersDropdownMenuBox(
                 value = " ",
                 onValueChange = {},
                 readOnly = true,
-                trailingIcon = { IconButton(onClick = { vm.openAssignDialog.value = true }) {
-                    Icon(Icons.Default.Add, contentDescription = "Add ")
-                } },
+                trailingIcon = {
+                    IconButton(onClick = { vm.openAssignDialog.value = true }) {
+                        Icon(Icons.Default.Add, contentDescription = "Add ")
+                    }
+                },
                 modifier = Modifier
                     .menuAnchor()
                     .fillMaxWidth(),
@@ -737,59 +866,59 @@ fun MembersDropdownMenuBox(
             }
         }
     }
-/*
-            ExposedDropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                modifier = Modifier.background(color = Color.White) // Set background color to avoid transparency
-            ) {
-                Column(
-                    modifier = Modifier
-                        .background(color = Color.White)
-                        .heightIn(0.dp, 200.dp) // Set max height to limit the dropdown size
-                        .verticalScroll(rememberScrollState())
+    /*
+                ExposedDropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier.background(color = Color.White) // Set background color to avoid transparency
                 ) {
-                    values.forEachIndexed {i, item ->
-                        val isSelected = selectedText.contains(item)
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            DropdownMenuItem(
+                    Column(
+                        modifier = Modifier
+                            .background(color = Color.White)
+                            .heightIn(0.dp, 200.dp) // Set max height to limit the dropdown size
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        values.forEachIndexed {i, item ->
+                            val isSelected = selectedText.contains(item)
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                DropdownMenuItem(
 
-                                text = { Text(text = item.username.toString()) },
-                                onClick = {
-                                    if (isSelected) {
-                                        removeMember(item)
-                                    } else {
-                                        addMember(item)
-                                    }
-                                    //expanded = false if you want to close the dropdown any time you click on a member item
-                                    Toast.makeText(context, item.username.toString(), Toast.LENGTH_SHORT).show()
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                trailingIcon = {if(item in currentValue.value){
-                                    Icon(Icons.Default.Check, contentDescription= "Check icon", tint = Color.Green)
-                                }}
+                                    text = { Text(text = item.username.toString()) },
+                                    onClick = {
+                                        if (isSelected) {
+                                            removeMember(item)
+                                        } else {
+                                            addMember(item)
+                                        }
+                                        //expanded = false if you want to close the dropdown any time you click on a member item
+                                        Toast.makeText(context, item.username.toString(), Toast.LENGTH_SHORT).show()
+                                    },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    trailingIcon = {if(item in currentValue.value){
+                                        Icon(Icons.Default.Check, contentDescription= "Check icon", tint = Color.Green)
+                                    }}
 
 
-                            )
+                                )
+
+
+
+                            }
+
+                            if(i != values.size -1){
+                                Divider(modifier = Modifier.padding(8.dp, 0.dp, 8.dp, 0.dp))
+                            }
 
 
 
                         }
-
-                        if(i != values.size -1){
-                            Divider(modifier = Modifier.padding(8.dp, 0.dp, 8.dp, 0.dp))
-                        }
-
-
-
                     }
                 }
+
             }
 
-        }
 
-
-    }*/
+        }*/
     /*
     if (errorText.isNotBlank())
         Text(errorText, color = MaterialTheme.colorScheme.error)*/
@@ -799,82 +928,106 @@ fun MembersDropdownMenuBox(
 @Composable
 fun AssignMemberDialog(vm: taskDetails) {
 
-        val selectedMembers = remember { mutableStateMapOf<MemberPreview, Boolean>() }
-        vm.possilbleMembersPreview.forEach { member ->
-            selectedMembers[member] = vm.members.value.toMutableList().contains(member)
-        }
-        Dialog(onDismissRequest = { vm.openAssignDialog.value = false }) {
-            Card(modifier = Modifier
+    val selectedMembers = remember { mutableStateMapOf<MemberPreview, Boolean>() }
+    vm.possilbleMembersPreview.forEach { member ->
+        selectedMembers[member] = vm.members.value.toMutableList().contains(member)
+    }
+    Dialog(onDismissRequest = { vm.openAssignDialog.value = false }) {
+        Card(
+            modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-                shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Column(
+                verticalArrangement = Arrangement.Center
             ) {
-                Column(
-                    verticalArrangement = Arrangement.Center
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(10.dp), horizontalArrangement = Arrangement.Center
                 ) {
-                    Row(modifier = Modifier
+                    if (isVertical())
+                        Text(
+                            text = vm.taskName,
+                            style = MaterialTheme.typography.headlineSmall,
+                            textAlign = TextAlign.Center
+                        )
+                    else
+                        Text(
+                            text = vm.taskName,
+                            style = MaterialTheme.typography.headlineSmall,
+                            textAlign = TextAlign.Center,
+                            overflow = TextOverflow.Ellipsis,
+                            maxLines = 1
+                        )
+                }
+                Row(
+                    modifier = Modifier
                         .fillMaxWidth()
-                        .padding(10.dp), horizontalArrangement = Arrangement.Center) {
-                        if (isVertical())
-                            Text(text = vm.taskName, style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center)
-                        else
-                            Text(text = vm.taskName, style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center, overflow = TextOverflow.Ellipsis, maxLines = 1)
-                    }
-                    Row(modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(10.dp, 0.dp, 0.dp, 5.dp), horizontalArrangement = Arrangement.Start) {
-                        Text(text = "Members assigned :", style = MaterialTheme.typography.bodyMedium)
-                    }
+                        .padding(10.dp, 0.dp, 0.dp, 5.dp), horizontalArrangement = Arrangement.Start
+                ) {
+                    Text(text = "Members assigned :", style = MaterialTheme.typography.bodyMedium)
+                }
 
-                    LazyColumn(modifier = if (isVertical()) Modifier.heightIn(0.dp, 265.dp) else Modifier.heightIn(0.dp, 165.dp)) {
-                        items(vm.possilbleMembersPreview) { member ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        selectedMembers[member] =
-                                            !(selectedMembers[member] ?: false)
-                                    },
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Checkbox(
-                                    checked = selectedMembers[member] ?: false,
-                                    onCheckedChange = { selectedMembers[member] = it }
-                                )
-                                Text(text = member.username.toString(), textAlign = TextAlign.Center)
-                            }
-                        }
-                    }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(10.dp),
-                        horizontalArrangement = Arrangement.Center,
-                    ) {
-                        TextButton(onClick = { vm.openAssignDialog.value = false }) {
-                            Text("Cancel")
-                        }
-                        Spacer(modifier = Modifier.padding(10.dp))
-                        TextButton(onClick = {
-                            vm.members.value = selectedMembers.filterValues{ it }.keys.toMutableList()
-                            vm.openAssignDialog.value = false
-                        }
+                LazyColumn(
+                    modifier = if (isVertical()) Modifier.heightIn(
+                        0.dp,
+                        265.dp
+                    ) else Modifier.heightIn(0.dp, 165.dp)
+                ) {
+                    items(vm.possilbleMembersPreview) { member ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    selectedMembers[member] =
+                                        !(selectedMembers[member] ?: false)
+                                },
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("Confirm")
+                            Checkbox(
+                                checked = selectedMembers[member] ?: false,
+                                onCheckedChange = { selectedMembers[member] = it }
+                            )
+                            Text(text = member.username.toString(), textAlign = TextAlign.Center)
                         }
                     }
                 }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(10.dp),
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    TextButton(onClick = { vm.openAssignDialog.value = false }) {
+                        Text("Cancel")
+                    }
+                    Spacer(modifier = Modifier.padding(10.dp))
+                    TextButton(onClick = {
+                        vm.members.value = selectedMembers.filterValues { it }.keys.toMutableList()
+                        vm.openAssignDialog.value = false
+                    }
+                    ) {
+                        Text("Confirm")
+                    }
+                }
             }
-
         }
+
+    }
 
 }
 
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Demo_ExposedDropdownMenuBox(label: String, currentValue: String, values: List<String>, onChange: (String) -> Unit) {
+fun Demo_ExposedDropdownMenuBox(
+    label: String,
+    currentValue: String,
+    values: List<String>,
+    onChange: (String) -> Unit
+) {
     val context = LocalContext.current
     val values = values
     var expanded by remember { mutableStateOf(false) }
@@ -899,7 +1052,8 @@ fun Demo_ExposedDropdownMenuBox(label: String, currentValue: String, values: Lis
                     Text(
                         text = label,
                         style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)//testo
-                    ) },
+                    )
+                },
                 value = selectedText,
                 onValueChange = {},
                 readOnly = true,
@@ -919,7 +1073,7 @@ fun Demo_ExposedDropdownMenuBox(label: String, currentValue: String, values: Lis
                         .background(color = Color.White)
                         .heightIn(0.dp, 200.dp) // Set max height to limit the dropdown size
                 ) {
-                    values.forEachIndexed {i, item ->
+                    values.forEachIndexed { i, item ->
                         DropdownMenuItem(
                             text = { Text(text = item) },
                             onClick = {
@@ -929,7 +1083,7 @@ fun Demo_ExposedDropdownMenuBox(label: String, currentValue: String, values: Lis
                             },
                             modifier = Modifier.fillMaxWidth()
                         )
-                        if(i != values.size -1){
+                        if (i != values.size - 1) {
                             Divider(modifier = Modifier.padding(8.dp, 0.dp, 8.dp, 0.dp))
                         }
 
@@ -949,11 +1103,14 @@ fun CustomDatePicker(
     onValueChange: (LocalDate) -> Unit
 ) {
 
-    val open = remember { mutableStateOf(false)}
+    val open = remember { mutableStateOf(false) }
 
     if (open.value) {
         CalendarDialog(
-            state = rememberUseCaseState(visible = true, true, onCloseRequest = { open.value = false } ),
+            state = rememberUseCaseState(
+                visible = true,
+                true,
+                onCloseRequest = { open.value = false }),
             config = CalendarConfig(
                 yearSelection = true,
                 style = CalendarStyle.MONTH,
@@ -971,14 +1128,15 @@ fun CustomDatePicker(
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)//testo
-            ) },
+            )
+        },
         modifier = Modifier
             .fillMaxWidth()
             .clickable { //Click event
                 open.value = true
             },
         enabled = false,// <- Add this to make click event work
-        value = value.format(DateTimeFormatter.ISO_DATE) ,
+        value = value.format(DateTimeFormatter.ISO_DATE),
         onValueChange = {},
         /*colors = TextFieldDefaults.outlinedTextFieldColors(
             disabledTextColor = MaterialTheme.colorScheme.onSurface,
@@ -992,19 +1150,18 @@ fun CustomDatePicker(
 }
 
 @Composable
-fun CustomDatePickerPreview(label: String, value: String, onChange: (String) -> Unit){
+fun CustomDatePickerPreview(label: String, value: String, onChange: (String) -> Unit) {
     val dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     val dt = LocalDate.parse(value, dtf)
-     CustomDatePicker(
-         label,
-         value = dt,
-         onValueChange = {onChange(it.toString())}
-        )
+    CustomDatePicker(
+        label,
+        value = dt,
+        onValueChange = { onChange(it.toString()) }
+    )
     Spacer(modifier = Modifier.padding(5.dp))
 
 
 }
-
 
 
 @Composable
@@ -1023,106 +1180,149 @@ fun CommentsView(
     var expanded by remember { mutableStateOf(false) }
 
 
-    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.Center) {
-        TextButton(onClick = { changeSelection("comments") }, modifier = Modifier.weight(1f), colors = if(commentHistoryFileSelection == "comments") ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(containerColor = Color.Unspecified)) {
-            Text(text = "Comments", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center, color = Color.Black )
-        }
-
-        TextButton(onClick = { changeSelection("history") }, modifier = Modifier.weight(1f), colors = if(commentHistoryFileSelection == "history")  ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(containerColor = Color.Unspecified)) {
-            Text(text = "History", modifier = Modifier.fillMaxWidth(),textAlign = TextAlign.Center, color = Color.Black // Aligning text to the center
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.Bottom,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        TextButton(
+            onClick = { changeSelection("comments") },
+            modifier = Modifier.weight(1f),
+            colors = if (commentHistoryFileSelection == "comments") ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(
+                containerColor = Color.Unspecified
+            )
+        ) {
+            Text(
+                text = "Comments",
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+                color = Color.Black
             )
         }
-        TextButton(onClick = { changeSelection("files") }, modifier = Modifier.weight(1f), colors = if(commentHistoryFileSelection == "files")  ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(containerColor = Color.Unspecified)) {
-            Text(text = "Files", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center, color = Color.Black)
+
+        TextButton(
+            onClick = { changeSelection("history") },
+            modifier = Modifier.weight(1f),
+            colors = if (commentHistoryFileSelection == "history") ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(
+                containerColor = Color.Unspecified
+            )
+        ) {
+            Text(
+                text = "History",
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+                color = Color.Black // Aligning text to the center
+            )
+        }
+        TextButton(
+            onClick = { changeSelection("files") },
+            modifier = Modifier.weight(1f),
+            colors = if (commentHistoryFileSelection == "files") ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(
+                containerColor = Color.Unspecified
+            )
+        ) {
+            Text(
+                text = "Files",
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+                color = Color.Black
+            )
         }
     }
 
 
-        Box(
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        OutlinedTextField(
+            label = {
+                Text(
+                    text = "",
+                    style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)
+                )
+            },
+            value = "",
+            onValueChange = {},
+            readOnly = true,
             modifier = Modifier
                 .fillMaxWidth()
-        ) {
-            OutlinedTextField(
-                label = {
-                    Text(
-                        text = "",
-                        style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)
-                    )
-                },
-                value = "",
-                onValueChange = {},
-                readOnly = true,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-            )
+                .height(200.dp)
+        )
 
-            key(values.size) {
-                Column(modifier = Modifier
+        key(values.size) {
+            Column(
+                modifier = Modifier
                     .fillMaxWidth(0.9f)
                     .height(199.dp)
                     .padding(0.dp, 10.dp, 0.dp, 0.dp)
-                    .verticalScroll(rememberScrollState(initial = Int.MAX_VALUE))) {
-                    values.forEachIndexed { index, comment ->
+                    .verticalScroll(rememberScrollState(initial = Int.MAX_VALUE))
+            ) {
+                values.forEachIndexed { index, comment ->
 
-                        if(comment.date != date){
-                            Row(modifier = Modifier.fillMaxWidth()) {
-                                Text(text = comment.date, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
-                                date = comment.date
-                            }
-
+                    if (comment.date != date) {
+                        Row(modifier = Modifier.fillMaxWidth()) {
+                            Text(
+                                text = comment.date,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            date = comment.date
                         }
-                        Row {
 
-                            OutlinedTextField(
-                                label = {
-                                    Text(
-                                        text = comment.user,
-                                        style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)//testo
-                                    ) },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(8.dp, 0.dp, 0.dp, 3.dp)
-                                    .width(IntrinsicSize.Max)
-
-                                ,
-                                enabled = false,// <- Add this to make click event work
-                                value = comment.commentValue,
-                                onValueChange = {},
-                                trailingIcon = {
-                                    Text(text = comment.hour, textAlign = TextAlign.End)
-                                },
-                                /*colors = TextFieldDefaults.outlinedTextFieldColors(
-                                    disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                                    disabledBorderColor = MaterialTheme.colorScheme.primary,
-                                    focusedBorderColor = Color.Black,
-                                    disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant)*/
-                            )                    }
                     }
-            }
-            }
+                    Row {
 
-
+                        OutlinedTextField(
+                            label = {
+                                Text(
+                                    text = comment.user,
+                                    style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)//testo
+                                )
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp, 0.dp, 0.dp, 3.dp)
+                                .width(IntrinsicSize.Max),
+                            enabled = false,// <- Add this to make click event work
+                            value = comment.commentValue,
+                            onValueChange = {},
+                            trailingIcon = {
+                                Text(text = comment.hour, textAlign = TextAlign.End)
+                            },
+                            /*colors = TextFieldDefaults.outlinedTextFieldColors(
+                                disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                                disabledBorderColor = MaterialTheme.colorScheme.primary,
+                                focusedBorderColor = Color.Black,
+                                disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant)*/
+                        )
+                    }
+                }
+            }
         }
+
+
+    }
     Row(modifier = Modifier.fillMaxWidth()) {
-        OutlinedTextField(label = { Text(text = "Add a comment")}, value = addComment.commentValue, onValueChange = { it -> changeAddComment(it) }, modifier = Modifier.fillMaxWidth(),
+        OutlinedTextField(label = { Text(text = "Add a comment") },
+            value = addComment.commentValue,
+            onValueChange = { it -> changeAddComment(it) },
+            modifier = Modifier.fillMaxWidth(),
             trailingIcon = {
                 IconButton(onClick = { kFunction0() }) {
-                    Icon(Icons.Default.Send,
+                    Icon(
+                        Icons.Default.Send,
                         contentDescription = "Send Icon"
                     )
                 }
-                })
+            })
 
     }
 
-    }
-
-
-
+}
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -1137,17 +1337,53 @@ fun HistoryView(
     val values = history
     var date = ""
     var expanded by remember { mutableStateOf(false) }
-    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.Center) {
-        TextButton(onClick = { changeSelection("comments") }, modifier = Modifier.weight(1f), colors = if(commentHistoryFileSelection == "comments") ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(containerColor = Color.Unspecified)) {
-            Text(text = "Comments", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center, color = Color.Black )
-        }
-
-        TextButton(onClick = { changeSelection("history") }, modifier = Modifier.weight(1f), colors = if(commentHistoryFileSelection == "history") ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(containerColor = Color.Unspecified)) {
-            Text(text = "History", modifier = Modifier.fillMaxWidth(),textAlign = TextAlign.Center , color = Color.Black // Aligning text to the center
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.Bottom,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        TextButton(
+            onClick = { changeSelection("comments") },
+            modifier = Modifier.weight(1f),
+            colors = if (commentHistoryFileSelection == "comments") ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(
+                containerColor = Color.Unspecified
+            )
+        ) {
+            Text(
+                text = "Comments",
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+                color = Color.Black
             )
         }
-        TextButton(onClick = { changeSelection("files") }, modifier = Modifier.weight(1f), colors = if(commentHistoryFileSelection == "files") ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(containerColor = Color.Unspecified)) {
-            Text(text = "Files", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center , color = Color.Black)
+
+        TextButton(
+            onClick = { changeSelection("history") },
+            modifier = Modifier.weight(1f),
+            colors = if (commentHistoryFileSelection == "history") ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(
+                containerColor = Color.Unspecified
+            )
+        ) {
+            Text(
+                text = "History",
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+                color = Color.Black // Aligning text to the center
+            )
+        }
+        TextButton(
+            onClick = { changeSelection("files") },
+            modifier = Modifier.weight(1f),
+            colors = if (commentHistoryFileSelection == "files") ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(
+                containerColor = Color.Unspecified
+            )
+        ) {
+            Text(
+                text = "Files",
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+                color = Color.Black
+            )
         }
     }
 
@@ -1173,16 +1409,22 @@ fun HistoryView(
         )
 
         key(values.size) {
-            Column(modifier = Modifier
-                .fillMaxWidth(0.9f)
-                .height(199.dp)
-                .padding(0.dp, 10.dp, 0.dp, 0.dp)
-                .verticalScroll(rememberScrollState(initial = Int.MAX_VALUE))) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .height(199.dp)
+                    .padding(0.dp, 10.dp, 0.dp, 0.dp)
+                    .verticalScroll(rememberScrollState(initial = Int.MAX_VALUE))
+            ) {
                 values.forEachIndexed { index, history ->
 
-                    if(history.date != date){
+                    if (history.date != date) {
                         Row(modifier = Modifier.fillMaxWidth()) {
-                            Text(text = history.date, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                            Text(
+                                text = history.date,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            )
                             date = history.date
                         }
 
@@ -1194,13 +1436,12 @@ fun HistoryView(
                                 Text(
                                     text = history.user,
                                     style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)//testo
-                                ) },
+                                )
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(8.dp, 0.dp, 0.dp, 3.dp)
-                                .widthIn(10.dp, 100.dp)
-
-                            ,
+                                .widthIn(10.dp, 100.dp),
                             enabled = false,// <- Add this to make click event work
                             value = history.comment,
                             onValueChange = {},
@@ -1214,9 +1455,10 @@ fun HistoryView(
                                 disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
                                 disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                                 disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant)*/
-                        )                    }
+                        )
+                    }
                 }
-        }
+            }
 
         }
 
@@ -1240,20 +1482,56 @@ fun FilesView(
 
 
 
-    Log.d("file","Rerendered")
+    Log.d("file", "Rerendered")
 
 
-    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.Center) {
-        TextButton(onClick = { changeSelection("comments") }, modifier = Modifier.weight(1f), colors = if(commentHistoryFileSelection == "comments") ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(containerColor = Color.Unspecified)) {
-            Text(text = "Comments", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center, color = Color.Black )
-        }
-
-        TextButton(onClick = { changeSelection("history") }, modifier = Modifier.weight(1f), colors = if(commentHistoryFileSelection == "history") ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(containerColor = Color.Unspecified)) {
-            Text(text = "History", modifier = Modifier.fillMaxWidth(),textAlign = TextAlign.Center , color = Color.Black // Aligning text to the center
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.Bottom,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        TextButton(
+            onClick = { changeSelection("comments") },
+            modifier = Modifier.weight(1f),
+            colors = if (commentHistoryFileSelection == "comments") ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(
+                containerColor = Color.Unspecified
+            )
+        ) {
+            Text(
+                text = "Comments",
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+                color = Color.Black
             )
         }
-        TextButton(onClick = { changeSelection("files") }, modifier = Modifier.weight(1f), colors = if(commentHistoryFileSelection == "files") ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(containerColor = Color.Unspecified)) {
-            Text(text = "Files", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center, color = Color.Black)
+
+        TextButton(
+            onClick = { changeSelection("history") },
+            modifier = Modifier.weight(1f),
+            colors = if (commentHistoryFileSelection == "history") ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(
+                containerColor = Color.Unspecified
+            )
+        ) {
+            Text(
+                text = "History",
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+                color = Color.Black // Aligning text to the center
+            )
+        }
+        TextButton(
+            onClick = { changeSelection("files") },
+            modifier = Modifier.weight(1f),
+            colors = if (commentHistoryFileSelection == "files") ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(
+                containerColor = Color.Unspecified
+            )
+        ) {
+            Text(
+                text = "Files",
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+                color = Color.Black
+            )
         }
     }
 
@@ -1278,16 +1556,22 @@ fun FilesView(
 
         )
 
-        Column(modifier = Modifier
-            .fillMaxWidth(0.9f)
-            .height(199.dp)
-            .padding(0.dp, 10.dp, 0.dp, 0.dp)
-            .verticalScroll(rememberScrollState(initial = Int.MAX_VALUE))) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth(0.9f)
+                .height(199.dp)
+                .padding(0.dp, 10.dp, 0.dp, 0.dp)
+                .verticalScroll(rememberScrollState(initial = Int.MAX_VALUE))
+        ) {
             filevalues.forEachIndexed { index, file ->
 
-                if(file.date != date){
+                if (file.date != date) {
                     Row(modifier = Modifier.fillMaxWidth()) {
-                        Text(text = file.date, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                        Text(
+                            text = file.date,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
                         date = file.date
                     }
 
@@ -1299,13 +1583,12 @@ fun FilesView(
                             Text(
                                 text = file.user,
                                 style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)//testo
-                            ) },
+                            )
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(8.dp, 0.dp, 0.dp, 3.dp)
-                            .widthIn(10.dp, 100.dp)
-
-                        ,
+                            .widthIn(10.dp, 100.dp),
                         enabled = false,// <- Add this to make click event work
                         value = file.filename,
                         onValueChange = {},
@@ -1323,14 +1606,13 @@ fun FilesView(
                             disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
                             disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                             disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant)*/
-                    )                    }
+                    )
+                }
             }
         }
-        }
+    }
     FileUpload(addfile)
 }
-
-
 
 
 @Composable
@@ -1353,7 +1635,7 @@ fun FileUpload(addFile: (Uri) -> Unit) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Button(onClick = { chooseFileLauncher.launch("file/*") }) {
+        Button(onClick = { chooseFileLauncher.launch("*/*") }) {
             Text("Upload File")
         }
         Spacer(modifier = Modifier.height(16.dp))

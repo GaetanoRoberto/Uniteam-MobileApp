@@ -17,7 +17,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import it.polito.uniteam.gui.userprofile.UserProfileScreen
@@ -52,9 +51,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import it.polito.uniteam.gui.calendar.Calendar
-import it.polito.uniteam.gui.calendar.CalendarAppContainer
 import it.polito.uniteam.gui.showtaskdetails.TaskScreen
-import it.polito.uniteam.gui.tasklist.TaskListView
 
 class MainActivity : ComponentActivity() {
 
@@ -72,14 +69,25 @@ class MainActivity : ComponentActivity() {
         }
         vm.openGallery(false)
     }
-    private val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            Log.i("Uniteam", "Permission granted")
-        } else {
-            Log.i("Uniteam", "Permission denied")
+
+    private var permissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+
+        var isGranted = true
+
+        for(permission in permissions) {
+            if(!permission.value) {
+                isGranted = false
+            }
         }
+
+        if(isGranted) {
+            Log.i("UniTeam","all Permissions granted.")
+        } else {
+            Log.i("UniTeam","permissions denied.")
+        }
+
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -113,7 +121,7 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.weight(1f)
                     ) {
                         MyTopAppBar()
-                        /*FormScreen(
+                        /*ProfileSettings(
                             vm = viewModel(),
                             outputDirectory = getOutputDirectory(),
                             cameraExecutor = cameraExecutor,
@@ -128,25 +136,44 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        requestCameraPermission()
+        requestPermissions()
     }
 
-    private fun requestCameraPermission() {
-        when {
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.CAMERA
-            ) == PackageManager.PERMISSION_GRANTED -> {
-                Log.i("Uniteam", "Permission previously granted")
-                //vm.shouldShowCamera.value = true
+    private fun hasPermission(permission: String): Boolean {
+        return ContextCompat.checkSelfPermission(
+            this,
+            permission
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun requestPermissions() {
+        /*
+        <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+        <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+        <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
+        val permissions = if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.TIRAMISU) {
+            arrayOf(
+                Manifest.permission.CAMERA,
+                Manifest.permission.READ_MEDIA_IMAGES,
+                Manifest.permission.READ_MEDIA_VIDEO
+            )
+        } else {
+            arrayOf(
+                Manifest.permission.CAMERA,
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            )
+        }*/
+        val permissions = arrayOf(Manifest.permission.CAMERA)
+
+        var launch = false
+        for (permission in permissions) {
+            if(!hasPermission(permission)) {
+                launch = true
+                break
             }
-
-            ActivityCompat.shouldShowRequestPermissionRationale(
-                this,
-                Manifest.permission.CAMERA
-            ) -> Log.i("Uniteam", "Show camera permissions dialog")
-
-            else -> requestPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+        if(launch) {
+            permissionLauncher.launch(permissions)
         }
     }
 
