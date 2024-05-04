@@ -252,7 +252,7 @@ class taskDetails : ViewModel() {
 
     private fun checkSpentHours() {
         if (spentHours == "") {
-            spentHoursError = "Task estimated hours cannot be blank!"
+            spentHoursError = "Task spent hours cannot be blank!"
         } else if (spentHours.toInt() < 0)
             spentHoursError = "Task spent hours must be greater than 0"
         else
@@ -626,6 +626,7 @@ fun EditTaskView(vm: taskDetails = viewModel()) {
                 .fillMaxWidth()
                 //.fillMaxHeight()
                 .height(50.dp)
+                
             //.padding(0.dp, 8.dp, 0.dp, 5.dp)
             ,
             horizontalArrangement = Arrangement.Center,
@@ -803,7 +804,7 @@ fun MembersDropdownMenuBox(
         ExposedDropdownMenuBox(
             expanded = expanded,
             onExpandedChange = {
-                expanded = !expanded
+                vm.openAssignDialog.value = true
             },
             modifier = Modifier.fillMaxWidth()
 
