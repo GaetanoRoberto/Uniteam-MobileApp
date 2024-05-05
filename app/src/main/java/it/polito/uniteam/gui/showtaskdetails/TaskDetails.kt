@@ -81,6 +81,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.input.ImeAction
+import it.polito.uniteam.classes.Comment
 import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.MemberIcon
 
@@ -853,9 +854,11 @@ fun CommentsView(
                                 .fillMaxWidth(0.9f)
                                 .padding(8.dp, 0.dp, 0.dp, 3.dp)
                                 .width(IntrinsicSize.Max),
-                            enabled = false,// <- Add this to make click event work
+                            enabled = (comment.user == vm.member),// <- Add this to make click event work
                             value = comment.commentValue,
-                            onValueChange = {},
+                            onValueChange = {value -> vm.comments.remove(comment); vm.comments.add(
+                                Comment(++vm.localId,comment.user,value,comment.date,comment.hour)
+                            )},
                             trailingIcon = {
                                 Text(text = comment.hour, textAlign = TextAlign.End)
                             },

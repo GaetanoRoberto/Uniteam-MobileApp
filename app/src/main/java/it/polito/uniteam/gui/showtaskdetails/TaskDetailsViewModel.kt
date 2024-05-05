@@ -62,7 +62,7 @@ class taskDetails : ViewModel() {
     }
 
 
-    var category by mutableStateOf("")
+    var category by mutableStateOf(Category.NONE.toString())
         private set
     val categoryValues = Category.entries.map { it.toString() }
     var categoryError by mutableStateOf("")
@@ -125,7 +125,7 @@ class taskDetails : ViewModel() {
         listOf(Status.TODO.toString(), Status.IN_PROGRESS.toString(), Status.COMPLETED.toString())
 
 
-    var estimatedHours by mutableStateOf("")
+    var estimatedHours by mutableStateOf("0")
         private set
     var estimatedHoursError by mutableStateOf("")
         private set
@@ -147,7 +147,7 @@ class taskDetails : ViewModel() {
         }
     }
 
-    var spentHours by mutableStateOf("")
+    var spentHours by mutableStateOf("1")
         private set
     var spentHoursError by mutableStateOf("")
         private set
@@ -370,19 +370,21 @@ class taskDetails : ViewModel() {
         scrollTaskDetails = Int.MAX_VALUE
     }
 
+    var localId by mutableIntStateOf(0)
     val member = DummyDataProvider.getDummyProfile()
     val dummyMembers = DummyDataProvider.getMembers()
 
     var comments = mutableStateListOf(
-        Comment(dummyMembers[0], "Ciao", "2024-02-05", "18:31"),
-        Comment(dummyMembers[1], "Ciao", "2024-02-05", "18:40"),
-        Comment(dummyMembers[2], "Ciao", "2024-02-06", "18:31"),
-        Comment(dummyMembers[3], "Ciao", "2024-02-07", "18:50")
+        Comment(++localId,dummyMembers[0], "Ciao", "2024-02-05", "18:31"),
+        Comment(++localId,dummyMembers[1], "Ciao", "2024-02-05", "18:40"),
+        Comment(++localId,dummyMembers[2], "Ciao", "2024-02-06", "18:31"),
+        Comment(++localId,dummyMembers[3], "Ciao", "2024-02-07", "18:50")
     )
-    var addComment by mutableStateOf(Comment(member, "", "", ""))
+    var addComment by mutableStateOf(Comment(++localId,member, "", "", ""))
 
     fun changeAddComment(s: String) {
         addComment = Comment(
+            ++localId,
             addComment.user,
             s,
             LocalDate.now().toString(),
@@ -395,6 +397,7 @@ class taskDetails : ViewModel() {
             comments.add(addComment)
         }
         addComment = Comment(
+            ++localId,
             addComment.user,
             "",
             LocalDate.now().toString(),
@@ -407,7 +410,7 @@ class taskDetails : ViewModel() {
         //commentsBefore.remove(c)
     }
 
-    var files = mutableStateListOf(File(dummyMembers[3], "filename", "2024-02-05", Uri.EMPTY))
+    var files = mutableStateListOf(File(++localId,dummyMembers[3], "filename", "2024-02-05", Uri.EMPTY))
     fun addFile(f: File) {
         files.add(f)
         // add history entry
