@@ -2,6 +2,7 @@ package it.polito.uniteam.gui.calendar
 
 import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -252,7 +253,7 @@ fun EventItem(task: Task, date: LocalDate? = null, isScheduled: Boolean) {
             //.fillMaxWidth()
             .width(102.dp)
             .padding(2.dp)
-            .background(MaterialTheme.colorScheme.tertiary, RoundedCornerShape(8.dp)),
+            .background(MaterialTheme.colorScheme.onTertiary, RoundedCornerShape(8.dp)),
         verticalArrangement = Arrangement.Center
     ) {
         Row(
@@ -303,7 +304,7 @@ fun DayItem(date: CalendarUiModel.Date) {
             .size(width = 48.dp, height = 68.dp),
         colors = CardDefaults.cardColors(
             containerColor = if (date.isSelected) {
-                Color.Magenta
+                Color(0xff018FF3)
             } else {
                 MaterialTheme.colorScheme.primary
             }

@@ -2,20 +2,21 @@
 <project version="4">
   <component name="deploymentTargetDropDown">
     <value>
-      <entry key="EditTaskView">
-        <State />
-      </entry>
-      <entry key="EditTaskView (1)">
-        <State />
-      </entry>
-      <entry key="TaskDetailsView">
-        <State />
-      </entry>
-      <entry key="TaskScreen">
-        <State />
-      </entry>
-      <entry key="TaskScreen (1)">
-        <State />
+      <entry key="MainActivity">
+        <State>
+          <targetSelectedWithDropDown>
+            <Target>
+              <type value="QUICK_BOOT_TARGET" />
+              <deviceKey>
+                <Key>
+                  <type value="VIRTUAL_DEVICE_PATH" />
+                  <value value="C:\Users\gaeta\.android\avd\Pixel_3a_API_34_extension_level_7_x86_64.avd" />
+                </Key>
+              </deviceKey>
+            </Target>
+          </targetSelectedWithDropDown>
+          <timeTargetWasSelectedWithDropDown value="2024-05-03T14:00:50.064363100Z" />
+        </State>
       </entry>
       <entry key="app">
         <State />

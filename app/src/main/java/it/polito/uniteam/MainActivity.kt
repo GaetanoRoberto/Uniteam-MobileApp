@@ -10,6 +10,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,10 +30,16 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.AssignmentTurnedIn
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Diversity3
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.BottomAppBar
@@ -48,9 +55,15 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import it.polito.uniteam.gui.calendar.Calendar
 import it.polito.uniteam.gui.calendar.CalendarAppContainer
 import it.polito.uniteam.gui.showtaskdetails.TaskScreen
@@ -61,7 +74,6 @@ class MainActivity : ComponentActivity() {
     private lateinit var outputDirectory: File
     private var cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor();
     private val vm: UserProfileScreen by viewModels()
-    private val vm2: Calendar by viewModels()
 
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { activity: ActivityResult? ->
         // Handle the selected image URI here
@@ -89,6 +101,8 @@ class MainActivity : ComponentActivity() {
             val interactionSource = remember { MutableInteractionSource() }
             val focusManager = LocalFocusManager.current
             val theme = isSystemInDarkTheme()
+            val navController = rememberNavController()
+
             UniTeamTheme(darkTheme = theme){
             Surface(
                 modifier = Modifier
@@ -112,7 +126,14 @@ class MainActivity : ComponentActivity() {
                     Column(
                         modifier = Modifier.weight(1f)
                     ) {
+
                         MyTopAppBar()
+                        NavHost(navController = navController, startDestination = "tasks") {
+                            // Definisci le destinazioni per le tue schermate
+                            composable("teams") { TaskListView(vm = viewModel()) }
+                            composable("tasks") { TaskScreen(vm = viewModel()) }
+                            composable("calendar") { CalendarAppContainer(vm = viewModel()) }
+                        }
                         /*FormScreen(
                             vm = viewModel(),
                             outputDirectory = getOutputDirectory(),
@@ -121,9 +142,10 @@ class MainActivity : ComponentActivity() {
                         )*/
                         //CalendarAppContainer(vm = viewModel())
                         //TaskScreen(vm = viewModel())
-                        TaskListView(vm = viewModel())
+                        //TaskListView(vm = viewModel())
+
                     }
-                    BottomBar()
+                    BottomBar(navController = navController)
                 }}
             }
         }
@@ -197,34 +219,72 @@ fun MyTopAppBar(vm: UserProfileScreen = viewModel()) {
         }
     )
 }
+
 @Composable
-fun BottomBar(vm: UserProfileScreen = viewModel()){
+fun BottomBar(navController: NavHostController) {
     BottomAppBar(
         modifier = Modifier.height(56.dp),
         containerColor = MaterialTheme.colorScheme.primary,
         content = {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceAround,
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
-                Button(onClick = {}, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)) {
-                    Text(text = "TEAMS")
+                // Prima parte
+                IconButton(
+                    onClick = { navController.navigate("teams") },
+                    colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.secondary)
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.teams),
+                        contentDescription = "team"
+                    )
                 }
-                Button(onClick = { /*TODO*/ }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)) {
-                    Text(text = "TASKS")
+                /*
+                // Striscia bianca
+                Spacer(
+                    modifier = Modifier
+                        .width(1.dp)
+                        .fillMaxHeight()
+                        .background(color = Color.White)
+                )
+*/
+                // Seconda parte
+                IconButton(
+                    onClick = { navController.navigate("tasks") },
+                    colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.secondary)
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.task),
+                        contentDescription = "tasks"
+                    )
                 }
-                IconButton(onClick = { /*TODO*/ }, colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.secondary)) {
-                    Icon(Icons.Default.Notifications, contentDescription = "Notifications")
+/*
+                // Striscia bianca
+                Spacer(
+                    modifier = Modifier
+                        .width(1.dp)
+                        .fillMaxHeight()
+                        .background(color = Color.White)
+                )*/
+
+                // Terza parte
+                IconButton(
+                    onClick = { navController.navigate("calendar") },
+                    colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Icon(
+                        Icons.Default.Notifications,
+                        contentDescription = "Notifications"
+                    )
                 }
-
-
             }
         }
     )
 }
+
+
 
 @Composable
 fun isVertical(): Boolean {

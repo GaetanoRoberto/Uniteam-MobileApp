@@ -17,15 +17,15 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Color.Yellow,
-    secondary = Blue,
-    tertiary = Color(0xff018FF3),//Azzurro fotocamera
-    background =  Blue,
-    surface = Orange,
+    primary = Orange,
+    secondary = LightBlue,
+    tertiary = LightBlue,//Color(0xff018FF3),//Azzurro fotocamera
+    background =  DarkBlue,
+    surface = LightBlue,
     onPrimary = Color.White,
     onSecondary = Color.White,
-    onTertiary = Orange, //
-    onBackground = Orange,
+    onTertiary = Color(0xFF15455a), //
+    onBackground = Color.White,
     onSurface = Color.White ,//Color(0xFF1C1B1F),
     error = Color.Red
 )
@@ -34,7 +34,6 @@ private val LightColorScheme = lightColorScheme(
     primary = Blue,
     secondary = Orange,
     tertiary = Color(0xff018FF3),//fotocamera
-
     // Other default colors to override
     background = Color.White,
     surface = Color.White,
@@ -55,7 +54,7 @@ fun UniTeamTheme(
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
+    /*val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
@@ -64,7 +63,8 @@ fun UniTeamTheme(
 
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
-    }
+    }*/
+    val colorScheme = DarkColorScheme;
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {

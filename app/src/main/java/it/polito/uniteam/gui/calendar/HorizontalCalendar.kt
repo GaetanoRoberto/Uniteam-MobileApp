@@ -24,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -84,6 +85,7 @@ fun HorizontalCalendarApp(
             Column(modifier = Modifier.weight(0.6f)) {
                 HorizontalDayEventScheduler(data = calendarUiModel, dragAndDropState = dragAndDropState, vm = vm)
             }
+            VerticalDivider(color = MaterialTheme.colorScheme.onPrimary, thickness = 1.dp)
             Column(modifier = Modifier.weight(0.4f)) {
                 HorizontalTasksToAssign(vm = vm, dragAndDropState = dragAndDropState)
             }
