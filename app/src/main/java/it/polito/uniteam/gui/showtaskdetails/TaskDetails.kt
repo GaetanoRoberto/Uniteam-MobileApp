@@ -62,17 +62,23 @@ import androidx.compose.ui.tooling.preview.Preview
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.window.Dialog
@@ -81,6 +87,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.input.ImeAction
+import androidx.wear.compose.material3.TextButtonDefaults
 import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.MemberIcon
 
@@ -140,6 +147,94 @@ fun TaskDetailsView(vm: taskDetails = viewModel()) {
             RowItem(title = "Repeatable:", value = vm.repeatable)
             RowMemberItem(title = "Members:", value = vm.members)
             RowItem(title = "Status:", value = vm.status)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Spacer(modifier = Modifier.width(15.dp))
+                if  (vm.commentHistoryFileSelection!= "comments" ){
+                    TextButton(
+                        onClick = { vm.changeCommentHistoryFileSelection("comments") },
+                        modifier =  if (vm.commentHistoryFileSelection != "comments") Modifier
+                            .weight(1f)
+                            .border(
+                                1.dp,
+                                MaterialTheme.colorScheme.primary,
+                                RoundedCornerShape(100)
+                            ) else  Modifier.weight(1f),
+                        colors = if (vm.commentHistoryFileSelection == "comments") ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(
+                            containerColor = Color.Transparent,
+
+                            )
+                    ) {
+                        Text(
+                            text = "Comments",
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onPrimary
+
+                        )
+                    }
+                }else{
+                    OutlinedButton(
+                        onClick = { vm.changeCommentHistoryFileSelection("comments") },
+                        modifier =  if (vm.commentHistoryFileSelection != "comments") Modifier
+                            .weight(1f)
+                            .border(
+                                1.dp,
+                                MaterialTheme.colorScheme.primary,
+                                RoundedCornerShape(100)
+                            ) else  Modifier.weight(1f),
+                        colors = if (vm.commentHistoryFileSelection == "comments") ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(
+                            containerColor = Color.Transparent,
+                            )){
+                            Text(
+                                text = "Comments",
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                    }}
+
+                Spacer(modifier = Modifier.width(15.dp))
+                TextButton(
+                    onClick = { vm.changeCommentHistoryFileSelection("history") },
+                    modifier =  if (vm.commentHistoryFileSelection != "history") Modifier
+                        .weight(1f)
+                        .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(50)) else  Modifier.weight(1f),
+                    colors = if (vm.commentHistoryFileSelection == "history") ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(
+                        containerColor = Color.Transparent,
+                    )
+                ) {
+                    Text(
+                        text = "History",
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+                Spacer(modifier = Modifier.width(15.dp))
+
+                TextButton(
+                    onClick = { vm.changeCommentHistoryFileSelection("files") },
+                    modifier =  if (vm.commentHistoryFileSelection != "files") Modifier
+                        .weight(1f)
+                        .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(50)) else  Modifier.weight(1f),
+                    colors = if (vm.commentHistoryFileSelection == "files") ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(
+                        containerColor = Color.Transparent,
+                    )
+                ) {
+                    Text(
+                        text = "Files",
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+                Spacer(modifier = Modifier.width(15.dp))
+
+            }
             if (vm.commentHistoryFileSelection == "comments") {
                 CommentsView(vm = vm, label = "Comments")
             } else if (vm.commentHistoryFileSelection == "files") {
@@ -235,27 +330,29 @@ fun EditTaskView(vm: taskDetails = viewModel()) {
 
                         Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.Bottom){
 
+                            Spacer(modifier = Modifier.width(15.dp))
                                 Box(modifier = Modifier.weight(1f)) {
-                                    TextButton(onClick = {
+                                    Button( colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
                                         vm.validate()
                                         if (vm.taskError == "" && vm.descriptionError == "" && vm.categoryError == "" && vm.deadlineError == "" && vm.estimatedHoursError == "" && vm.spentHoursError == "" && vm.priorityError == "") {
                                             vm.handleHistory()
                                             vm.changeEditing()
                                         }
-                                    }, modifier = Modifier.fillMaxWidth()) {
-                                        Text(text = "Save", style = MaterialTheme.typography.bodyLarge)
+                                    }, modifier = Modifier
+                                        .fillMaxWidth()) {
+                                        Text(text = "Save", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
                                     }
                                 }
 
 
-                            //Spacer(modifier = Modifier.width(15.dp))
+                            Spacer(modifier = Modifier.width(15.dp))
 
                                 Box(modifier = Modifier.weight(1f)) {
-                                    TextButton(onClick = {
+                                    Button(colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
                                         vm.cancelEdit()
                                         vm.changeEditing()
                                     }, modifier = Modifier.fillMaxWidth()) {
-                                        Text(text = "Cancel", style = MaterialTheme.typography.bodyLarge)
+                                        Text(text = "Cancel", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
                                     }
                                 }
 
@@ -281,30 +378,32 @@ fun EditTaskView(vm: taskDetails = viewModel()) {
                         modifier = Modifier
                             .fillMaxWidth(0.5f)
                     ) {
+                        Spacer(modifier = Modifier.width(15.dp))
+
                         Box(modifier = Modifier.weight(1f)) {
-                            TextButton(onClick = {
+                            Button(colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
                                 vm.validate()
                                 if (vm.taskError == "" && vm.descriptionError == "" && vm.categoryError == "" && vm.deadlineError == "" && vm.estimatedHoursError == "" && vm.spentHoursError == "" && vm.priorityError == "") {
                                     vm.handleHistory()
                                     vm.changeEditing()
                                 }
                             }, modifier = Modifier.fillMaxWidth()) {
-                                Text(text = "Save", style = MaterialTheme.typography.bodyLarge)
+                                Text(text = "Save", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
                             }
                         }
                     }
 
-                    //Spacer(modifier = Modifier.width(15.dp))
+                    Spacer(modifier = Modifier.width(15.dp))
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
                     ) {
                         Box(modifier = Modifier.weight(1f)) {
-                            TextButton(onClick = {
+                            Button(colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
                                 vm.cancelEdit()
                                 vm.changeEditing()
                             }, modifier = Modifier.fillMaxWidth()) {
-                                Text(text = "Cancel", style = MaterialTheme.typography.bodyLarge)
+                                Text(text = "Cancel", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
                             }
                         }
                     }
@@ -515,7 +614,8 @@ fun AssignMemberDialog(vm: taskDetails) {
             shape = RoundedCornerShape(16.dp)
         ) {
             Column(
-                verticalArrangement = Arrangement.Center
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.background(MaterialTheme.colorScheme.secondary)
             ) {
                 Row(
                     modifier = Modifier
@@ -624,7 +724,7 @@ fun Demo_ExposedDropdownMenuBox(
                 label = {
                     Text(
                         text = label,
-                        style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)//testo
+                        style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onPrimary)//testo
                     )
                 },
                 isError = errorMsg.isNotBlank(),
@@ -640,17 +740,19 @@ fun Demo_ExposedDropdownMenuBox(
             ExposedDropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
-                modifier = Modifier.background(color = Color.White) // Set background color to avoid transparency
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.secondary)
+                    .heightIn(0.dp, 200.dp) // Set max height to limit the dropdown size // Set background color to avoid transparency
             ) {
                 Column(
                     modifier = Modifier
-                        .background(color = Color.White)
+                        .background(MaterialTheme.colorScheme.secondary)
                         .heightIn(0.dp, 200.dp) // Set max height to limit the dropdown size
                         .verticalScroll(rememberScrollState())
                 ) {
                     values.forEachIndexed { i, item ->
                         DropdownMenuItem(
-                            text = { Text(text = item, color = Color.Blue) },
+                            text = { Text(text = item, color = MaterialTheme.colorScheme.onPrimary) },
                             onClick = {
                                 onChange(item)
                                 expanded = false
@@ -718,14 +820,21 @@ fun CustomDatePicker(
         enabled = false,// <- Add this to make click event work
         value = if (value == null) "" else value.format(DateTimeFormatter.ISO_DATE),
         onValueChange = {},
-        /*colors = TextFieldDefaults.outlinedTextFieldColors(
+        trailingIcon = {
+            Icon(
+                imageVector = Icons.Default.DateRange,
+                contentDescription = "Date Range",
+                tint = MaterialTheme.colorScheme.primary
+            )
+        },
+        colors = OutlinedTextFieldDefaults.colors(
             disabledTextColor = MaterialTheme.colorScheme.onSurface,
             disabledBorderColor = MaterialTheme.colorScheme.primary,
             focusedBorderColor = Color.Black,
             disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
             disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
             disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant)*/
+            disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant)
     )
 }
 
@@ -750,55 +859,6 @@ fun CommentsView(
     label: String
 ) {
     var date = ""
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.Bottom,
-        horizontalArrangement = Arrangement.Center
-    ) {
-        TextButton(
-            onClick = { vm.changeCommentHistoryFileSelection("comments") },
-            modifier = Modifier.weight(1f),
-            colors = if (vm.commentHistoryFileSelection == "comments") ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(
-                containerColor = Color.Unspecified
-            )
-        ) {
-            Text(
-                text = "Comments",
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center,
-                color = Color.Black
-            )
-        }
-
-        TextButton(
-            onClick = { vm.changeCommentHistoryFileSelection("history") },
-            modifier = Modifier.weight(1f),
-            colors = if (vm.commentHistoryFileSelection == "history") ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(
-                containerColor = Color.Unspecified
-            )
-        ) {
-            Text(
-                text = "History",
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center,
-                color = Color.Black // Aligning text to the center
-            )
-        }
-        TextButton(
-            onClick = { vm.changeCommentHistoryFileSelection("files") },
-            modifier = Modifier.weight(1f),
-            colors = if (vm.commentHistoryFileSelection == "files") ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(
-                containerColor = Color.Unspecified
-            )
-        ) {
-            Text(
-                text = "Files",
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center,
-                color = Color.Black
-            )
-        }
-    }
 
 
     Box(
@@ -875,8 +935,9 @@ fun CommentsView(
                                     .align(Alignment.CenterVertically),
                                 onClick = { vm.deleteComment(comment) }) {
                                 Icon(
-                                    imageVector = Icons.Default.Clear,
-                                    contentDescription = "Delete Comment"
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Delete Comment",
+                                    tint = MaterialTheme.colorScheme.onError
                                 )
                             }
                         }
@@ -918,56 +979,6 @@ fun HistoryView(
     val values = history
     var date = ""
     var expanded by remember { mutableStateOf(false) }
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.Bottom,
-        horizontalArrangement = Arrangement.Center
-    ) {
-        TextButton(
-            onClick = { changeSelection("comments") },
-            modifier = Modifier.weight(1f),
-            colors = if (commentHistoryFileSelection == "comments") ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(
-                containerColor = Color.Unspecified
-            )
-        ) {
-            Text(
-                text = "Comments",
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center,
-                color = Color.Black
-            )
-        }
-
-        TextButton(
-            onClick = { changeSelection("history") },
-            modifier = Modifier.weight(1f),
-            colors = if (commentHistoryFileSelection == "history") ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(
-                containerColor = Color.Unspecified
-            )
-        ) {
-            Text(
-                text = "History",
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center,
-                color = Color.Black // Aligning text to the center
-            )
-        }
-        TextButton(
-            onClick = { changeSelection("files") },
-            modifier = Modifier.weight(1f),
-            colors = if (commentHistoryFileSelection == "files") ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(
-                containerColor = Color.Unspecified
-            )
-        ) {
-            Text(
-                text = "Files",
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center,
-                color = Color.Black
-            )
-        }
-    }
-
 
     Box(
         modifier = Modifier
@@ -1056,56 +1067,6 @@ fun FilesView(
 ) {
     var date = ""
 
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.Bottom,
-        horizontalArrangement = Arrangement.Center
-    ) {
-        TextButton(
-            onClick = { vm.changeCommentHistoryFileSelection("comments") },
-            modifier = Modifier.weight(1f),
-            colors = if (vm.commentHistoryFileSelection == "comments") ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(
-                containerColor = Color.Unspecified
-            )
-        ) {
-            Text(
-                text = "Comments",
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center,
-                color = Color.Black
-            )
-        }
-
-        TextButton(
-            onClick = { vm.changeCommentHistoryFileSelection("history") },
-            modifier = Modifier.weight(1f),
-            colors = if (vm.commentHistoryFileSelection == "history") ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(
-                containerColor = Color.Unspecified
-            )
-        ) {
-            Text(
-                text = "History",
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center,
-                color = Color.Black // Aligning text to the center
-            )
-        }
-        TextButton(
-            onClick = { vm.changeCommentHistoryFileSelection("files") },
-            modifier = Modifier.weight(1f),
-            colors = if (vm.commentHistoryFileSelection == "files") ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(
-                containerColor = Color.Unspecified
-            )
-        ) {
-            Text(
-                text = "Files",
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center,
-                color = Color.Black
-            )
-        }
-    }
-
 
     Box(
         modifier = Modifier
@@ -1184,8 +1145,10 @@ fun FilesView(
                                 .align(Alignment.CenterVertically),
                             onClick = { vm.removeFile(file) }) {
                             Icon(
-                                imageVector = Icons.Default.Clear,
-                                contentDescription = "Delete File"
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Delete File",
+                                tint = MaterialTheme.colorScheme.onError
+
                             )
                         }
                     }

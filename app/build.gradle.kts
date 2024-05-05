@@ -53,6 +53,7 @@ android {
 dependencies {
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.compose.material3)
     val cameraxVersion = "1.2.2"
     implementation ("androidx.camera:camera-core:${cameraxVersion}")
     implementation ("androidx.camera:camera-camera2:${cameraxVersion}")
