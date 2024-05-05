@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -32,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mohamedrejeb.compose.dnd.DragAndDropState
@@ -83,10 +85,12 @@ fun HorizontalCalendarApp(
         )
         Row {
             Column(modifier = Modifier.weight(0.6f)) {
+                HorizontalDivider(color = Color.White, thickness = 0.dp, modifier = Modifier.padding(8.dp, 0.dp, 8.dp, 0.dp))
                 HorizontalDayEventScheduler(data = calendarUiModel, dragAndDropState = dragAndDropState, vm = vm)
             }
-            VerticalDivider(color = MaterialTheme.colorScheme.onPrimary, thickness = 1.dp)
+            VerticalDivider(color = MaterialTheme.colorScheme.onPrimary, thickness = 0.dp, modifier = Modifier.padding(0.dp, 8.dp, 0.dp, 8.dp))
             Column(modifier = Modifier.weight(0.4f)) {
+                HorizontalDivider(color = Color.White, thickness = 0.dp, modifier = Modifier.padding(8.dp, 0.dp, 8.dp, 0.dp))
                 HorizontalTasksToAssign(vm = vm, dragAndDropState = dragAndDropState)
             }
         }
@@ -113,15 +117,14 @@ fun HorizontalHeader(
     } else {
         startDate.date.year.toString()
     }
-    Row {
+    Row(modifier = Modifier.padding(5.dp), horizontalArrangement = Arrangement.Center) {
         Text(
-            text = month + " " + startDate.date.dayOfMonth + " - " + endDate.date.dayOfMonth,
+            text = month + "  " + startDate.date.dayOfMonth + " - " + endDate.date.dayOfMonth,
             modifier = Modifier
-                .weight(1f)
                 .align(Alignment.CenterVertically),
         )
         Text(
-            text = year,
+            text = " - $year",
             modifier = Modifier
                 .weight(1f)
                 .align(Alignment.CenterVertically),
@@ -136,9 +139,8 @@ fun HorizontalHeader(
         Text(
             text = "My Tasks",
             modifier = Modifier
-                .weight(1f)
-                .align(Alignment.CenterVertically),
-            //modifier = Modifier.padding(start = 4.dp),
+                .align(Alignment.CenterVertically)
+                .padding(end = 120.dp)
         )
         IconButton(onClick = { onPrevClickListener(startDate.date) }) {
             Icon(
@@ -284,10 +286,10 @@ fun HorizontalTasksToAssign(
             Text(
                 text = "Your Tasks to complete",
                 style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(start = 8.dp)
+                modifier = Modifier.padding(start = 8.dp, top = 5.dp)
             )
         }
-        Spacer(modifier = Modifier.padding(15.dp))
+        Spacer(modifier = Modifier.padding(8.dp))
         Row(
             modifier = Modifier
                 .weight(1f)

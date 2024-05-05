@@ -7,6 +7,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -32,6 +33,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -150,7 +152,9 @@ fun VerticalCalendarApp(
             }
 
         )
+        HorizontalDivider(color = Color.White, thickness = 0.dp)
         VerticalDayEventScheduler(data = calendarUiModel, dragAndDropState = dragAndDropState, vm = vm)
+        HorizontalDivider(color = Color.White, thickness = 0.dp)
         VerticalTasksToAssign(vm = vm, dragAndDropState = dragAndDropState)
     }
 }
@@ -180,12 +184,12 @@ fun VerticalHeader(
         Row {
             TextTrim(
                 inputText = "Team #1 - Tasks",
-                desiredLength = 16,
+                desiredLength = 20,
                 modifier = Modifier
-                    .weight(1f)
                     .align(Alignment.CenterVertically)
+                    .padding(start = 10.dp),
             )
-            Spacer(modifier = Modifier.weight(0.4f)) // Spazio flessibile per allineare la checkbox e il testo "My Tasks" alla fine
+            Spacer(modifier = Modifier.weight(1f)) // Spazio flessibile per allineare la checkbox e il testo "My Tasks" alla fine
             Checkbox(
                 checked = isCheched.value,
                 onCheckedChange = { filterByMyTask ->
@@ -196,14 +200,15 @@ fun VerticalHeader(
             Text(
                 text = "My Tasks",
                 modifier = Modifier
-                    .weight(1f)
-                    .align(Alignment.CenterVertically),
-                //modifier = Modifier.padding(start = 4.dp),
+                    .align(Alignment.CenterVertically)
+                    .padding(end = 10.dp)
             )
         }
         Row {
             Column(
-                modifier = Modifier.fillMaxHeight(0.1f).fillMaxWidth(0.4f),
+                modifier = Modifier
+                    .fillMaxHeight(0.1f)
+                    .fillMaxWidth(0.4f),
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
@@ -219,6 +224,7 @@ fun VerticalHeader(
                         .align(Alignment.CenterHorizontally),
                 )
             }
+            Spacer(modifier = Modifier.weight(1f))
             IconButton(onClick = { onPrevClickListener(startDate.date) }) {
                 Icon(
                     imageVector = Icons.Filled.ArrowBack,
@@ -231,7 +237,7 @@ fun VerticalHeader(
                     contentDescription = "Next"
                 )
             }
-            Button(onClick = onTodayClickListener) {
+            Button(onClick = onTodayClickListener, modifier = Modifier.padding(end = 10.dp)) {
                 Text("Today")
             }
         }
@@ -258,7 +264,7 @@ fun EventItem(task: Task, date: LocalDate? = null, isScheduled: Boolean) {
     ) {
         Row(
             modifier = Modifier
-                .padding(8.dp)
+                .padding(5.dp)
         ) {
             TextTrim(inputText = task.name, desiredLength = 5, style = MaterialTheme.typography.bodyMedium)
             Spacer(modifier = Modifier.weight(1f))  // Usa il peso per spingere il testo a destra
@@ -281,7 +287,7 @@ fun EventItem(task: Task, date: LocalDate? = null, isScheduled: Boolean) {
                 if (index < 2) {
                     MemberIcon(
                         modifierScale = Modifier.scale(0.6f),
-                        modifierPadding = Modifier.padding(0.dp, 0.dp, 10.dp, 10.dp),
+                        modifierPadding = Modifier.padding(0.dp, 0.dp, 8.dp, 8.dp),
                         member = member
                     )
                 }
@@ -299,7 +305,7 @@ fun EventItem(task: Task, date: LocalDate? = null, isScheduled: Boolean) {
 fun DayItem(date: CalendarUiModel.Date) {
     Card(
         modifier = Modifier
-            .padding(vertical = 7.dp, horizontal = 1.dp)
+            .padding(vertical = 7.dp, horizontal = 5.dp)
             //.clickable { onClickListener(date) }
             .size(width = 48.dp, height = 68.dp),
         colors = CardDefaults.cardColors(
@@ -450,7 +456,7 @@ fun VerticalTasksToAssign(
             Text(
                 text = "Your Tasks to complete",
                 style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(start = 8.dp)
+                modifier = Modifier.padding(start = 8.dp, top = 5.dp)
             )
             Row(
                 modifier = Modifier

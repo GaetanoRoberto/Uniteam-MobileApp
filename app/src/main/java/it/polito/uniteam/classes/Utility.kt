@@ -23,6 +23,7 @@ import coil.compose.rememberAsyncImagePainter
 import it.polito.uniteam.ui.theme.Orange
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.text.style.TextOverflow
 
 
 enum class Repetition{
@@ -92,7 +93,9 @@ fun MemberIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: 
                         fontSize = 13.sp,
                         textAlign = TextAlign.Center,
                     ),
-                    modifier = Modifier.align(Alignment.Center)
+                    modifier = Modifier.align(Alignment.Center),
+                    maxLines = 1,
+                    overflow = TextOverflow.Clip
                 )
             }
         }

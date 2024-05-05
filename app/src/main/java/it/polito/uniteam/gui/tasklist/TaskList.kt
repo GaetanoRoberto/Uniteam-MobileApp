@@ -118,6 +118,7 @@ import it.polito.uniteam.classes.Priority
 import it.polito.uniteam.classes.Repetition
 import it.polito.uniteam.classes.Status
 import it.polito.uniteam.classes.Task
+import it.polito.uniteam.gui.showtaskdetails.CustomDatePicker
 import it.polito.uniteam.isVertical
 import it.polito.uniteam.ui.theme.Orange
 import kotlinx.coroutines.CoroutineScope
@@ -283,32 +284,13 @@ fun TaskListView(vm: TaskList = viewModel()) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val view = LocalView.current
-    //Stato per la gestione del DatePicker
-    val selectedDeadlineState = rememberDatePickerState(
-        selectableDates = object : SelectableDates {
-            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                val day = Instant.ofEpochMilli(utcTimeMillis).atZone(
-                    ZoneId.systemDefault())
-                    .toLocalDate()
-                return day >= LocalDate.now()
-            }
-        },
-        initialDisplayMode = if (isVertical())
-            DisplayMode.Picker
-        else
-            DisplayMode.Input
-    )
-    val selectedDeadline = selectedDeadlineState.selectedDateMillis?.let {
-        Instant.ofEpochMilli(it)
-            .atZone(ZoneId.systemDefault())
-            .toLocalDate()
-    }
     //Stati per la gestione degli ExpandableRow
     val assigneeExpanded = remember { mutableStateOf(false) }
     val categoryExpanded = remember { mutableStateOf(false) }
     val priorityExpanded = remember { mutableStateOf(false) }
     val statusExpanded = remember { mutableStateOf(false) }
     val repetitionExpanded = remember { mutableStateOf(false) }
+    val deadlineExpanded = remember { mutableStateOf(false) }
     val sortByExpanded = remember { mutableStateOf(false) }
     //Stati per la gestione dei filtri
     val scrollState = rememberScrollState()
@@ -317,6 +299,7 @@ fun TaskListView(vm: TaskList = viewModel()) {
     val selectedPriority = remember { mutableStateMapOf<Priority, Boolean>() }
     val selectedStatus = remember { mutableStateMapOf<Status, Boolean>() }
     val selectedRepetition = remember { mutableStateMapOf<Repetition, Boolean>() }
+    val selectedDeadline = remember { mutableStateOf<LocalDate?>(null) }
     val radioOptions = listOf("Creation date", "Deadline", "Priority", "Estimated hours", "Spent hours")
     val selectedChip = remember { mutableStateOf("First") }
     val (selectedOption, onOptionSelected) = remember { mutableStateOf(radioOptions[0]) }
@@ -640,17 +623,27 @@ fun TaskListView(vm: TaskList = viewModel()) {
                                         }
                                     }
                                 )
-                                DatePicker(
-                                    state = selectedDeadlineState,
-                                    title = {Text("Deadline", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(16.dp, 16.dp, 0.dp, 0.dp))},
-                                    headline = {
-                                        selectedDeadline?.let {
-                                            Text(it.format(DateTimeFormatter.ofPattern("dd LLLL")).toString(),
-                                                modifier = Modifier.padding(start = 16.dp))
-                                        } ?:
-                                        Text("No date selected",
-                                            modifier = Modifier.padding(start = 16.dp),
-                                            style = MaterialTheme.typography.headlineMedium)
+                                ExpandableRow(
+                                    expanded = deadlineExpanded,
+                                    filter = {
+                                        Text("Deadline", style = MaterialTheme.typography.titleMedium)
+                                    },
+                                    filterOptions = {
+                                        Column {
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth().padding(10.dp)
+                                                ) {
+                                                    CustomDatePicker(
+                                                        label = if (selectedDeadline.value != null) {
+                                                            ""
+                                                        } else {
+                                                            "Select a date"
+                                                        },
+                                                        value = selectedDeadline.value,
+                                                        onValueChange = { selectedDeadline.value = it }
+                                                    )
+                                                }
+                                            }
                                     }
                                 )
                                 HorizontalDivider(thickness = 2.dp)
@@ -768,8 +761,7 @@ fun TaskListView(vm: TaskList = viewModel()) {
                                     .padding(bottom = 10.dp)
                             ) {
                                 FilledTonalButton(onClick = {
-                                    selectedDeadlineState.selectedDateMillis = null
-                                    selectedDeadlineState.displayMode = DisplayMode.Picker
+                                    selectedDeadline.value = null
                                     vm.lastAppliedFilters.value = mapOf(
                                         "selectedDeadline" to LocalDate.MAX
                                     )
@@ -797,7 +789,7 @@ fun TaskListView(vm: TaskList = viewModel()) {
                                 Spacer(modifier = Modifier.padding(10.dp))
                                 FilledTonalButton(onClick = {
                                     vm.lastAppliedFilters.value = mapOf(
-                                        "selectedDeadline" to (selectedDeadline ?: LocalDate.MAX),
+                                        "selectedDeadline" to (selectedDeadline.value ?: LocalDate.MAX),
                                         "selectedMembers" to selectedMembers,
                                         "selectedCategory" to selectedCategory,
                                         "selectedPriority" to selectedPriority,
