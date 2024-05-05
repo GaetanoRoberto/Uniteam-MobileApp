@@ -199,7 +199,7 @@ class MainActivity : ComponentActivity() {
                                         composable("Teams") { TaskListView(vm = viewModel()) }
                                         composable("Tasks") { TaskScreen(vm = viewModel()) }
                                         composable("Calendar") { CalendarAppContainer(vm = viewModel()) }
-                                        composable("Notifications") { /*CalendarAppContainer(vm = viewModel())*/ }
+                                        composable("Notifications") { CalendarAppContainer(vm = viewModel()) }
                                     }
                                 }
                             },

@@ -507,12 +507,11 @@ fun EditRowItem(
             )
         },
         isError = errorText.isNotBlank(),
-        /*
         keyboardOptions = KeyboardOptions.Default.copy(
             autoCorrectEnabled = true,
             keyboardType = keyboardType,
             imeAction = ImeAction.Done
-        ),*/
+        )
     )
     if (errorText.isNotBlank())
         Text(errorText, color = MaterialTheme.colorScheme.error)
