@@ -29,6 +29,7 @@ private val DarkColorScheme = darkColorScheme(
     onSurface = Color.White ,//Color(0xFF1C1B1F),
     error = Color.Red,
     onPrimaryContainer = Color(0xff018FF3),//Azzurro fotocamera
+    onSecondaryContainer = Blue,
 
 
 )

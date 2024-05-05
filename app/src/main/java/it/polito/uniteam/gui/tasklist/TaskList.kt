@@ -12,6 +12,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -37,6 +38,7 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.contentColorFor
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
@@ -44,6 +46,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
@@ -66,6 +69,7 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.SelectableChipColors
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -313,7 +317,7 @@ fun TaskListView(vm: TaskList = viewModel()) {
             drawerContent = { CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
                 ModalDrawerSheet(drawerState, drawerShape = RoundedCornerShape(topStart =  16.dp, bottomStart = 16.dp, topEnd = 0.dp, bottomEnd = 0.dp)) {
                     Box() {
-                        Column(verticalArrangement = Arrangement.Center) {
+                        Column(verticalArrangement = Arrangement.Center, modifier = Modifier.background(MaterialTheme.colorScheme.secondary)) {
                             Row(
                                 modifier = if (isVertical())
                                     Modifier.padding(16.dp, 16.dp, 0.dp, 0.dp)
@@ -631,7 +635,9 @@ fun TaskListView(vm: TaskList = viewModel()) {
                                     filterOptions = {
                                         Column {
                                                 Row(
-                                                    modifier = Modifier.fillMaxWidth().padding(10.dp)
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(10.dp)
                                                 ) {
                                                     CustomDatePicker(
                                                         label = if (selectedDeadline.value != null) {
@@ -662,6 +668,7 @@ fun TaskListView(vm: TaskList = viewModel()) {
                                                 .fillMaxWidth()
                                                 .padding(start = 16.dp)) {
                                                 FilterChip(
+                                                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = MaterialTheme.colorScheme.primary, selectedLabelColor = MaterialTheme.colorScheme.onPrimary, selectedLeadingIconColor =  MaterialTheme.colorScheme.onPrimary),
                                                     selected = (selectedChip.value == "First"),
                                                     onClick = { selectedChip.value = "First" },
                                                     label = {
@@ -686,6 +693,7 @@ fun TaskListView(vm: TaskList = viewModel()) {
                                                 )
                                                 Spacer(modifier = Modifier.padding(10.dp))
                                                 FilterChip(
+                                                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = MaterialTheme.colorScheme.primary, selectedLabelColor = MaterialTheme.colorScheme.onPrimary, selectedLeadingIconColor =  MaterialTheme.colorScheme.onPrimary),
                                                     selected = selectedChip.value == "Second",
                                                     onClick = { selectedChip.value = "Second" },
                                                     label = {
@@ -760,7 +768,9 @@ fun TaskListView(vm: TaskList = viewModel()) {
                                     .fillMaxWidth()
                                     .padding(bottom = 10.dp)
                             ) {
-                                FilledTonalButton(onClick = {
+                                FilledTonalButton(colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary),
+                                    onClick = {
                                     selectedDeadline.value = null
                                     vm.lastAppliedFilters.value = mapOf(
                                         "selectedDeadline" to LocalDate.MAX
@@ -787,7 +797,8 @@ fun TaskListView(vm: TaskList = viewModel()) {
                                     Text("Reset")
                                 }
                                 Spacer(modifier = Modifier.padding(10.dp))
-                                FilledTonalButton(onClick = {
+                                FilledTonalButton(colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary),onClick = {
                                     vm.lastAppliedFilters.value = mapOf(
                                         "selectedDeadline" to (selectedDeadline.value ?: LocalDate.MAX),
                                         "selectedMembers" to selectedMembers,
@@ -858,6 +869,7 @@ fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Coroutin
                     )
                 }
                 DropdownMenu(
+                    containerColor = MaterialTheme.colorScheme.secondary,
                     expanded = vm.expandedDropdown,
                     onDismissRequest = { vm.expandedDropdown = false }
                 ) {
@@ -913,7 +925,8 @@ fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Coroutin
                         text = {
                             Text(
                                 "Leave team",
-                                style = MaterialTheme.typography.titleMedium
+                                style = MaterialTheme.typography.titleMedium,
+                                color = Color.Red
                             )
                         },
                         onClick = { /* Handle exit */ },
@@ -921,7 +934,8 @@ fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Coroutin
                             Icon(
                                 painter = painterResource(id = R.drawable.exitteam),
                                 contentDescription = "Leave team",
-                                modifier = Modifier.size(36.dp)
+                                modifier = Modifier.size(36.dp),
+                                tint = Color.Red
                             )
                         })
                 }
@@ -981,7 +995,9 @@ fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Coroutin
             )
             FilledTonalButton(
                 onClick = { /*TODO*/ },
-                contentPadding = PaddingValues(5.dp, 0.dp)
+                contentPadding = PaddingValues(5.dp, 0.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary)
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add new task")
                 Text(
@@ -999,6 +1015,9 @@ fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Coroutin
             verticalAlignment = Alignment.CenterVertically
         ) {
             SearchBar(
+                colors= SearchBarDefaults.colors(
+                    containerColor =MaterialTheme.colorScheme.onSecondaryContainer,
+                ),
                 inputField = {
                     SearchBarDefaults.InputField(
                         query = vm.searchQuery,
@@ -1054,7 +1073,7 @@ fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Coroutin
             ) {}
             Spacer(modifier = Modifier.weight(1f))
             IconButton(
-                onClick = { /*TODO*/ }, modifier = Modifier
+                onClick = { /*navController.navigate("Calendar") */}, modifier = Modifier
                     .scale(1.5f)
                     .padding(0.dp, 5.dp, 0.dp, 0.dp)
             ) {
@@ -1270,7 +1289,9 @@ fun HorizontalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Corout
                             text = {
                                 Text(
                                     "Leave team",
-                                    style = MaterialTheme.typography.titleMedium
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = Color.Red
+
                                 )
                             },
                             onClick = { /* Handle exit */ },
@@ -1278,7 +1299,8 @@ fun HorizontalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Corout
                                 Icon(
                                     painter = painterResource(id = R.drawable.exitteam),
                                     contentDescription = "Leave team",
-                                    modifier = Modifier.size(36.dp)
+                                    modifier = Modifier.size(36.dp),
+                                    tint = Color.Red
                                 )
                             })
                     }
@@ -1334,6 +1356,9 @@ fun HorizontalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Corout
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 SearchBar(
+                    colors= SearchBarDefaults.colors(
+                       containerColor =MaterialTheme.colorScheme.onSecondaryContainer,
+                        ),
                     inputField = {
                         SearchBarDefaults.InputField(
                             query = vm.searchQuery,
@@ -1449,12 +1474,14 @@ fun HorizontalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Corout
                 )
                 FilledTonalButton(
                     onClick = { /*TODO*/ },
-                    contentPadding = PaddingValues(5.dp, 0.dp)
+                    contentPadding = PaddingValues(5.dp, 0.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary)
                 ) {
                     Icon(Icons.Default.Add, contentDescription = "Add new task")
                     Text(
                         "NEW TASK",
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
                     )
                 }
             }
@@ -1577,6 +1604,7 @@ fun AssignDialog(vm: TaskList) {
                 .padding(16.dp),
                 shape = RoundedCornerShape(16.dp)) {
                 Column(
+                    modifier = Modifier.background(MaterialTheme.colorScheme.secondary),
                     verticalArrangement = Arrangement.Center
                 ) {
                     Row(modifier = Modifier

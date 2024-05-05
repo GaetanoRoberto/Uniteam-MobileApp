@@ -148,13 +148,13 @@ class MainActivity : ComponentActivity() {
                         hasNews = false,
                     ),
                     BottomNavigationItem(
-                        title = "Calendar",
+                        title = "Tasks",
                         selectedIcon = Icons.Filled.ChecklistRtl,
                         unselectedIcon = Icons.Outlined.ChecklistRtl,
                         hasNews = false,//mette un pallino nuovo
                     ),
                     BottomNavigationItem(
-                        title = "Tasks",
+                        title = "Notifications",
                         selectedIcon = Icons.Filled.Notifications,
                         unselectedIcon = Icons.Outlined.Notifications,
                         hasNews = false,
@@ -194,11 +194,12 @@ class MainActivity : ComponentActivity() {
                             },
                             content = { paddingValue ->
                                 Column ( Modifier.padding(paddingValue)){
-                                    NavHost(navController = navController, startDestination = "tasks") {
+                                    NavHost(navController = navController, startDestination = "Tasks") {
                                         // Definisci le destinazioni per le tue schermate
                                         composable("Teams") { TaskListView(vm = viewModel()) }
                                         composable("Tasks") { TaskScreen(vm = viewModel()) }
                                         composable("Calendar") { CalendarAppContainer(vm = viewModel()) }
+                                        composable("Notifications") { /*CalendarAppContainer(vm = viewModel())*/ }
                                     }
                                 }
                             },
