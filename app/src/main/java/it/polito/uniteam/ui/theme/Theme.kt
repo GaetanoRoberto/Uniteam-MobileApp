@@ -23,11 +23,14 @@ private val DarkColorScheme = darkColorScheme(
     background =  DarkBlue,
     surface = LightBlue,
     onPrimary = Color.White,
-    onSecondary = Color.White,
+    onSecondary = Color.White,//Color(0xff018FF3),//Azzurro fotocamera
     onTertiary = Color(0xFF15455a), //
     onBackground = Color.White,
     onSurface = Color.White ,//Color(0xFF1C1B1F),
-    error = Color.Red
+    error = Color.Red,
+    onPrimaryContainer = Color(0xff018FF3),//Azzurro fotocamera
+
+
 )
 
 private val LightColorScheme = lightColorScheme(
