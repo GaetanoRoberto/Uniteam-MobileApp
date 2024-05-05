@@ -1,7 +1,9 @@
 package it.polito.uniteam.gui.showtaskdetails
 
 
+import android.content.ContentResolver
 import android.net.Uri
+import android.provider.OpenableColumns
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -1166,16 +1168,21 @@ fun FilesView(
 @Composable
 fun FileUpload(vm: taskDetails = viewModel()) {
     var selectedFileUri by remember { mutableStateOf<Uri?>(null) }
+    var selectedFileName by remember { mutableStateOf<String?>(null) }
+    val contentResolver = LocalContext.current.contentResolver
 
     val chooseFileLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         selectedFileUri = uri
         if (uri != null) {
+            // Extract filename from URI
+            selectedFileName = getFileName(uri, contentResolver)
+
             vm.addFile(
                 File(
                     user = vm.member,
-                    filename = uri.path.toString(),
+                    filename = selectedFileName ?: uri.path.toString(),
                     date = LocalDate.now().toString(),
                     uri = uri
                 )
@@ -1192,7 +1199,16 @@ fun FileUpload(vm: taskDetails = viewModel()) {
             Text("Upload File")
         }
         Spacer(modifier = Modifier.height(16.dp))
+    }
+}
 
+// Function to extract filename from URI
+fun getFileName(uri: Uri, contentResolver: ContentResolver): String? {
+    val cursor = contentResolver.query(uri, null, null, null, null)
+    return cursor?.use { c ->
+        val nameIndex = c.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+        c.moveToFirst()
+        c.getString(nameIndex)
     }
 }
 
