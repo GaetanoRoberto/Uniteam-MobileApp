@@ -161,119 +161,160 @@ fun TaskDetailsView(vm: taskDetails = viewModel()) {
 @Preview
 @Composable
 fun EditTaskView(vm: taskDetails = viewModel()) {
-    Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
-        Row(modifier = Modifier.fillMaxHeight(0.9f)) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(10.dp, 0.dp)
-            ) {
-                Spacer(modifier = Modifier.padding(10.dp))
-                EditRowItem(
-                    label = "Name:",
-                    value = vm.taskName,
-                    errorText = vm.taskError,
-                    onChange = vm::changeTaskName
-                )
-                EditRowItem(
-                    label = "Description:",
-                    value = vm.description,
-                    errorText = vm.descriptionError,
-                    onChange = vm::changeDescription
-                )
-                Demo_ExposedDropdownMenuBox(
-                    "Category",
-                    vm.category,
-                    vm.categoryValues,
-                    vm::changeCategory,
-                    vm.categoryError
-                )
-                Demo_ExposedDropdownMenuBox(
-                    "Priority",
-                    vm.priority,
-                    vm.priorityValues,
-                    vm::changePriority,
-                    vm.priorityError
-                )
-                CustomDatePickerPreview("Deadline", vm.deadline, vm::changeDeadline)
-                EditRowItem(
-                    label = "Estimated Hours:",
-                    keyboardType = KeyboardType.Number,
-                    value = vm.estimatedHours,
-                    errorText = vm.estimatedHoursError,
-                    onChange = vm::changeEstimatedHours
-                )
-                EditRowItem(
-                    label = "Spent Hours:",
-                    keyboardType = KeyboardType.Number,
-                    value = vm.spentHours,
-                    errorText = vm.spentHoursError,
-                    onChange = vm::changeSpentHours
-                )
-                Demo_ExposedDropdownMenuBox(
-                    "Repeatable",
-                    vm.repeatable,
-                    vm.repeatableValues,
-                    vm::changeRepetition
-                )
-                Demo_ExposedDropdownMenuBox("Status", vm.status, vm.possibleStates, vm::changeState)
-                MembersDropdownMenuBox(
-                    vm,
-                    "AddMembers",
-                    vm.members,
-                    vm.possibleMembers,
-                    vm::addMembers,
-                    vm::removeMembers,
-                    vm.membersError
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-            }
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                //.fillMaxHeight()
-                .height(50.dp)
-            //.padding(0.dp, 8.dp, 0.dp, 5.dp)
-            ,
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.Bottom
-        ) {
+    Row(){
+        Column(modifier = Modifier.fillMaxSize(),  verticalArrangement = Arrangement.Bottom) {
+            Row(modifier = Modifier.fillMaxHeight(0.9f)) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(10.dp, 0.dp)
+                ) {
+                    Spacer(modifier = Modifier.padding(10.dp))
+                    EditRowItem(
+                        label = "Name:",
+                        value = vm.taskName,
+                        errorText = vm.taskError,
+                        onChange = vm::changeTaskName
+                    )
+                    EditRowItem(
+                        label = "Description:",
+                        value = vm.description,
+                        errorText = vm.descriptionError,
+                        onChange = vm::changeDescription
+                    )
+                    Demo_ExposedDropdownMenuBox(
+                        "Category",
+                        vm.category,
+                        vm.categoryValues,
+                        vm::changeCategory,
+                        vm.categoryError
+                    )
+                    Demo_ExposedDropdownMenuBox(
+                        "Priority",
+                        vm.priority,
+                        vm.priorityValues,
+                        vm::changePriority,
+                        vm.priorityError
+                    )
+                    CustomDatePickerPreview("Deadline", vm.deadline, vm::changeDeadline)
+                    EditRowItem(
+                        label = "Estimated Hours:",
+                        keyboardType = KeyboardType.Number,
+                        value = vm.estimatedHours,
+                        errorText = vm.estimatedHoursError,
+                        onChange = vm::changeEstimatedHours
+                    )
+                    EditRowItem(
+                        label = "Spent Hours:",
+                        keyboardType = KeyboardType.Number,
+                        value = vm.spentHours,
+                        errorText = vm.spentHoursError,
+                        onChange = vm::changeSpentHours
+                    )
+                    Demo_ExposedDropdownMenuBox(
+                        "Repeatable",
+                        vm.repeatable,
+                        vm.repeatableValues,
+                        vm::changeRepetition
+                    )
+                    Demo_ExposedDropdownMenuBox("Status", vm.status, vm.possibleStates, vm::changeState)
+                    MembersDropdownMenuBox(
+                        vm,
+                        "AddMembers",
+                        vm.members,
+                        vm.possibleMembers,
+                        vm::addMembers,
+                        vm::removeMembers,
+                        vm.membersError
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
 
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth(0.5f)
-            ) {
-                Box(modifier = Modifier.weight(1f)) {
-                    TextButton(onClick = {
-                        vm.validate()
-                        if (vm.taskError == "" && vm.descriptionError == "" && vm.categoryError == "" && vm.deadlineError == "" && vm.estimatedHoursError == "" && vm.spentHoursError == "" && vm.priorityError == "") {
-                            vm.handleHistory()
-                            vm.changeEditing()
+
+                    if(!isVertical()){
+
+                        Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.Bottom){
+
+                                Box(modifier = Modifier.weight(1f)) {
+                                    TextButton(onClick = {
+                                        vm.validate()
+                                        if (vm.taskError == "" && vm.descriptionError == "" && vm.categoryError == "" && vm.deadlineError == "" && vm.estimatedHoursError == "" && vm.spentHoursError == "" && vm.priorityError == "") {
+                                            vm.handleHistory()
+                                            vm.changeEditing()
+                                        }
+                                    }, modifier = Modifier.fillMaxWidth()) {
+                                        Text(text = "Save", style = MaterialTheme.typography.bodyLarge)
+                                    }
+                                }
+
+
+                            //Spacer(modifier = Modifier.width(15.dp))
+
+                                Box(modifier = Modifier.weight(1f)) {
+                                    TextButton(onClick = {
+                                        vm.cancelEdit()
+                                        vm.changeEditing()
+                                    }, modifier = Modifier.fillMaxWidth()) {
+                                        Text(text = "Cancel", style = MaterialTheme.typography.bodyLarge)
+                                    }
+                                }
+
+
                         }
-                    }, modifier = Modifier.fillMaxWidth()) {
-                        Text(text = "Save", style = MaterialTheme.typography.bodyLarge)
+
+                    }
+                }
+            }
+            if(isVertical()){
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        //.fillMaxHeight()
+                        .height(50.dp)
+                    //.padding(0.dp, 8.dp, 0.dp, 5.dp)
+                    ,
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.Bottom
+                ) {
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth(0.5f)
+                    ) {
+                        Box(modifier = Modifier.weight(1f)) {
+                            TextButton(onClick = {
+                                vm.validate()
+                                if (vm.taskError == "" && vm.descriptionError == "" && vm.categoryError == "" && vm.deadlineError == "" && vm.estimatedHoursError == "" && vm.spentHoursError == "" && vm.priorityError == "") {
+                                    vm.handleHistory()
+                                    vm.changeEditing()
+                                }
+                            }, modifier = Modifier.fillMaxWidth()) {
+                                Text(text = "Save", style = MaterialTheme.typography.bodyLarge)
+                            }
+                        }
+                    }
+
+                    //Spacer(modifier = Modifier.width(15.dp))
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    ) {
+                        Box(modifier = Modifier.weight(1f)) {
+                            TextButton(onClick = {
+                                vm.cancelEdit()
+                                vm.changeEditing()
+                            }, modifier = Modifier.fillMaxWidth()) {
+                                Text(text = "Cancel", style = MaterialTheme.typography.bodyLarge)
+                            }
+                        }
                     }
                 }
             }
 
-            //Spacer(modifier = Modifier.width(15.dp))
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-                Box(modifier = Modifier.weight(1f)) {
-                    TextButton(onClick = {
-                        vm.cancelEdit()
-                        vm.changeEditing()
-                    }, modifier = Modifier.fillMaxWidth()) {
-                        Text(text = "Cancel", style = MaterialTheme.typography.bodyLarge)
-                    }
-                }
-            }
         }
     }
+
+
 }
 
 
@@ -364,11 +405,12 @@ fun EditRowItem(
             )
         },
         isError = errorText.isNotBlank(),
+        /*
         keyboardOptions = KeyboardOptions.Default.copy(
             autoCorrectEnabled = true,
             keyboardType = keyboardType,
             imeAction = ImeAction.Done
-        ),
+        ),*/
     )
     if (errorText.isNotBlank())
         Text(errorText, color = MaterialTheme.colorScheme.error)
