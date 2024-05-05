@@ -10,7 +10,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,11 +29,8 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.AssignmentTurnedIn
@@ -74,6 +70,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var outputDirectory: File
     private var cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor();
     private val vm: UserProfileScreen by viewModels()
+    private val vm2: Calendar by viewModels()
 
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { activity: ActivityResult? ->
         // Handle the selected image URI here
@@ -84,14 +81,25 @@ class MainActivity : ComponentActivity() {
         }
         vm.openGallery(false)
     }
-    private val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            Log.i("Uniteam", "Permission granted")
-        } else {
-            Log.i("Uniteam", "Permission denied")
+
+    private var permissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+
+        var isGranted = true
+
+        for(permission in permissions) {
+            if(!permission.value) {
+                isGranted = false
+            }
         }
+
+        if(isGranted) {
+            Log.i("UniTeam","all Permissions granted.")
+        } else {
+            Log.i("UniTeam","permissions denied.")
+        }
+
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -142,33 +150,51 @@ class MainActivity : ComponentActivity() {
                         )*/
                         //CalendarAppContainer(vm = viewModel())
                         //TaskScreen(vm = viewModel())
-                        //TaskListView(vm = viewModel())
-
+                        TaskListView(vm = viewModel())
                     }
                     BottomBar(navController = navController)
                 }}
             }
         }
 
-        requestCameraPermission()
+        requestPermissions()
     }
 
-    private fun requestCameraPermission() {
-        when {
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.CAMERA
-            ) == PackageManager.PERMISSION_GRANTED -> {
-                Log.i("Uniteam", "Permission previously granted")
-                //vm.shouldShowCamera.value = true
+    private fun hasPermission(permission: String): Boolean {
+        return ContextCompat.checkSelfPermission(
+            this,
+            permission
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun requestPermissions() {
+        /*
+        <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+        <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+        <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
+        val permissions = if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.TIRAMISU) {
+            arrayOf(
+                Manifest.permission.CAMERA,
+                Manifest.permission.READ_MEDIA_IMAGES,
+                Manifest.permission.READ_MEDIA_VIDEO
+            )
+        } else {
+            arrayOf(
+                Manifest.permission.CAMERA,
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            )
+        }*/
+        val permissions = arrayOf(Manifest.permission.CAMERA)
+
+        var launch = false
+        for (permission in permissions) {
+            if(!hasPermission(permission)) {
+                launch = true
+                break
             }
-
-            ActivityCompat.shouldShowRequestPermissionRationale(
-                this,
-                Manifest.permission.CAMERA
-            ) -> Log.i("Uniteam", "Show camera permissions dialog")
-
-            else -> requestPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+        if(launch) {
+            permissionLauncher.launch(permissions)
         }
     }
 
