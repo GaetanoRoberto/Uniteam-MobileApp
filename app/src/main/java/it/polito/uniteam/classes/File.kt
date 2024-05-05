@@ -1,7 +1,10 @@
 package it.polito.uniteam.classes
 
+import android.net.Uri
+
 data class File (
-    var user: String,
+    var user: Member,
     var filename: String,
-    var date: String
+    var date: String,
+    var uri: Uri
 )

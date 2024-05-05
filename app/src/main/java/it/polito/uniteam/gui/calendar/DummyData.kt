@@ -74,6 +74,16 @@ object DummyDataProvider {
         return member1
     }
 
+    fun getMembers(): List<Member> {
+        return listOf(
+            member2,
+            member3,
+            member4,
+            member5,
+            member6
+        )
+    }
+
     fun getTasksToAssign(): List<Task> {
         return listOf(
             Task().apply {
