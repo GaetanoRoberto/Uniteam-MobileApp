@@ -1,7 +1,6 @@
 package it.polito.uniteam.gui.tasklist
 
 import android.content.Context
-import android.net.Uri
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import androidx.compose.animation.AnimatedVisibility
@@ -11,7 +10,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,20 +23,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.contentColorFor
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
@@ -49,8 +43,6 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DisplayMode
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.DropdownMenu
@@ -69,12 +61,9 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
-import androidx.compose.material3.SelectableChipColors
-import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -87,21 +76,16 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
@@ -109,11 +93,11 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.rememberAsyncImagePainter
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
 import it.polito.uniteam.R
 import it.polito.uniteam.classes.Category
 import it.polito.uniteam.classes.Member
@@ -124,14 +108,9 @@ import it.polito.uniteam.classes.Status
 import it.polito.uniteam.classes.Task
 import it.polito.uniteam.gui.showtaskdetails.CustomDatePicker
 import it.polito.uniteam.isVertical
-import it.polito.uniteam.ui.theme.Orange
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.util.Calendar
 import java.util.Locale
 
 
@@ -281,9 +260,8 @@ class TaskList: ViewModel() {
 
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview
 @Composable
-fun TaskListView(vm: TaskList = viewModel()) {
+fun TaskListView(vm: TaskList = viewModel(), navController: NavHostController) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -824,9 +802,9 @@ fun TaskListView(vm: TaskList = viewModel()) {
                 //Resto della UI
                 Box(modifier = Modifier.padding(5.dp, 5.dp, 5.dp, 0.dp)) {
                     if (isVertical())
-                        VerticalTaskListView(vm, drawerState, scope, context, view, selectedOption, selectedChip.value)
+                        VerticalTaskListView(vm, drawerState, scope, context, view, selectedOption, selectedChip.value,navController)
                     else
-                        HorizontalTaskListView(vm, drawerState, scope, context, view, selectedOption, selectedChip.value)
+                        HorizontalTaskListView(vm, drawerState, scope, context, view, selectedOption, selectedChip.value,navController)
                 }
                 //Dialog per l'assegnazione di un task
                 when {
@@ -842,7 +820,7 @@ fun TaskListView(vm: TaskList = viewModel()) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: CoroutineScope, context: Context, view: View, selectedOption: String, selectedChip: String) {
+fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: CoroutineScope, context: Context, view: View, selectedOption: String, selectedChip: String,navController: NavHostController) {
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -994,7 +972,13 @@ fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Coroutin
                 modifier = Modifier.weight(1f)
             )
             FilledTonalButton(
-                onClick = { /*TODO*/ },
+                onClick = {navController.navigate("Tasks"){
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    restoreState = true
+                } },
                 contentPadding = PaddingValues(5.dp, 0.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary)
@@ -1073,7 +1057,14 @@ fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Coroutin
             ) {}
             Spacer(modifier = Modifier.weight(1f))
             IconButton(
-                onClick = { /*navController.navigate("Calendar") */}, modifier = Modifier
+                onClick = { navController.navigate("Calendar"){
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+                          }, modifier = Modifier
                     .scale(1.5f)
                     .padding(0.dp, 5.dp, 0.dp, 0.dp)
             ) {
@@ -1202,7 +1193,7 @@ fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Coroutin
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HorizontalTaskListView(vm: TaskList, drawerState: DrawerState, scope: CoroutineScope, context: Context, view: View, selectedOption: String, selectedChip: String) {
+fun HorizontalTaskListView(vm: TaskList, drawerState: DrawerState, scope: CoroutineScope, context: Context, view: View, selectedOption: String, selectedChip: String,navController: NavHostController) {
     Row(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -1428,7 +1419,14 @@ fun HorizontalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Corout
                 ) {}
                 Spacer(modifier = Modifier.weight(1f))
                 IconButton(
-                    onClick = { /*TODO*/ }, modifier = Modifier
+                    onClick = { navController.navigate("Calendar"){
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                    }, modifier = Modifier
                         .scale(1.5f)
                         .padding(0.dp, 5.dp, 0.dp, 0.dp)
                 ) {
@@ -1473,7 +1471,13 @@ fun HorizontalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Corout
                     modifier = Modifier.weight(1f)
                 )
                 FilledTonalButton(
-                    onClick = { /*TODO*/ },
+                    onClick = {navController.navigate("Tasks"){
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    } },
                     contentPadding = PaddingValues(5.dp, 0.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary)

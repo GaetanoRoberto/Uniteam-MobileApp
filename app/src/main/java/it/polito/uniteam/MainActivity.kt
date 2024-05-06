@@ -1,7 +1,6 @@
 package it.polito.uniteam
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Bundle
@@ -11,7 +10,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,7 +17,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import it.polito.uniteam.gui.userprofile.UserProfileScreen
@@ -30,42 +27,30 @@ import java.util.concurrent.Executors
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.AssignmentTurnedIn
-import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChecklistRtl
 import androidx.compose.material.icons.filled.Diversity3
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.ManageAccounts
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.ChecklistRtl
 import androidx.compose.material.icons.outlined.Diversity3
-import androidx.compose.material.icons.outlined.Email
-import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Notifications
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemColors
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -73,25 +58,26 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import it.polito.uniteam.gui.calendar.Calendar
 import it.polito.uniteam.gui.calendar.CalendarAppContainer
+import it.polito.uniteam.gui.showtaskdetails.EditTaskView
+import it.polito.uniteam.gui.showtaskdetails.TaskDetailsView
 import it.polito.uniteam.gui.showtaskdetails.TaskScreen
 import it.polito.uniteam.gui.tasklist.TaskListView
+import it.polito.uniteam.gui.userprofile.ProfileSettings
 
 class MainActivity : ComponentActivity() {
 
@@ -138,6 +124,9 @@ class MainActivity : ComponentActivity() {
             val focusManager = LocalFocusManager.current
             val theme = isSystemInDarkTheme()
             val navController = rememberNavController()
+            val navBackStackEntry by navController.currentBackStackEntryAsState()
+            val currentDestination = navBackStackEntry?.destination?.route
+
 
             UniTeamTheme(darkTheme = theme) {
                 val items = listOf(
@@ -190,16 +179,58 @@ class MainActivity : ComponentActivity() {
                     ) {
                         Scaffold(
                             topBar = {
-                                MyTopAppBar()
+                                MyTopAppBar(vm,navController)
                             },
+                            floatingActionButton = {
+                                //if (vm.isEditing) {
+                                    if (currentDestination == "Profile") {
+                                        FloatingActionButton(onClick ={
+                                            navController.navigate("EditProfile"){
+                                                popUpTo(navController.graph.findStartDestination().id) {
+                                                    saveState = true
+                                                }
+                                                launchSingleTop = true
+                                                restoreState = true
+                                            }},
+                                            containerColor = MaterialTheme.colorScheme.primary
+                                        ){
+                                            Icon(
+                                                imageVector = Icons.Default.Edit,
+                                                contentDescription = "Edit",
+                                                tint = MaterialTheme.colorScheme.onSecondary
+                                            )
+                                        }
+                                }else if(currentDestination == "Tasks"){
+                                    FloatingActionButton(onClick ={
+                                        navController.navigate("EditTask"){
+                                            popUpTo(navController.graph.findStartDestination().id) {
+                                                saveState = true
+                                            }
+                                            launchSingleTop = true
+                                            restoreState = true
+                                        }},
+                                        containerColor = MaterialTheme.colorScheme.primary
+                                    ){
+                                        Icon(
+                                            imageVector = Icons.Default.Edit,
+                                            contentDescription = "Edit",
+                                            tint = MaterialTheme.colorScheme.onSecondary
+                                        )
+                                    }
+                                }
+                                },
                             content = { paddingValue ->
                                 Column ( Modifier.padding(paddingValue)){
-                                    NavHost(navController = navController, startDestination = "Tasks") {
+                                    NavHost(navController = navController, startDestination = "Teams") {
                                         // Definisci le destinazioni per le tue schermate
-                                        composable("Teams") { TaskListView(vm = viewModel()) }
-                                        composable("Tasks") { TaskScreen(vm = viewModel()) }
+                                        composable("Teams") { TaskListView(vm = viewModel(),navController) }
+                                        composable("Tasks") { TaskDetailsView(vm = viewModel()) }
                                         composable("Calendar") { CalendarAppContainer(vm = viewModel()) }
                                         composable("Notifications") { CalendarAppContainer(vm = viewModel()) }
+                                        composable("EditTask") { EditTaskView(vm = viewModel(),navController) }
+                                        /*composable("EditProfile") { ProfileSettings(vm = viewModel(),outputDirectory = getOutputDirectory(),cameraExecutor = cameraExecutor,pickImageLauncher = pickImageLauncher,edit=true,navController)  }
+                                        composable("Profile") { ProfileSettings(vm = viewModel(),outputDirectory = getOutputDirectory(),cameraExecutor = cameraExecutor,pickImageLauncher = pickImageLauncher,edit=false,navController)  }*/
+                                        composable("Profile") { ProfileSettings(vm = viewModel(),outputDirectory = getOutputDirectory(),cameraExecutor = cameraExecutor,pickImageLauncher = pickImageLauncher)  }
                                     }
                                 }
                             },
@@ -219,10 +250,16 @@ class MainActivity : ComponentActivity() {
                                                     selectedIndicatorColor = MaterialTheme.colorScheme.secondary,
                                                     unselectedIconColor = MaterialTheme.colorScheme.onPrimary
                                                 ),
-                                                selected = selectedItemIndex == index,
+                                                selected = item.title == navBackStackEntry?.destination?.route,//selectedItemIndex == index , PRIMA DELLA NAVIGATION
                                                 onClick = {
                                                     selectedItemIndex = index
-                                                    navController.navigate(item.title)
+                                                    navController.navigate(item.title){
+                                                        popUpTo(navController.graph.findStartDestination().id) {
+                                                            saveState = true
+                                                        }
+                                                        launchSingleTop = true
+                                                        restoreState = true
+                                                    }
                                                 },
                                                 label = {
                                                         Text(text = item.title)
@@ -256,12 +293,7 @@ class MainActivity : ComponentActivity() {
                             //}
                         )
 
-                        /*FormScreen(
-                            vm = viewModel(),
-                            outputDirectory = getOutputDirectory(),
-                            cameraExecutor = cameraExecutor,
-                            pickImageLauncher = pickImageLauncher
-                        )*/
+
                         //CalendarAppContainer(vm = viewModel())
                         //TaskScreen(vm = viewModel())
                         //TaskListView(vm = viewModel())
@@ -331,7 +363,12 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyTopAppBar(vm: UserProfileScreen = viewModel()) {
+fun MyTopAppBar(vm: UserProfileScreen = viewModel(),navController: NavHostController) {
+
+
+
+
+// Stampa delle informazioni sul back stack
     TopAppBar(
         title = {
             Row(
@@ -344,11 +381,26 @@ fun MyTopAppBar(vm: UserProfileScreen = viewModel()) {
         },
         colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primary),
         navigationIcon = {
-            IconButton(onClick = { /* Azione per tornare indietro */ }, colors = IconButtonDefaults.iconButtonColors(MaterialTheme.colorScheme.secondary)) {
+            IconButton(onClick = {//navController.previousBackStackEntry?.savedStateHandle?.set("back", true)
+                navController.popBackStack()
+                                 }, colors = IconButtonDefaults.iconButtonColors(MaterialTheme.colorScheme.secondary)) {
                 Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSecondary)
             }
         },
         actions = {
+            IconButton(onClick = {navController.navigate("Profile") {
+                popUpTo(navController.graph.findStartDestination().id) {
+                    // Pop everything up to the "destination_a" destination off the back stack before
+                    // navigating to the "destination_b" destination
+                    saveState = true
+                }
+                launchSingleTop = true //avoiding multiple copies on the top of the back stack
+                restoreState = true
+            } }, colors = IconButtonDefaults.iconButtonColors(MaterialTheme.colorScheme.secondary)) {
+                Icon(imageVector = Icons.Default.ManageAccounts, contentDescription = "Profile", tint = MaterialTheme.colorScheme.onSecondary)
+            }
+            //SCOMMENTA PER PENNINA IN TOPBAR
+            /*
             if (vm.isEditing) {
                 Button(onClick = { vm.validate() }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)) {
                     Text("Done", color = MaterialTheme.colorScheme.onSecondary)
@@ -357,74 +409,11 @@ fun MyTopAppBar(vm: UserProfileScreen = viewModel()) {
                 IconButton(onClick = { vm.edit() }, colors = IconButtonDefaults.iconButtonColors(MaterialTheme.colorScheme.secondary)) {
                     Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.onSecondary)
                 }
-            }
+            }*/
         }
     )
 }
 
-@Composable
-fun BottomBar(navController: NavHostController) {
-    BottomAppBar(
-        modifier = Modifier.height(56.dp),
-        containerColor = MaterialTheme.colorScheme.primary,
-        content = {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Prima parte
-                IconButton(
-                    onClick = { navController.navigate("teams") },
-                    colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.secondary)
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.teams),
-                        contentDescription = "team"
-                    )
-                }
-                /*
-                // Striscia bianca
-                Spacer(
-                    modifier = Modifier
-                        .width(1.dp)
-                        .fillMaxHeight()
-                        .background(color = Color.White)
-                )
-*/
-                // Seconda parte
-                IconButton(
-                    onClick = { navController.navigate("tasks") },
-                    colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.secondary)
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.task),
-                        contentDescription = "tasks"
-                    )
-                }
-/*
-                // Striscia bianca
-                Spacer(
-                    modifier = Modifier
-                        .width(1.dp)
-                        .fillMaxHeight()
-                        .background(color = Color.White)
-                )*/
-
-                // Terza parte
-                IconButton(
-                    onClick = { navController.navigate("calendar") },
-                    colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.primary)
-                ) {
-                    Icon(
-                        Icons.Default.Notifications,
-                        contentDescription = "Notifications"
-                    )
-                }
-            }
-        }
-    )
-}
 data class BottomNavigationItem(
     val title: String,
     val selectedIcon: ImageVector,

@@ -64,6 +64,7 @@ import androidx.compose.ui.tooling.preview.Preview
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
@@ -89,27 +90,36 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.input.ImeAction
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
 import it.polito.uniteam.classes.Comment
 import androidx.wear.compose.material3.TextButtonDefaults
 import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.MemberIcon
 
 
-@Preview
+//@Preview
 @Composable
-fun TaskScreen(vm: taskDetails = viewModel()) {
+fun TaskScreen(vm: taskDetails = viewModel() ) {
     if (vm.editing) {
-        EditTaskView()
-    } else {
+        vm.changeEditing()
+        vm.enterEditingMode()
+        //EditTaskView()
+   } else {
+        vm.changeEditing()
+        vm.enterEditingMode()
+        vm.newTask()
         TaskDetailsView()
     }
-
 }
 
 
 @Preview
 @Composable
 fun TaskDetailsView(vm: taskDetails = viewModel()) {
+    vm.changeEditing()
+    vm.enterEditingMode()
+    vm.newTask()
     var scrollState = rememberScrollState()
     key(vm.commentHistoryFileSelection) {
         scrollState = if (isVertical())
@@ -124,21 +134,21 @@ fun TaskDetailsView(vm: taskDetails = viewModel()) {
                 )
         ) {
             Spacer(modifier = Modifier.padding(10.dp))
-            Row(modifier = Modifier.fillMaxWidth(0.95f), horizontalArrangement = Arrangement.End) {
-                IconButton(onClick = {
+            /*Row(modifier = Modifier.fillMaxWidth(0.95f), horizontalArrangement = Arrangement.End) {
+                /*IconButton(onClick = {
                     vm.changeEditing()
                     vm.enterEditingMode()
                     vm.newTask()
                 }) {
                     Icon(Icons.Default.Add, contentDescription = "Add ")
-                }
+                }*/
                 IconButton(onClick = {
                     vm.changeEditing()
                     vm.enterEditingMode()
                 }) {
                     Icon(Icons.Default.Edit, contentDescription = "Edit ")
                 }
-            }
+            }*/
 
             RowItem(title = "Name:", value = vm.taskName)
             RowItem(title = "Description:", value = vm.description)
@@ -150,56 +160,63 @@ fun TaskDetailsView(vm: taskDetails = viewModel()) {
             RowItem(title = "Repeatable:", value = vm.repeatable)
             RowMemberItem(title = "Members:", value = vm.members)
             RowItem(title = "Status:", value = vm.status)
-            Row(
+            Row {
+                Button(
+                    onClick = { vm.changeCommentHistoryFileSelection("comments") },
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(4.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (vm.commentHistoryFileSelection == "comments") MaterialTheme.colorScheme.primary else Color.Transparent
+                    ),
+                    border = BorderStroke(1.dp, if (vm.commentHistoryFileSelection != "comments") MaterialTheme.colorScheme.primary else Color.Transparent)
+                ) {
+                    Text(
+                        text = "Comments",
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
+                }
+
+                Button(
+                    onClick = { vm.changeCommentHistoryFileSelection("history") },
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(4.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (vm.commentHistoryFileSelection == "history") MaterialTheme.colorScheme.primary else Color.Transparent
+                    ),
+                    border = BorderStroke(1.dp, if (vm.commentHistoryFileSelection != "history") MaterialTheme.colorScheme.primary else Color.Transparent)
+                ) {
+                    Text(
+                        text = "History",
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
+                }
+
+                Button(
+                    onClick = { vm.changeCommentHistoryFileSelection("files") },
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(4.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (vm.commentHistoryFileSelection == "files") MaterialTheme.colorScheme.primary else Color.Transparent
+                    ),
+                    border = BorderStroke(1.dp, if (vm.commentHistoryFileSelection != "files") MaterialTheme.colorScheme.primary else Color.Transparent)
+                ) {
+                    Text(
+                        text = "Files",
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+            /*Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.Bottom,
                 horizontalArrangement = Arrangement.Center
             ) {
-                Spacer(modifier = Modifier.width(15.dp))
-                if  (vm.commentHistoryFileSelection!= "comments" ){
-                    TextButton(
-                        onClick = { vm.changeCommentHistoryFileSelection("comments") },
-                        modifier =  if (vm.commentHistoryFileSelection != "comments") Modifier
-                            .weight(1f)
-                            .border(
-                                1.dp,
-                                MaterialTheme.colorScheme.primary,
-                                RoundedCornerShape(100)
-                            ) else  Modifier.weight(1f),
-                        colors = if (vm.commentHistoryFileSelection == "comments") ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(
-                            containerColor = Color.Transparent,
-
-                            )
-                    ) {
-                        Text(
-                            text = "Comments",
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.onPrimary
-
-                        )
-                    }
-                }else{
-                    OutlinedButton(
-                        onClick = { vm.changeCommentHistoryFileSelection("comments") },
-                        modifier =  if (vm.commentHistoryFileSelection != "comments") Modifier
-                            .weight(1f)
-                            .border(
-                                1.dp,
-                                MaterialTheme.colorScheme.primary,
-                                RoundedCornerShape(100)
-                            ) else  Modifier.weight(1f),
-                        colors = if (vm.commentHistoryFileSelection == "comments") ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(
-                            containerColor = Color.Transparent,
-                            )){
-                            Text(
-                                text = "Comments",
-                                modifier = Modifier.fillMaxWidth(),
-                                textAlign = TextAlign.Center,
-                                color = MaterialTheme.colorScheme.onPrimary
-                            )
-                    }}
-
                 Spacer(modifier = Modifier.width(15.dp))
                 TextButton(
                     onClick = { vm.changeCommentHistoryFileSelection("history") },
@@ -237,7 +254,7 @@ fun TaskDetailsView(vm: taskDetails = viewModel()) {
                 }
                 Spacer(modifier = Modifier.width(15.dp))
 
-            }
+            }*/
             if (vm.commentHistoryFileSelection == "comments") {
                 CommentsView(vm = vm, label = "Comments")
             } else if (vm.commentHistoryFileSelection == "files") {
@@ -256,9 +273,10 @@ fun TaskDetailsView(vm: taskDetails = viewModel()) {
 }
 
 
-@Preview
 @Composable
-fun EditTaskView(vm: taskDetails = viewModel()) {
+fun EditTaskView(vm: taskDetails = viewModel(), navController: NavHostController) {
+    vm.changeEditing()
+    vm.enterEditingMode()
     Row(){
         Column(modifier = Modifier.fillMaxSize(),  verticalArrangement = Arrangement.Bottom) {
             Row(modifier = Modifier.fillMaxHeight(0.9f)) {
@@ -340,6 +358,13 @@ fun EditTaskView(vm: taskDetails = viewModel()) {
                                         if (vm.taskError == "" && vm.descriptionError == "" && vm.categoryError == "" && vm.deadlineError == "" && vm.estimatedHoursError == "" && vm.spentHoursError == "" && vm.priorityError == "") {
                                             vm.handleHistory()
                                             vm.changeEditing()
+                                            navController.navigate("Tasks"){
+                                                popUpTo(navController.graph.findStartDestination().id) {
+                                                    saveState = true
+                                                }
+                                                launchSingleTop = true
+                                                restoreState = true
+                                            }
                                         }
                                     }, modifier = Modifier
                                         .fillMaxWidth()) {
@@ -352,6 +377,13 @@ fun EditTaskView(vm: taskDetails = viewModel()) {
 
                                 Box(modifier = Modifier.weight(1f)) {
                                     Button(colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
+                                        navController.navigate("Tasks"){
+                                            popUpTo(navController.graph.findStartDestination().id) {
+                                                saveState = true
+                                            }
+                                            launchSingleTop = true
+                                            restoreState = true
+                                        }
                                         vm.cancelEdit()
                                         vm.changeEditing()
                                     }, modifier = Modifier.fillMaxWidth()) {
@@ -389,6 +421,14 @@ fun EditTaskView(vm: taskDetails = viewModel()) {
                                 if (vm.taskError == "" && vm.descriptionError == "" && vm.categoryError == "" && vm.deadlineError == "" && vm.estimatedHoursError == "" && vm.spentHoursError == "" && vm.priorityError == "") {
                                     vm.handleHistory()
                                     vm.changeEditing()
+                                    navController.navigate("Tasks"){
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+
                                 }
                             }, modifier = Modifier.fillMaxWidth()) {
                                 Text(text = "Save", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
@@ -405,6 +445,14 @@ fun EditTaskView(vm: taskDetails = viewModel()) {
                             Button(colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
                                 vm.cancelEdit()
                                 vm.changeEditing()
+                                navController.navigate("Tasks"){
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+
                             }, modifier = Modifier.fillMaxWidth()) {
                                 Text(text = "Cancel", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
                             }

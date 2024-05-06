@@ -306,6 +306,7 @@ class taskDetails : ViewModel() {
 
     var editing by mutableStateOf(false)
     fun changeEditing() {
+
         editing = !editing
     }
 
