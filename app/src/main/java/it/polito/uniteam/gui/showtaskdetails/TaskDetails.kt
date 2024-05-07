@@ -102,13 +102,13 @@ import it.polito.uniteam.classes.MemberIcon
 @Composable
 fun TaskScreen(vm: taskDetails = viewModel() ) {
     if (vm.editing) {
-        vm.changeEditing()
-        vm.enterEditingMode()
-        //EditTaskView()
+        /*vm.changeEditing()
+        vm.enterEditingMode()*/
+        EditTaskView()
    } else {
-        vm.changeEditing()
+        /*vm.changeEditing()
         vm.enterEditingMode()
-        vm.newTask()
+        vm.newTask()*/
         TaskDetailsView()
     }
 }
@@ -117,9 +117,9 @@ fun TaskScreen(vm: taskDetails = viewModel() ) {
 @Preview
 @Composable
 fun TaskDetailsView(vm: taskDetails = viewModel()) {
-    vm.changeEditing()
+    /*vm.changeEditing()
     vm.enterEditingMode()
-    vm.newTask()
+    //vm.newTask()*/
     var scrollState = rememberScrollState()
     key(vm.commentHistoryFileSelection) {
         scrollState = if (isVertical())
@@ -134,21 +134,21 @@ fun TaskDetailsView(vm: taskDetails = viewModel()) {
                 )
         ) {
             Spacer(modifier = Modifier.padding(10.dp))
-            /*Row(modifier = Modifier.fillMaxWidth(0.95f), horizontalArrangement = Arrangement.End) {
-                /*IconButton(onClick = {
+            Row(modifier = Modifier.fillMaxWidth(0.95f), horizontalArrangement = Arrangement.End) {
+                IconButton(onClick = {
                     vm.changeEditing()
                     vm.enterEditingMode()
                     vm.newTask()
                 }) {
                     Icon(Icons.Default.Add, contentDescription = "Add ")
-                }*/
+                }
                 IconButton(onClick = {
                     vm.changeEditing()
                     vm.enterEditingMode()
                 }) {
                     Icon(Icons.Default.Edit, contentDescription = "Edit ")
                 }
-            }*/
+            }
 
             RowItem(title = "Name:", value = vm.taskName)
             RowItem(title = "Description:", value = vm.description)
@@ -274,9 +274,9 @@ fun TaskDetailsView(vm: taskDetails = viewModel()) {
 
 
 @Composable
-fun EditTaskView(vm: taskDetails = viewModel(), navController: NavHostController) {
-    vm.changeEditing()
-    vm.enterEditingMode()
+fun EditTaskView(vm: taskDetails = viewModel()) {
+    /*vm.changeEditing()
+    vm.enterEditingMode()*/
     Row(){
         Column(modifier = Modifier.fillMaxSize(),  verticalArrangement = Arrangement.Bottom) {
             Row(modifier = Modifier.fillMaxHeight(0.9f)) {
@@ -358,13 +358,13 @@ fun EditTaskView(vm: taskDetails = viewModel(), navController: NavHostController
                                         if (vm.taskError == "" && vm.descriptionError == "" && vm.categoryError == "" && vm.deadlineError == "" && vm.estimatedHoursError == "" && vm.spentHoursError == "" && vm.priorityError == "") {
                                             vm.handleHistory()
                                             vm.changeEditing()
-                                            navController.navigate("Tasks"){
+                                            /*navController.navigate("Tasks"){
                                                 popUpTo(navController.graph.findStartDestination().id) {
                                                     saveState = true
                                                 }
                                                 launchSingleTop = true
                                                 restoreState = true
-                                            }
+                                            }*/
                                         }
                                     }, modifier = Modifier
                                         .fillMaxWidth()) {
@@ -377,13 +377,13 @@ fun EditTaskView(vm: taskDetails = viewModel(), navController: NavHostController
 
                                 Box(modifier = Modifier.weight(1f)) {
                                     Button(colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
-                                        navController.navigate("Tasks"){
+                                        /*navController.navigate("Tasks"){
                                             popUpTo(navController.graph.findStartDestination().id) {
                                                 saveState = true
                                             }
                                             launchSingleTop = true
                                             restoreState = true
-                                        }
+                                        }*/
                                         vm.cancelEdit()
                                         vm.changeEditing()
                                     }, modifier = Modifier.fillMaxWidth()) {
@@ -421,13 +421,13 @@ fun EditTaskView(vm: taskDetails = viewModel(), navController: NavHostController
                                 if (vm.taskError == "" && vm.descriptionError == "" && vm.categoryError == "" && vm.deadlineError == "" && vm.estimatedHoursError == "" && vm.spentHoursError == "" && vm.priorityError == "") {
                                     vm.handleHistory()
                                     vm.changeEditing()
-                                    navController.navigate("Tasks"){
+                                    /*navController.navigate("Tasks"){
                                         popUpTo(navController.graph.findStartDestination().id) {
                                             saveState = true
                                         }
                                         launchSingleTop = true
                                         restoreState = true
-                                    }
+                                    }*/
 
                                 }
                             }, modifier = Modifier.fillMaxWidth()) {
@@ -445,13 +445,13 @@ fun EditTaskView(vm: taskDetails = viewModel(), navController: NavHostController
                             Button(colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
                                 vm.cancelEdit()
                                 vm.changeEditing()
-                                navController.navigate("Tasks"){
+                                /*navController.navigate("Tasks"){
                                     popUpTo(navController.graph.findStartDestination().id) {
                                         saveState = true
                                     }
                                     launchSingleTop = true
                                     restoreState = true
-                                }
+                                }*/
 
                             }, modifier = Modifier.fillMaxWidth()) {
                                 Text(text = "Cancel", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)

@@ -74,6 +74,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import it.polito.uniteam.R
 import it.polito.uniteam.ui.theme.Orange
@@ -275,10 +277,12 @@ fun EditRowItem(value: String, keyboardType: KeyboardType = KeyboardType.Text ,o
         Text(errorText, color = MaterialTheme.colorScheme.error)
 }
 
+
+//fun EditProfile(vm: UserProfileScreen = viewModel(),navController: NavHostController) {
 @Preview
 @Composable
 fun EditProfile(vm: UserProfileScreen = viewModel()) {
-    // Handle Back Button
+// Handle Back Button
     BackHandler(onBack = {
         vm.validate()
     })
@@ -300,6 +304,32 @@ fun EditProfile(vm: UserProfileScreen = viewModel()) {
                 EditRowItem(value = vm.locationValue, onChange = vm::setLocation, label = "Location", errorText = vm.locationError)
                 Spacer(modifier = Modifier.height(16.dp))
                 EditRowItem(value = vm.descriptionValue, onChange = vm::setDescription, label = "Description", errorText = vm.descriptionError)
+                /*Button(colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
+                    navController.navigate("Profile"){
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }, modifier = Modifier.fillMaxWidth()) {
+                    Text(text = "Save", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
+                }
+            }
+            Button(colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
+                //vm.cancelEdit()
+                //vm.changeEditing()
+                navController.navigate("Profile"){
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+
+            }, modifier = Modifier.fillMaxWidth()) {
+                Text(text = "Cancel", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
+            */
             }
         } else {
             Column(
@@ -319,9 +349,9 @@ fun EditProfile(vm: UserProfileScreen = viewModel()) {
                 Spacer(modifier = Modifier.height(16.dp))
                 EditRowItem(value = vm.descriptionValue, onChange = vm::setDescription, label = "Description", errorText = vm.descriptionError)
                 Spacer(modifier = Modifier.height(16.dp))
-            }
         }
     }
+}
 }
 
 @Preview
@@ -696,6 +726,7 @@ fun ProfileSettings(
         BackHandler(onBack = {
             vm.showPhoto(false)
         })
+
         BoxWithConstraints {
             if (this.maxHeight > this.maxWidth) {
                 Box(modifier = Modifier.fillMaxSize()) {
@@ -815,7 +846,7 @@ fun ProfileSettings(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            TopAppBar(
+           /* TopAppBar(
                 title = {
                     // Centro il titolo utilizzando un approccio basato su un trucco visuale
                     Row(
@@ -844,9 +875,21 @@ fun ProfileSettings(
                             Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.onSecondary)
                         }
                 }
-            )
+            )*/
             //
+            if (vm.isEditing)
+                Button(onClick = { vm.validate() }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary) // Imposta il colore di sfondo del bottone a rosso
+                ) {
+                    Text("Done",color = MaterialTheme.colorScheme.onSecondary)
+
+                }
+            else
+                IconButton(onClick = { vm.edit() }, colors = IconButtonDefaults.iconButtonColors(MaterialTheme.colorScheme.secondary),
+                ) {
+                    Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.onSecondary)
+                }
             Spacer(modifier = Modifier.height(16.dp))
+
             //
             BoxWithConstraints {
                 if(this.maxHeight > this.maxWidth) {
@@ -867,6 +910,7 @@ fun ProfileSettings(
                             EditProfile(vm)
                         else
                             PresentationPane(vm)
+
                     }
                 } else {
                     Row(
@@ -887,6 +931,20 @@ fun ProfileSettings(
                             EditProfile(vm)
                         else
                             PresentationPane(vm)
+
+                        /*
+                            if (vm.isEditing)
+                                Button(onClick = { vm.validate() }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary) // Imposta il colore di sfondo del bottone a rosso
+                                ) {
+                                    Text("Done",color = MaterialTheme.colorScheme.onSecondary)
+
+                                }
+                            else
+                                IconButton(onClick = { vm.edit() }, colors = IconButtonDefaults.iconButtonColors(MaterialTheme.colorScheme.secondary),
+                                ) {
+                                    Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.onSecondary)
+                                }
+                        }*/
                     }
                 }
             }

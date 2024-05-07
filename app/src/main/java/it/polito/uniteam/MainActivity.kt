@@ -181,7 +181,7 @@ class MainActivity : ComponentActivity() {
                             topBar = {
                                 MyTopAppBar(vm,navController)
                             },
-                            floatingActionButton = {
+                            /*floatingActionButton = {
                                 //if (vm.isEditing) {
                                     if (currentDestination == "Profile") {
                                         FloatingActionButton(onClick ={
@@ -218,19 +218,23 @@ class MainActivity : ComponentActivity() {
                                         )
                                     }
                                 }
-                                },
+                                },*/
                             content = { paddingValue ->
                                 Column ( Modifier.padding(paddingValue)){
                                     NavHost(navController = navController, startDestination = "Teams") {
                                         // Definisci le destinazioni per le tue schermate
                                         composable("Teams") { TaskListView(vm = viewModel(),navController) }
-                                        composable("Tasks") { TaskDetailsView(vm = viewModel()) }
+                                        composable("Tasks") { TaskScreen(vm = viewModel()) }
                                         composable("Calendar") { CalendarAppContainer(vm = viewModel()) }
                                         composable("Notifications") { CalendarAppContainer(vm = viewModel()) }
-                                        composable("EditTask") { EditTaskView(vm = viewModel(),navController) }
+                                        composable("Profile") { ProfileSettings(vm = viewModel(),outputDirectory = getOutputDirectory(),cameraExecutor = cameraExecutor,pickImageLauncher = pickImageLauncher)  }
+
                                         /*composable("EditProfile") { ProfileSettings(vm = viewModel(),outputDirectory = getOutputDirectory(),cameraExecutor = cameraExecutor,pickImageLauncher = pickImageLauncher,edit=true,navController)  }
                                         composable("Profile") { ProfileSettings(vm = viewModel(),outputDirectory = getOutputDirectory(),cameraExecutor = cameraExecutor,pickImageLauncher = pickImageLauncher,edit=false,navController)  }*/
-                                        composable("Profile") { ProfileSettings(vm = viewModel(),outputDirectory = getOutputDirectory(),cameraExecutor = cameraExecutor,pickImageLauncher = pickImageLauncher)  }
+                                        /*composable("EditTask") { EditTaskView(vm = viewModel(),navController) }
+                                        composable("Tasks") { TaskDetailsView(vm = viewModel()) }*/
+
+
                                     }
                                 }
                             },
