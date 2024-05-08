@@ -165,7 +165,7 @@ fun TaskDetailsView(vm: taskDetails = viewModel()) {
                     onClick = { vm.changeCommentHistoryFileSelection("comments") },
                     modifier = Modifier
                         .weight(1f)
-                        .padding(4.dp),
+                        .padding(2.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (vm.commentHistoryFileSelection == "comments") MaterialTheme.colorScheme.primary else Color.Transparent
                     ),
@@ -182,7 +182,7 @@ fun TaskDetailsView(vm: taskDetails = viewModel()) {
                     onClick = { vm.changeCommentHistoryFileSelection("history") },
                     modifier = Modifier
                         .weight(1f)
-                        .padding(4.dp),
+                        .padding(2.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (vm.commentHistoryFileSelection == "history") MaterialTheme.colorScheme.primary else Color.Transparent
                     ),
@@ -199,7 +199,7 @@ fun TaskDetailsView(vm: taskDetails = viewModel()) {
                     onClick = { vm.changeCommentHistoryFileSelection("files") },
                     modifier = Modifier
                         .weight(1f)
-                        .padding(4.dp),
+                        .padding(2.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (vm.commentHistoryFileSelection == "files") MaterialTheme.colorScheme.primary else Color.Transparent
                     ),
