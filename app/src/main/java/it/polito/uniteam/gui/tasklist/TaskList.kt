@@ -973,11 +973,11 @@ fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Coroutin
             )
             FilledTonalButton(
                 onClick = {navController.navigate("Tasks"){
-                    popUpTo(navController.graph.findStartDestination().id) {
+                    /*popUpTo(navController.graph.findStartDestination().id) {
                         saveState = true
-                    }
+                    }*/
                     launchSingleTop = true
-                    restoreState = true
+                    //restoreState = true
                 } },
                 contentPadding = PaddingValues(5.dp, 0.dp),
                 colors = ButtonDefaults.buttonColors(
@@ -1058,11 +1058,11 @@ fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Coroutin
             Spacer(modifier = Modifier.weight(1f))
             IconButton(
                 onClick = { navController.navigate("Calendar"){
-                    popUpTo(navController.graph.findStartDestination().id) {
+                    /*popUpTo(navController.graph.findStartDestination().id) {
                         saveState = true
-                    }
+                    }*/
                     launchSingleTop = true
-                    restoreState = true
+                    //restoreState = true
                 }
                           }, modifier = Modifier
                     .scale(1.5f)
@@ -1420,11 +1420,11 @@ fun HorizontalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Corout
                 Spacer(modifier = Modifier.weight(1f))
                 IconButton(
                     onClick = { navController.navigate("Calendar"){
-                        popUpTo(navController.graph.findStartDestination().id) {
+                        /*popUpTo(navController.graph.findStartDestination().id) {
                             saveState = true
-                        }
+                        }*/
                         launchSingleTop = true
-                        restoreState = true
+                        //restoreState = true
                     }
                     }, modifier = Modifier
                         .scale(1.5f)
@@ -1472,11 +1472,11 @@ fun HorizontalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Corout
                 )
                 FilledTonalButton(
                     onClick = {navController.navigate("Tasks"){
-                        popUpTo(navController.graph.findStartDestination().id) {
+                        /*popUpTo(navController.graph.findStartDestination().id) {
                             saveState = true
-                        }
+                        }*/
                         launchSingleTop = true
-                        restoreState = true
+                        //restoreState = true
                     } },
                     contentPadding = PaddingValues(5.dp, 0.dp),
                     colors = ButtonDefaults.buttonColors(

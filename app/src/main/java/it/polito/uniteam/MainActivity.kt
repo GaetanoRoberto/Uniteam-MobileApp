@@ -258,11 +258,12 @@ class MainActivity : ComponentActivity() {
                                                 onClick = {
                                                     selectedItemIndex = index
                                                     navController.navigate(item.title){
-                                                        popUpTo(navController.graph.findStartDestination().id) {
-                                                            saveState = true
-                                                        }
+                                                        //println("Destination: ${navController.previousBackStackEntry?.destination?.route}")
+                                                       /* popUpTo(navController.graph.findStartDestination().id){
+                                                            //saveState = true
+                                                        }*/
                                                         launchSingleTop = true
-                                                        restoreState = true
+                                                        //restoreState = true
                                                     }
                                                 },
                                                 label = {
@@ -385,21 +386,42 @@ fun MyTopAppBar(vm: UserProfileScreen = viewModel(),navController: NavHostContro
         },
         colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primary),
         navigationIcon = {
-            IconButton(onClick = {//navController.previousBackStackEntry?.savedStateHandle?.set("back", true)
-                navController.popBackStack()
-                                 }, colors = IconButtonDefaults.iconButtonColors(MaterialTheme.colorScheme.secondary)) {
-                Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSecondary)
+            if (navController.currentBackStackEntry?.destination?.route != "Teams") {
+                IconButton(
+                    onClick = {//navController.previousBackStackEntry?.savedStateHandle?.set("back", true)
+                        if (!navController.popBackStack()) {//inutile fare if diverso da teams perchè fa la pop lo stessoghb
+                            navController.navigate("Teams") {
+                                //println("Destination: ${navController.previousBackStackEntry?.destination?.route}")
+                                /* popUpTo(navController.graph.findStartDestination().id){
+                             //saveState = true
+                         }*/
+                                launchSingleTop = true
+                                //restoreState = true
+                            }
+                        }
+                        println("Destination Back: ${navController.previousBackStackEntry?.destination?.route}")
+
+                    },
+                    colors = IconButtonDefaults.iconButtonColors(MaterialTheme.colorScheme.secondary)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = MaterialTheme.colorScheme.onSecondary
+                    )
+                }
             }
         },
         actions = {
             IconButton(onClick = {navController.navigate("Profile") {
-                popUpTo(navController.graph.findStartDestination().id) {
+
+                /*popUpTo(navController.graph.findStartDestination().id) {
                     // Pop everything up to the "destination_a" destination off the back stack before
                     // navigating to the "destination_b" destination
-                    saveState = true
-                }
+                    //saveState = true
+                }*/
                 launchSingleTop = true //avoiding multiple copies on the top of the back stack
-                restoreState = true
+                //restoreState = true
             } }, colors = IconButtonDefaults.iconButtonColors(MaterialTheme.colorScheme.secondary)) {
                 Icon(imageVector = Icons.Default.ManageAccounts, contentDescription = "Profile", tint = MaterialTheme.colorScheme.onSecondary)
             }
