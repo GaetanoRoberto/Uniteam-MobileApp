@@ -1021,7 +1021,7 @@ fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Coroutin
                             val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                             imm.hideSoftInputFromWindow(view.windowToken, 0)
 
-                            vm.lastSearchQuery.value = vm.searchQuery
+                            vm.lastSearchQuery.value = vm.searchQuery.trim()
                             vm.filteredTasksList.value = vm.tasksList.value.filter { task ->
                                 applyFilters(task, vm.lastAppliedFilters.value, vm.lastSearchQuery.value)
                             }
