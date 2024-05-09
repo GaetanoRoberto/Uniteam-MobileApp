@@ -6,8 +6,9 @@ import it.polito.uniteam.classes.Priority
 import it.polito.uniteam.classes.Repetition
 import it.polito.uniteam.classes.Status
 import it.polito.uniteam.classes.Task
+import java.time.DayOfWeek
 import java.time.LocalDate
-import java.time.Month
+import java.time.temporal.TemporalAdjusters
 
 object DummyDataProvider {
     val member1 = Member().apply {
@@ -87,14 +88,60 @@ object DummyDataProvider {
     fun getTasksToAssign(): List<Task> {
         return listOf(
             Task().apply {
+                id = 1
+                name = "Task1"
+                description = "Description1"
+                category = Category.MEETING
+                priority = Priority.HIGH
+                creationDate = LocalDate.now().minusDays(3)
+                deadline = LocalDate.now().plusDays(3)
+                estimatedTime = Pair(5,0)
+                spentTime = Pair(2,0)
+                status = Status.IN_PROGRESS
+                repetition = Repetition.NONE
+                members = listOf(member4, member5, member6)
+                schedules = hashMapOf(getDate(DayOfWeek.TUESDAY) to Pair(5,0))
+            },
+            Task().apply {
+                id = 2
+                name = "Task2"
+                description = "Description2"
+                category = Category.PROGRAMMING
+                priority = Priority.MEDIUM
+                creationDate = LocalDate.now().minusDays(3)
+                deadline = LocalDate.now().plusDays(4)
+                estimatedTime = Pair(4,0)
+                spentTime = Pair(1,0)
+                status = Status.IN_PROGRESS
+                repetition = Repetition.WEEKLY
+                members = listOf(member1, member2)
+                schedules = hashMapOf(getDate(DayOfWeek.WEDNESDAY) to Pair(4,0))
+            },
+            Task().apply {
+                id = 3
+                name = "Task3"
+                description = "Description3"
+                category = Category.DESIGN
+                priority = Priority.LOW
+                creationDate = LocalDate.now().minusDays(3)
+                deadline = LocalDate.now().plusDays(5)
+                estimatedTime = Pair(3,0)
+                spentTime = Pair(2,0)
+                status = Status.IN_PROGRESS
+                repetition = Repetition.DAILY
+                members = listOf(member3, member4)
+                schedules = hashMapOf(getDate(DayOfWeek.FRIDAY) to Pair(3,0))
+            },
+            Task().apply {
                 id = 4
                 name = "Task4"
                 description = "Description1"
                 category = Category.MEETING
                 priority = Priority.HIGH
-                creationDate = LocalDate.of(2024,Month.MARCH,20)
-                estimatedHours = 8
-                spentHours = 2
+                creationDate = LocalDate.now().minusDays(3)
+                deadline = LocalDate.now().plusDays(6)
+                estimatedTime = Pair(8,0)
+                spentTime = Pair(2,0)
                 status = Status.IN_PROGRESS
                 repetition = Repetition.WEEKLY
                 members = listOf(member1, member2)
@@ -105,9 +152,10 @@ object DummyDataProvider {
                 description = "Description2"
                 category = Category.PROGRAMMING
                 priority = Priority.MEDIUM
-                creationDate = LocalDate.of(2024,Month.MARCH,21)
-                estimatedHours = 10
-                spentHours = 3
+                creationDate = LocalDate.now().minusDays(3)
+                deadline = LocalDate.now().plusDays(7)
+                estimatedTime = Pair(10,0)
+                spentTime = Pair(3,0)
                 status = Status.TODO
                 repetition = Repetition.DAILY
                 members = listOf(member3, member4)
@@ -118,14 +166,23 @@ object DummyDataProvider {
                 description = "Description3"
                 category = Category.DESIGN
                 priority = Priority.LOW
-                creationDate = LocalDate.of(2024,Month.MARCH,22)
-                estimatedHours = 5
-                spentHours = 1
+                creationDate = LocalDate.now().minusDays(3)
+                deadline = LocalDate.now().plusDays(8)
+                estimatedTime = Pair(5,0)
+                spentTime = Pair(1,0)
                 status = Status.TODO
                 repetition = Repetition.NONE
                 members = listOf(member5, member6)
             }
         )
+    }
+
+    private fun getDate(day: DayOfWeek): LocalDate {
+        if(LocalDate.now().dayOfWeek < day) {
+            return LocalDate.now().with(TemporalAdjusters.nextOrSame(day))
+        } else {
+            return LocalDate.now().with(TemporalAdjusters.previousOrSame(day))
+        }
     }
 
     fun getScheduledTasks(): List<Task> {
@@ -136,14 +193,14 @@ object DummyDataProvider {
                 description = "Description1"
                 category = Category.MEETING
                 priority = Priority.HIGH
-                creationDate = LocalDate.of(2024,Month.MARCH,19)
-                deadline = LocalDate.of(2024, Month.MAY, 3)
-                estimatedHours = 5
-                spentHours = 2
+                creationDate = LocalDate.now().minusDays(3)
+                deadline = LocalDate.now().plusDays(3)
+                estimatedTime = Pair(5,0)
+                spentTime = Pair(2,0)
                 status = Status.IN_PROGRESS
                 repetition = Repetition.NONE
                 members = listOf(member4, member5, member6)
-                schedules = hashMapOf(LocalDate.of(2024, Month.APRIL, 30) to 5)
+                schedules = hashMapOf(getDate(DayOfWeek.TUESDAY) to Pair(5,0))
             },
             Task().apply {
                 id = 2
@@ -151,14 +208,14 @@ object DummyDataProvider {
                 description = "Description2"
                 category = Category.PROGRAMMING
                 priority = Priority.MEDIUM
-                creationDate = LocalDate.of(2024,Month.MARCH,18)
-                deadline = LocalDate.of(2024, Month.MAY, 5)
-                estimatedHours = 4
-                spentHours = 1
+                creationDate = LocalDate.now().minusDays(3)
+                deadline = LocalDate.now().plusDays(4)
+                estimatedTime = Pair(4,0)
+                spentTime = Pair(1,0)
                 status = Status.IN_PROGRESS
                 repetition = Repetition.WEEKLY
                 members = listOf(member1, member2)
-                schedules = hashMapOf(LocalDate.of(2024, Month.MAY, 1) to 4)
+                schedules = hashMapOf(getDate(DayOfWeek.WEDNESDAY) to Pair(4,0))
             },
             Task().apply {
                 id = 3
@@ -166,14 +223,14 @@ object DummyDataProvider {
                 description = "Description3"
                 category = Category.DESIGN
                 priority = Priority.LOW
-                creationDate = LocalDate.of(2024,Month.MARCH,17)
-                deadline = LocalDate.of(2024, Month.MAY, 7)
-                estimatedHours = 3
-                spentHours = 2
+                creationDate = LocalDate.now().minusDays(3)
+                deadline = LocalDate.now().plusDays(5)
+                estimatedTime = Pair(3,0)
+                spentTime = Pair(2,0)
                 status = Status.IN_PROGRESS
                 repetition = Repetition.DAILY
                 members = listOf(member3, member4)
-                schedules = hashMapOf(LocalDate.of(2024, Month.MAY, 3) to 3)
+                schedules = hashMapOf(getDate(DayOfWeek.FRIDAY) to Pair(3,0))
             }
         )
     }

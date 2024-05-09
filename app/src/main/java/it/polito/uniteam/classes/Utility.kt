@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -17,9 +16,10 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
@@ -36,8 +36,6 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.wear.compose.foundation.lazy.verticalNegativePadding
 
 
 enum class Repetition{
@@ -127,16 +125,16 @@ fun TextTrim(inputText: String, desiredLength: Int, modifier: Modifier = Modifie
 }
 
 
-@Preview
 @Composable
 fun HourMinutesPicker(
-    hourState: MutableState<String> = mutableStateOf(""),
-    minuteState: MutableState<String> = mutableStateOf(""),
-    errorMsg: MutableState<String> = mutableStateOf("grrgr")
+    hourState: MutableState<String>,
+    minuteState: MutableState<String>,
+    errorMsg: MutableState<String>
 ) {
     Column {
         Row(modifier = Modifier.fillMaxWidth()) {
             TextField(
+                label = { Text(text = "Hours")},
                 value = hourState.value,
                 keyboardOptions = KeyboardOptions.Default.copy(
                     autoCorrectEnabled = true,
@@ -146,10 +144,15 @@ fun HourMinutesPicker(
                 onValueChange = { value ->
                     hourState.value = value
                 },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                colors = TextFieldDefaults.colors(
+                    unfocusedContainerColor = MaterialTheme.colorScheme.background,
+                    focusedContainerColor = MaterialTheme.colorScheme.background
+                )
             )
             Spacer(modifier = Modifier.padding(8.dp))
             TextField(
+                label = { Text(text = "Minutes")},
                 value = minuteState.value,
                 keyboardOptions = KeyboardOptions.Default.copy(
                     autoCorrectEnabled = true,
@@ -159,10 +162,16 @@ fun HourMinutesPicker(
                 onValueChange = { value ->
                     minuteState.value = value
                 },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                colors = TextFieldDefaults.colors(
+                    unfocusedContainerColor = MaterialTheme.colorScheme.background,
+                    focusedContainerColor = MaterialTheme.colorScheme.background
+                )
             )
         }
-        Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.Center) {
+        Row(modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp), horizontalArrangement = Arrangement.Center) {
             if (errorMsg.value.isNotEmpty())
                 Text(errorMsg.value, color = MaterialTheme.colorScheme.error)
         }

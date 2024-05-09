@@ -90,13 +90,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import it.polito.uniteam.R
 import it.polito.uniteam.classes.Category
@@ -183,7 +181,7 @@ class TaskList: ViewModel() {
             priority = Priority.LOW
             deadline = LocalDate.of(2024, 5, 6) // 1 week from now
             creationDate = LocalDate.of(2024, 4, 14)
-            estimatedHours = 1
+            estimatedTime = Pair(1,0)
             status = Status.IN_PROGRESS
             repetition = Repetition.DAILY
             members = listOf(membersList.value[0], membersList.value[1])
@@ -195,7 +193,8 @@ class TaskList: ViewModel() {
             priority = Priority.HIGH
             deadline = LocalDate.of(2024, 5, 6) // 1 week from now
             creationDate = LocalDate.of(2024, 5, 5)
-            estimatedHours = 10
+            estimatedTime = Pair(10,0)
+            spentTime = Pair(12,0)
             status = Status.TODO
             repetition = Repetition.NONE
             members = listOf(membersList.value[2], membersList.value[3])
@@ -207,7 +206,8 @@ class TaskList: ViewModel() {
             priority = Priority.MEDIUM
             deadline = LocalDate.of(2024, 5, 6) // 1 week from now
             creationDate = LocalDate.of(2024, 4, 20)
-            estimatedHours = 8
+            estimatedTime = Pair(8,0)
+            spentTime = Pair(10,0)
             status = Status.IN_PROGRESS
             repetition = Repetition.NONE
             members = listOf(membersList.value[4], membersList.value[5])
@@ -219,7 +219,8 @@ class TaskList: ViewModel() {
             priority = Priority.HIGH
             deadline = LocalDate.of(2024, 5, 13) // 2 weeks from now
             creationDate = LocalDate.of(2024, 5, 6)
-            estimatedHours = 20
+            estimatedTime = Pair(20,0)
+            spentTime = Pair(22,0)
             status = Status.TODO
             repetition = Repetition.NONE
             members = listOf(membersList.value[5], membersList.value[6])
@@ -231,7 +232,8 @@ class TaskList: ViewModel() {
             priority = Priority.MEDIUM
             deadline = LocalDate.of(2024, 5, 20) // 3 weeks from now
             creationDate = LocalDate.of(2024, 4, 13)
-            estimatedHours = 1
+            estimatedTime = Pair(1,0)
+            spentTime = Pair(3,0)
             status = Status.COMPLETED
             repetition = Repetition.MONTHLY
             members = membersList.value
@@ -654,7 +656,7 @@ fun TaskListView(vm: TaskList = viewModel(), navController: NavHostController) {
                                                             "Creation date" -> Text("Newer")
                                                             "Deadline" -> Text("Earlier")
                                                             "Priority" -> Text("Higher")
-                                                            else -> Text("More")
+                                                            else -> Text("Descending")
                                                         }
                                                     },
                                                     leadingIcon = if (selectedChip.value == "First") {
@@ -679,7 +681,7 @@ fun TaskListView(vm: TaskList = viewModel(), navController: NavHostController) {
                                                             "Creation date" -> Text("Older")
                                                             "Deadline" -> Text("Later")
                                                             "Priority" -> Text("Lower")
-                                                            else -> Text("Less")
+                                                            else -> Text("Ascending")
                                                         }
                                                     },
                                                     leadingIcon = if (selectedChip.value == "Second") {
@@ -1779,16 +1781,16 @@ fun sortTasks(selectedOption: String, selectedChip: String, vm: TaskList) {
         }
         "Estimated hours" -> {
             if (selectedChip == "Second") {
-                vm.filteredTasksList.value = vm.filteredTasksList.value.sortedBy { it.estimatedHours }
+                vm.filteredTasksList.value = vm.filteredTasksList.value.sortedBy { it.estimatedTime.first * 60 + it.estimatedTime.second }
             } else {
-                vm.filteredTasksList.value = vm.filteredTasksList.value.sortedByDescending { it.estimatedHours }
+                vm.filteredTasksList.value = vm.filteredTasksList.value.sortedByDescending { it.estimatedTime.first * 60 + it.estimatedTime.second }
             }
         }
         "Spent hours" -> {
             if (selectedChip == "Second") {
-                vm.filteredTasksList.value = vm.filteredTasksList.value.sortedBy { it.spentHours }
+                vm.filteredTasksList.value = vm.filteredTasksList.value.sortedBy { if(it.spentTime != null) it.spentTime!!.first * 60 + it.estimatedTime.second else 0 }
             } else {
-                vm.filteredTasksList.value = vm.filteredTasksList.value.sortedByDescending { it.spentHours }
+                vm.filteredTasksList.value = vm.filteredTasksList.value.sortedByDescending { if(it.spentTime != null) it.spentTime!!.first * 60 + it.estimatedTime.second else 0 }
             }
         }
     }

@@ -35,6 +35,8 @@ class Calendar : ViewModel() {
             // if permissions, check if back in time
             if(date.isBefore(LocalDate.now())) {
                 selectedShowDialog = showDialog.schedule_in_past
+            } else if(date.isAfter(task.deadline)) {
+                selectedShowDialog = showDialog.after_deadline
             } else if(isNewSchedule) {
                 selectedShowDialog = showDialog.schedule_task
             } else {
@@ -84,7 +86,23 @@ class Calendar : ViewModel() {
         }
     }
 
-    fun scheduleTask(task: Task, scheduleDate: LocalDate, hoursToSchedule: Int) {
+    fun sumTimes(time1: Pair<Int, Int>, time2: Pair<Int, Int>): Pair<Int, Int> {
+        val totalMinutes = time1.second + time2.second
+        val minutesOverflow = totalMinutes / 60
+        val minutes = totalMinutes % 60
+
+        val totalHours = time1.first + time2.first + minutesOverflow
+
+        return Pair(totalHours, minutes)
+    }
+
+    fun getTotalTime(task: Task) {
+        val pair = task.schedules.values.reduce { acc, pair ->
+            sumTimes(acc, pair)
+        }
+    }
+
+    fun scheduleTask(task: Task, scheduleDate: LocalDate, hoursToSchedule: Pair<Int,Int>) {
         // schedule task on scheduleDate with hoursToSchedule
         // if task with that scheduleDate already present remove it
         // MAINTAIN BOTH COPIES ALIGNED
@@ -94,7 +112,7 @@ class Calendar : ViewModel() {
         if (task.schedules.containsKey(scheduleDate)) {
             val prevHours = task.schedules.remove(scheduleDate)
             if (prevHours != null) {
-                task.schedules.put(scheduleDate, prevHours.plus(hoursToSchedule))
+                task.schedules.put(scheduleDate, sumTimes(prevHours,hoursToSchedule))
             }
         } else {
             task.schedules.put(scheduleDate, hoursToSchedule)
@@ -103,8 +121,8 @@ class Calendar : ViewModel() {
         viewedScheduledTasks.add(task)
         allScheduledTasks.add(task)
         // Remove the task from tasksToAssign if completely scheduled
-        if (task.schedules.values.sumOf { it } == task.estimatedHours)
-            tasksToAssign = tasksToAssign.filter { it.id != task.id }
+        //if (task.schedules.values.sumOf { it } == task.estimatedHours)
+        //   tasksToAssign = tasksToAssign.filter { it.id != task.id }
 
     }
 
@@ -167,6 +185,8 @@ enum class showDialog {
     schedule_task,
     no_permission,
     schedule_in_past,
+    after_deadline,
+    task_detail,
     none
 }
 

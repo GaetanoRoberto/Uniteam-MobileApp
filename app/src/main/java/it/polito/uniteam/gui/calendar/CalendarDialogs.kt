@@ -1,10 +1,15 @@
 package it.polito.uniteam.gui.calendar
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -21,7 +26,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.viewmodel.compose.viewModel
+import it.polito.uniteam.classes.HourMinutesPicker
 import it.polito.uniteam.classes.Task
+import it.polito.uniteam.gui.showtaskdetails.RowItem
+import it.polito.uniteam.gui.showtaskdetails.RowMemberItem
+import it.polito.uniteam.isVertical
 import java.time.LocalDate
 
 @Composable
@@ -29,42 +38,50 @@ fun ScheduleTaskDialog(
     vm: Calendar = viewModel()
 ) {
     val taskScheduleDatePair = vm.taskToSchedule!!
-    val scheduledHours = remember { mutableStateOf("") }
+    val scheduledHours = remember { mutableStateOf("0") }
+    val scheduledMinutes = remember { mutableStateOf("0") }
     val isError = remember { mutableStateOf("") }
     val onConfirmation = {
         try {
-            val schedulableHours =
-                taskScheduleDatePair.first.estimatedHours - taskScheduleDatePair.first.schedules.values.sumOf { it }
+            val hours = scheduledHours.value.toUInt().toInt()
+            val minutes = scheduledMinutes.value.toUInt().toInt()
+            /* NO MORE NEEDED, CAN SCHEDULE MORE THAN ESTIMATED
+            val schedulableHours = taskScheduleDatePair.first.estimatedHours - taskScheduleDatePair.first.schedules.values.sumOf { it }
             if (scheduledHours.value.isNotEmpty() && scheduledHours.value.toInt() > schedulableHours) {
                 isError.value = "The Hours Inserted exceed The Schedulable Ones."
-            } else if (scheduledHours.value.isNotEmpty() && scheduledHours.value.toInt() == 0) {
-                isError.value = "You Need To Schedule At Least One Hour."
+            } */
+            if (hours == 0 && minutes == 0) {
+                isError.value = "You Need To Schedule A Positive Time Interval."
+            } else if (minutes >= 60) {
+                isError.value = "Invalid Minute Value."
             } else {
                 isError.value = ""
                 vm.scheduleTask(
                     taskScheduleDatePair.first,
                     taskScheduleDatePair.third,
-                    scheduledHours.value.toInt()
+                    Pair(hours,minutes)
                 )
                 // reset the task status and close the dialog
                 vm.assignTaskToSchedule(null)
                 vm.closeDialog()
             }
         } catch (e: RuntimeException) {
-            isError.value = "A Valid Integer Value Must Be Provided."
+            isError.value = "Valid Positive Numbers Must Be Provided."
         }
     }
 
     AlertDialog(
-        modifier = Modifier.scale(0.8f),
+        containerColor = MaterialTheme.colorScheme.background,
+        modifier = if(!isVertical()) Modifier.scale(0.8f) else Modifier,
         icon = {
-            Icon(Icons.Default.DateRange, contentDescription = "Schedule Task")
+            Icon(Icons.Default.DateRange, contentDescription = "Schedule Task", tint = MaterialTheme.colorScheme.onPrimary)
         },
         title = {
-            Text(text = "Insert The Hours to Schedule the Task:", color = Color.White)
+            Text(text = "Insert The Hours to Schedule the Task:", color = MaterialTheme.colorScheme.onPrimary)
         },
         text = {
-            Column {
+            HourMinutesPicker(hourState = scheduledHours, minuteState = scheduledMinutes, errorMsg = isError)
+            /*Column {
                 TextField(value = scheduledHours.value,
                     keyboardOptions = KeyboardOptions.Default.copy(
                         autoCorrectEnabled = true,
@@ -76,7 +93,7 @@ fun ScheduleTaskDialog(
                     })
                 if (isError.value.isNotEmpty())
                     Text(isError.value, color = MaterialTheme.colorScheme.error)
-            }
+            }*/
         },
         onDismissRequest = {},
         confirmButton = {
@@ -105,8 +122,9 @@ fun ScheduleTaskDialog(
 @Composable
 fun NoPermissionDialog(vm: Calendar = viewModel()) {
     AlertDialog(
+        containerColor = MaterialTheme.colorScheme.background,
         icon = {
-            Icon(Icons.Default.Close, contentDescription = "Permission Denied")
+            Icon(Icons.Default.Close, contentDescription = "Permission Denied", tint = MaterialTheme.colorScheme.onPrimary)
         },
         title = {
             Text(text = "Permission Denied")
@@ -123,7 +141,7 @@ fun NoPermissionDialog(vm: Calendar = viewModel()) {
                     vm.closeDialog()
                 }
             ) {
-                Text("Ok", color = Color.White)
+                Text("Ok", color = MaterialTheme.colorScheme.onPrimary)
             }
         }
     )
@@ -132,8 +150,9 @@ fun NoPermissionDialog(vm: Calendar = viewModel()) {
 @Composable
 fun ScheduleBackInTimeDialog(vm: Calendar = viewModel()) {
     AlertDialog(
+        containerColor = MaterialTheme.colorScheme.background,
         icon = {
-            Icon(Icons.Default.Warning, contentDescription = "Back In Time")
+            Icon(Icons.Default.Warning, contentDescription = "Back In Time", tint = MaterialTheme.colorScheme.onPrimary)
         },
         title = {
             Text(text = "Schedule Back In Time")
@@ -168,7 +187,7 @@ fun ScheduleBackInTimeDialog(vm: Calendar = viewModel()) {
                     }
                 }
             ) {
-                Text("Schedule Task", color = Color.White)
+                Text("Schedule Task", color = MaterialTheme.colorScheme.onPrimary)
             }
         },
         dismissButton = {
@@ -179,7 +198,104 @@ fun ScheduleBackInTimeDialog(vm: Calendar = viewModel()) {
                     vm.closeDialog()
                 }
             ) {
-                Text("Undo", color = Color.White)
+                Text("Undo", color = MaterialTheme.colorScheme.onPrimary)
+            }
+        }
+    )
+}
+
+@Composable
+fun ScheduleAfterDeadlineDialog(vm: Calendar = viewModel()) {
+    AlertDialog(
+        containerColor = MaterialTheme.colorScheme.background,
+        icon = {
+            Icon(Icons.Default.Warning, contentDescription = "After Deadline", tint = MaterialTheme.colorScheme.onPrimary)
+        },
+        title = {
+            Text(text = "Schedule After task Deadline")
+        },
+        text = {
+            Text(text = "You are trying to schedule a task after his deadline. Do You still want to proceed ?")
+        },
+        onDismissRequest = {},
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    val (task,oldDate,newDate) = vm.taskToSchedule!!
+                    if (oldDate != null) {
+                        // old data passed from the state, so move from 1 day to another
+                        val hoursToSchedule = task.schedules.get(oldDate)
+                        // remove the old day scheduled and add the new one
+                        vm.unScheduleTask(task, oldDate)
+                        if (hoursToSchedule != null) {
+                            vm.scheduleTask(
+                                task,
+                                newDate,
+                                hoursToSchedule
+                            )
+                        }
+                        // reset the task status and close the dialog
+                        vm.assignTaskToSchedule(null)
+                        vm.closeDialog()
+                    } else {
+                        // no data passed from the state, so coming from the bottom
+                        // trigger ScheduleTaskDialog
+                        vm.openDialog(showDialog.schedule_task)
+                    }
+                }
+            ) {
+                Text("Schedule Task", color = MaterialTheme.colorScheme.onPrimary)
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = {
+                    // reset the task status and close the dialog
+                    vm.assignTaskToSchedule(null)
+                    vm.closeDialog()
+                }
+            ) {
+                Text("Undo", color = MaterialTheme.colorScheme.onPrimary)
+            }
+        }
+    )
+}
+
+@Composable
+fun TaskDetailDialog(vm: Calendar = viewModel()) {
+    val task = vm.taskToSchedule!!.first
+    AlertDialog(
+        containerColor = MaterialTheme.colorScheme.background,
+        icon = {
+            Icon(Icons.Default.Info, contentDescription = "Task Detail", tint = MaterialTheme.colorScheme.onPrimary)
+        },
+        title = {
+            Text(text = "Task Info")
+        },
+        text = {
+            Column(modifier = Modifier.fillMaxHeight(0.6f).verticalScroll(rememberScrollState())) {
+                RowItem(title = "Name:", value = task.name)
+                RowItem(title = "Description:", value = task.description ?: "")
+                RowItem(title = "Category:", value = task.category ?: "")
+                RowItem(title = "Priority:", value = task.priority)
+                RowItem(title = "Deadline:", value = task.deadline.toString())
+                RowItem(title = "Estimated Time:", value = task.estimatedTime.first.toString() + "h " + task.estimatedTime.second.toString() + "m")
+                RowItem(title = "Spent Time:", value =  if(task.spentTime!= null) task.spentTime!!.first.toString() + "h " + task.spentTime!!.second.toString() + "m" else "")
+                RowItem(title = "Repeatable:", value = task.repetition)
+                RowMemberItem(title = "Members:", value = task.members)
+                RowItem(title = "Status:", value = task.status)
+            }
+        },
+        onDismissRequest = {},
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    // reset the task status and close the dialog
+                    vm.assignTaskToSchedule(null)
+                    vm.closeDialog()
+                }
+            ) {
+                Text("Ok", color = MaterialTheme.colorScheme.onPrimary)
             }
         }
     )

@@ -2,12 +2,11 @@ package it.polito.uniteam.gui.calendar
 
 import android.util.Log
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -22,13 +21,9 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -38,35 +33,23 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.rememberAsyncImagePainter
-import coil.request.ImageRequest
 import com.mohamedrejeb.compose.dnd.DragAndDropContainer
 import com.mohamedrejeb.compose.dnd.DragAndDropState
 import com.mohamedrejeb.compose.dnd.drag.DraggableItem
 import com.mohamedrejeb.compose.dnd.drop.dropTarget
 import com.mohamedrejeb.compose.dnd.rememberDragAndDropState
-import it.polito.uniteam.R
 import it.polito.uniteam.classes.MemberIcon
 import it.polito.uniteam.classes.Task
 import it.polito.uniteam.classes.TextTrim
@@ -104,6 +87,12 @@ fun CalendarAppContainer(vm: Calendar = viewModel()) {
             }
             showDialog.schedule_in_past -> {
                 ScheduleBackInTimeDialog(vm = vm)
+            }
+            showDialog.after_deadline -> {
+                ScheduleAfterDeadlineDialog(vm = vm)
+            }
+            showDialog.task_detail -> {
+                TaskDetailDialog(vm = vm)
             }
             showDialog.none -> {}
         }
@@ -247,17 +236,38 @@ fun VerticalHeader(
 
 //OGGETTO TASK
 @Composable
-fun EventItem(task: Task, date: LocalDate? = null, isScheduled: Boolean) {
-    var hours = 0
+fun EventItem(vm: Calendar = viewModel(), task: Task, date: LocalDate? = null, isScheduled: Boolean) {
+    var isOverSchedule by remember { mutableStateOf(false) }
+    val time: Pair<Int,Int>;
     if (isScheduled) {
-        hours = task.schedules.get(date)!!
+        time = task.schedules.get(date)!!
     } else {
-        hours = task.estimatedHours - task.schedules.values.sumOf { it }
+        val totalMinutes1 = task.estimatedTime.first * 60 + task.estimatedTime.second
+        val totalMinutes2 = task.schedules.values.sumOf { it.first } * 60 + task.schedules.values.sumOf { it.second }
+        val differenceInMinutes = totalMinutes1 - totalMinutes2
+
+        val hours = differenceInMinutes / 60
+        val minutes = differenceInMinutes % 60
+        if (differenceInMinutes < 0) {
+            isOverSchedule = true
+            time = Pair(-hours,-minutes)
+        } else {
+            time = Pair(hours,minutes)
+        }
     }
     Column(
         modifier = Modifier
+            .clickable {
+                vm.assignTaskToSchedule(
+                    Triple(
+                        task,
+                        null,
+                        LocalDate.now()
+                    )
+                ); vm.openDialog(showDialog.task_detail)
+            }
             //.fillMaxWidth()
-            .width(102.dp)
+            .width(120.dp)
             .padding(2.dp)
             .background(MaterialTheme.colorScheme.onTertiary, RoundedCornerShape(8.dp)),
         verticalArrangement = Arrangement.Center
@@ -269,7 +279,10 @@ fun EventItem(task: Task, date: LocalDate? = null, isScheduled: Boolean) {
             TextTrim(inputText = task.name, desiredLength = 5, style = MaterialTheme.typography.bodyMedium)
             Spacer(modifier = Modifier.weight(1f))  // Usa il peso per spingere il testo a destra
             Text(
-                text = hours.toString() + "h",
+                text = if(isOverSchedule)
+                    "+" + time.first.toString() + "h" + time.second.toString() + "m"
+                else
+                    time.first.toString() + "h" + time.second.toString() + "m",
                 style = MaterialTheme.typography.bodyLarge.copy(
                     //fontWeight = FontWeight.Bold,  // Testo in grassetto
                     color = MaterialTheme.colorScheme.primary // Cambio colore per maggiore visibilità

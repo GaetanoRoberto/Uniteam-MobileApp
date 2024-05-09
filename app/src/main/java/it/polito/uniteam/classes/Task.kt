@@ -10,10 +10,10 @@ class Task {
     var priority: Priority = Priority.LOW
     var creationDate: LocalDate = LocalDate.now()
     var deadline: LocalDate? = null
-    var estimatedHours: Int = 0
-    var spentHours: Int? = null
+    var estimatedTime: Pair<Int,Int> = Pair(0,0)
+    var spentTime: Pair<Int,Int>? = null
     var status: Status = Status.TODO
     var repetition: Repetition = Repetition.NONE
     var members: List<Member> = emptyList()
-    var schedules: HashMap<LocalDate,Int> = hashMapOf()
+    var schedules: HashMap<LocalDate,Pair<Int,Int>> = hashMapOf()
 }

@@ -84,17 +84,19 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
+import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.window.Dialog
 import it.polito.uniteam.isVertical
 import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
+import it.polito.uniteam.classes.HourMinutesPicker
 import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.MemberIcon
 
@@ -122,7 +124,6 @@ fun TaskDetailsView(vm: taskDetails = viewModel()) {
     vm.enterEditingMode()
     //vm.newTask()*/
     var scrollState = rememberScrollState()
-    var state by remember { mutableIntStateOf(0) }
     key(vm.commentHistoryFileSelection) {
         scrollState = if (isVertical())
             rememberScrollState(vm.scrollTaskDetails)
@@ -157,8 +158,8 @@ fun TaskDetailsView(vm: taskDetails = viewModel()) {
             RowItem(title = "Category:", value = vm.category)
             RowItem(title = "Priority:", value = vm.priority)
             RowItem(title = "Deadline:", value = vm.deadline)
-            RowItem(title = "Estimated Hours:", value = vm.estimatedHours)
-            RowItem(title = "Spent Hours:", value = vm.spentHours)
+            RowItem(title = "Estimated Time:", value = vm.estimatedHours.value + "h " + vm.estimatedMinutes.value + "m")
+            RowItem(title = "Spent Time:", value = vm.spentHours.value + "h " + vm.spentMinutes.value + "m")
             RowItem(title = "Repeatable:", value = vm.repeatable)
             RowMemberItem(title = "Members:", value = vm.members)
             RowItem(title = "Status:", value = vm.status)
@@ -166,12 +167,17 @@ fun TaskDetailsView(vm: taskDetails = viewModel()) {
             val icons = listOf(Icons.Filled.Comment, Icons.Filled.History, Icons.Filled.InsertDriveFile)
             val titles = listOf("Comments", "History", "Files")
             Column {
-                TabRow(selectedTabIndex = state) {
+                TabRow(selectedTabIndex = vm.tabState, indicator = { tabPositions ->
+                    TabRowDefaults.Indicator(
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.tabIndicatorOffset(tabPositions[vm.tabState])
+                    )
+                }) {
                     titles.forEachIndexed { index, title ->
-                        Tab(selected = state == index,
-                            onClick = { state = index; vm.changeCommentHistoryFileSelection(title.lowercase()); },
-                            text = { Text(text = title) },
-                            icon = { Icon(icons[index], title) })
+                        Tab(selected = vm.tabState == index,
+                            onClick = { vm.switchTab(index); vm.changeCommentHistoryFileSelection(title.lowercase()); },
+                            text = { Text(text = title, color = MaterialTheme.colorScheme.onPrimary) },
+                            icon = { Icon(icons[index], title, tint = MaterialTheme.colorScheme.onPrimary) })
                     }
                 }
             }
@@ -229,20 +235,10 @@ fun EditTaskView(vm: taskDetails = viewModel()) {
                         vm.priorityError
                     )
                     CustomDatePickerPreview("Deadline", vm.deadline, vm::changeDeadline)
-                    EditRowItem(
-                        label = "Estimated Hours:",
-                        keyboardType = KeyboardType.Number,
-                        value = vm.estimatedHours,
-                        errorText = vm.estimatedHoursError,
-                        onChange = vm::changeEstimatedHours
-                    )
-                    EditRowItem(
-                        label = "Spent Hours:",
-                        keyboardType = KeyboardType.Number,
-                        value = vm.spentHours,
-                        errorText = vm.spentHoursError,
-                        onChange = vm::changeSpentHours
-                    )
+                    Text(text = "Estimated Time:")
+                    HourMinutesPicker(hourState = vm.estimatedHours, minuteState = vm.estimatedMinutes, errorMsg = vm.estimatedTimeError)
+                    Text(text = "Spent Time:")
+                    HourMinutesPicker(hourState = vm.spentHours, minuteState = vm.spentMinutes, errorMsg = vm.spentTimeError)
                     Demo_ExposedDropdownMenuBox(
                         "Repeatable",
                         vm.repeatable,
@@ -281,7 +277,7 @@ fun EditTaskView(vm: taskDetails = viewModel()) {
                             Box(modifier = Modifier.weight(1f)) {
                                 Button( colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
                                     vm.validate()
-                                    if (vm.taskError == "" && vm.descriptionError == "" && vm.categoryError == "" && vm.deadlineError == "" && vm.estimatedHoursError == "" && vm.spentHoursError == "" && vm.priorityError == "") {
+                                    if (vm.taskError == "" && vm.descriptionError == "" && vm.categoryError == "" && vm.deadlineError == "" && vm.estimatedTimeError.value == "" && vm.spentTimeError.value == "" && vm.priorityError == "") {
                                         vm.handleHistory()
                                         vm.changeEditing()
                                         /*navController.navigate("Tasks"){
@@ -348,7 +344,7 @@ fun EditTaskView(vm: taskDetails = viewModel()) {
                         Box(modifier = Modifier.weight(1f)) {
                             Button(colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
                                 vm.validate()
-                                if (vm.taskError == "" && vm.descriptionError == "" && vm.categoryError == "" && vm.deadlineError == "" && vm.estimatedHoursError == "" && vm.spentHoursError == "" && vm.priorityError == "") {
+                                if (vm.taskError == "" && vm.descriptionError == "" && vm.categoryError == "" && vm.deadlineError == "" && vm.estimatedTimeError.value == "" && vm.spentTimeError.value == "" && vm.priorityError == "") {
                                     vm.handleHistory()
                                     vm.changeEditing()
                                     /*navController.navigate("Tasks"){
@@ -812,7 +808,9 @@ fun CommentsView(
     val screenHeightDp = LocalConfiguration.current.screenHeightDp
 
     Box(
-        modifier = Modifier.fillMaxWidth().border(BorderStroke(1.dp, Color.White))
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(BorderStroke(1.dp, MaterialTheme.colorScheme.onPrimary))
     ) {
         key(vm.comments.size) {
             Column(
@@ -909,7 +907,9 @@ fun HistoryView(
     val screenHeightDp = LocalConfiguration.current.screenHeightDp
 
     Box(
-        modifier = Modifier.fillMaxWidth().border(BorderStroke(1.dp, Color.White))
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(BorderStroke(1.dp, MaterialTheme.colorScheme.onPrimary))
     ) {
         key(history.size) {
             Column(
@@ -968,7 +968,9 @@ fun FilesView(
     val screenHeightDp = LocalConfiguration.current.screenHeightDp
 
     Box(
-        modifier = Modifier.fillMaxWidth().border(BorderStroke(1.dp, Color.White))
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(BorderStroke(1.dp, MaterialTheme.colorScheme.onPrimary))
     ) {
         Column(
             modifier = Modifier
@@ -1060,7 +1062,9 @@ fun FileUpload(vm: taskDetails = viewModel(), modifier: Modifier) {
     }
 
     Column(
-        modifier = Modifier.fillMaxWidth().then(modifier),
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(modifier),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {

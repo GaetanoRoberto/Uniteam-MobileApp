@@ -125,51 +125,53 @@ class taskDetails : ViewModel() {
         listOf(Status.TODO.toString(), Status.IN_PROGRESS.toString(), Status.COMPLETED.toString())
 
 
-    var estimatedHours by mutableStateOf("0")
+    var estimatedHours = mutableStateOf("1")
         private set
-    var estimatedHoursError by mutableStateOf("")
+    var estimatedMinutes = mutableStateOf("0")
+        private set
+    var estimatedTimeError = mutableStateOf("")
         private set
 
-    fun changeEstimatedHours(h: String) {
-        estimatedHours = h
-    }
-
-    private fun checkEstimatedHours() {
+    private fun checkEstimatedTime() {
         try {
-            if (estimatedHours == "") {
-                estimatedHoursError = "Estimated hours cannot be blank!"
-            } else if (estimatedHours.toInt() <= 0)
-                estimatedHoursError = "Estimated hours must be greater than 0"
-            else {
-                estimatedHoursError = ""
-                estimatedHours = estimatedHours.toInt().toString()
+            val hours = estimatedHours.value.toUInt().toInt()
+            val minutes = estimatedMinutes.value.toUInt().toInt()
+            if (hours == 0 && minutes == 0) {
+                estimatedTimeError.value = "You Need To Schedule A Positive Time Interval."
+            } else if (minutes >= 60) {
+                estimatedTimeError.value = "Invalid Minute Value."
+            } else {
+                estimatedTimeError.value = ""
+                estimatedHours.value = hours.toString()
+                estimatedMinutes.value = minutes.toString()
             }
         } catch (e: RuntimeException) {
-            estimatedHoursError = "A Valid Integer Value Must Be Provided."
+            estimatedTimeError.value = "Valid Positive Numbers Must Be Provided."
         }
     }
 
-    var spentHours by mutableStateOf("1")
+    var spentHours = mutableStateOf("3")
         private set
-    var spentHoursError by mutableStateOf("")
+    var spentMinutes = mutableStateOf("0")
+        private set
+    var spentTimeError = mutableStateOf("")
         private set
 
-    fun changeSpentHours(h: String) {
-        spentHours = h
-    }
-
-    private fun checkSpentHours() {
+    private fun checkSpentTime() {
         try {
-            if (spentHours == "") {
-                spentHoursError = "Estimated hours cannot be blank!"
-            } else if (spentHours.toInt() < 0)
-                spentHoursError = "Estimated hours must be greater or equal than 0"
-            else {
-                spentHoursError = ""
-                spentHours = spentHours.toInt().toString()
+            val hours = spentHours.value.toUInt().toInt()
+            val minutes = spentMinutes.value.toUInt().toInt()
+            if (hours == 0 && minutes == 0) {
+                spentTimeError.value = "You Need To Schedule A Positive Time Interval."
+            } else if (minutes >= 60) {
+                spentTimeError.value = "Invalid Minute Value."
+            } else {
+                spentTimeError.value = ""
+                spentHours.value = hours.toString()
+                spentMinutes.value = minutes.toString()
             }
         } catch (e: RuntimeException) {
-            spentHoursError = "A Valid Integer Value Must Be Provided."
+            spentTimeError.value = "Valid Positive Numbers Must Be Provided."
         }
     }
 
@@ -225,7 +227,8 @@ class taskDetails : ViewModel() {
             //general editing
             if(hasChanged(taskNameBefore,taskName) || hasChanged(descriptionBefore,description)
                 || hasChanged(categoryBefore,category) || hasChanged(deadlineBefore,deadline)
-                || hasChanged(estimateHoursBefore,estimatedHours) || hasChanged(spentHoursBefore,spentHours)
+                || hasChanged(estimateHoursBefore,estimatedHours.value) || hasChanged(estimateMinutesBefore,estimatedMinutes.value)
+                || hasChanged(spentHoursBefore,spentHours.value) || hasChanged(spentMinutesBefore,spentMinutes.value)
                 || hasChanged(repeatableBefore,repeatable)) {
                 entryToAdd.add(History(
                     comment = "Task Edited.",
@@ -303,8 +306,8 @@ class taskDetails : ViewModel() {
         checkDescription()
         checkCategory()
         checkDeadline()
-        checkEstimatedHours()
-        checkSpentHours()
+        checkEstimatedTime()
+        checkSpentTime()
         //checkMembers()
     }
 
@@ -321,7 +324,9 @@ class taskDetails : ViewModel() {
     var priorityBefore = ""
     var deadlineBefore = ""
     var estimateHoursBefore = ""
+    var estimateMinutesBefore = ""
     var spentHoursBefore = ""
+    var spentMinutesBefore = ""
     var repeatableBefore = ""
     var statusBefore = ""
     var membersBefore = mutableListOf<Member>()
@@ -332,8 +337,10 @@ class taskDetails : ViewModel() {
         categoryBefore = category
         priorityBefore = priority
         deadlineBefore = deadline
-        estimateHoursBefore = estimatedHours
-        spentHoursBefore = spentHours
+        estimateHoursBefore = estimatedHours.value
+        estimateMinutesBefore = estimatedMinutes.value
+        spentHoursBefore = spentHours.value
+        spentMinutesBefore = spentMinutes.value
         repeatableBefore = repeatable
         statusBefore = status
         membersBefore = members.toMutableStateList()
@@ -345,8 +352,10 @@ class taskDetails : ViewModel() {
         category = categoryBefore
         priority = priorityBefore
         deadline = deadlineBefore
-        estimatedHours = estimateHoursBefore
-        spentHours = spentHoursBefore
+        estimatedHours.value = estimateHoursBefore
+        estimatedMinutes.value = estimateMinutesBefore
+        spentHours.value = spentHoursBefore
+        spentMinutes.value = spentMinutesBefore
         repeatable = repeatableBefore
         status = statusBefore
         members = membersBefore.toMutableStateList()
@@ -355,12 +364,16 @@ class taskDetails : ViewModel() {
         categoryError = ""
         priorityError = ""
         deadlineError = ""
-        estimatedHoursError = ""
-        spentHoursError = ""
+        estimatedTimeError.value = ""
+        spentTimeError.value = ""
         membersError = ""
     }
 
     var scrollTaskDetails by mutableIntStateOf(0)
+    var tabState by mutableIntStateOf(0)
+    fun switchTab(index: Int) {
+        tabState = index
+    }
     var commentHistoryFileSelection by mutableStateOf("comments")
     fun changeCommentHistoryFileSelection(s: String) {
         if (s.trim().lowercase() == "comments") {
@@ -445,8 +458,10 @@ class taskDetails : ViewModel() {
         category = ""
         priority = ""
         //deadline =""
-        estimatedHours = ""
-        spentHours = ""
+        estimatedHours.value = ""
+        estimatedMinutes.value = ""
+        spentHours.value = ""
+        spentMinutes.value = ""
         repeatable = Repetition.NONE.toString()
         status = Status.TODO.toString()
         members = mutableStateListOf<Member>()
