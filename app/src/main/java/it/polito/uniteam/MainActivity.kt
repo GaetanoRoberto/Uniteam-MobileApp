@@ -86,16 +86,6 @@ class MainActivity : ComponentActivity() {
     private val vm: UserProfileScreen by viewModels()
     private val vm2: Calendar by viewModels()
 
-    private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { activity: ActivityResult? ->
-        // Handle the selected image URI here
-        val uri = activity?.data?.data
-        if (uri != null) {
-            // Image picked successfully, do something with the URI
-            vm.setUri(uri)
-        }
-        vm.openGallery(false)
-    }
-
     private var permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -179,7 +169,7 @@ class MainActivity : ComponentActivity() {
                     ) {
                         Scaffold(
                             topBar = {
-                                MyTopAppBar(vm,navController)
+                                MyTopAppBar(vm = viewModel(),navController)
                             },
                             /*floatingActionButton = {
                                 //if (vm.isEditing) {
@@ -227,7 +217,7 @@ class MainActivity : ComponentActivity() {
                                         composable("Tasks") { TaskScreen(vm = viewModel()) }
                                         composable("Calendar") { CalendarAppContainer(vm = viewModel()) }
                                         composable("Notifications") { CalendarAppContainer(vm = viewModel()) }
-                                        composable("Profile") { ProfileSettings(vm = viewModel(),outputDirectory = getOutputDirectory(),cameraExecutor = cameraExecutor,pickImageLauncher = pickImageLauncher)  }
+                                        composable("Profile") { ProfileSettings(vm = viewModel(),outputDirectory = getOutputDirectory(),cameraExecutor = cameraExecutor)  }
 
                                         /*composable("EditProfile") { ProfileSettings(vm = viewModel(),outputDirectory = getOutputDirectory(),cameraExecutor = cameraExecutor,pickImageLauncher = pickImageLauncher,edit=true,navController)  }
                                         composable("Profile") { ProfileSettings(vm = viewModel(),outputDirectory = getOutputDirectory(),cameraExecutor = cameraExecutor,pickImageLauncher = pickImageLauncher,edit=false,navController)  }*/

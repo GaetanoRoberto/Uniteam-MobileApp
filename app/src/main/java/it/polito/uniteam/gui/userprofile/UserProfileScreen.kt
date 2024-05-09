@@ -1,11 +1,15 @@
 package it.polito.uniteam.gui.userprofile
 
+import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -699,9 +703,25 @@ fun PresentationPane(vm: UserProfileScreen = viewModel()) {
 fun ProfileSettings(
     vm: UserProfileScreen = viewModel(),
     outputDirectory: File,
-    cameraExecutor: ExecutorService,
-    pickImageLauncher: ActivityResultLauncher<Intent>
+    cameraExecutor: ExecutorService
 ) {
+    val pickImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { activity: ActivityResult? ->
+        if (activity == null || activity.resultCode != Activity.RESULT_OK) {
+            // User canceled the action, handle it here
+            // For example, you can show a toast or log a message
+            Log.d("Uniteam", "User canceled image selection")
+            vm.openGallery(false)
+        } else {
+            val uri = activity.data?.data
+            if (uri != null) {
+                // Image picked successfully, do something with the URI
+                vm.setUri(uri)
+            }
+        }
+        // Optionally, you can still call vm.openGallery() here if needed
+        vm.openGallery(false)
+    }
+
     val context = LocalContext.current
     if (vm.openGallery) {
         // Launch gallery intent

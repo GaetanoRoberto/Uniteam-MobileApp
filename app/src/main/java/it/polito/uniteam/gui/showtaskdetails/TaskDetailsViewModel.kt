@@ -140,8 +140,10 @@ class taskDetails : ViewModel() {
                 estimatedHoursError = "Estimated hours cannot be blank!"
             } else if (estimatedHours.toInt() <= 0)
                 estimatedHoursError = "Estimated hours must be greater than 0"
-            else
+            else {
                 estimatedHoursError = ""
+                estimatedHours = estimatedHours.toInt().toString()
+            }
         } catch (e: RuntimeException) {
             estimatedHoursError = "A Valid Integer Value Must Be Provided."
         }
@@ -162,8 +164,10 @@ class taskDetails : ViewModel() {
                 spentHoursError = "Estimated hours cannot be blank!"
             } else if (spentHours.toInt() < 0)
                 spentHoursError = "Estimated hours must be greater or equal than 0"
-            else
+            else {
                 spentHoursError = ""
+                spentHours = spentHours.toInt().toString()
+            }
         } catch (e: RuntimeException) {
             spentHoursError = "A Valid Integer Value Must Be Provided."
         }
@@ -395,6 +399,7 @@ class taskDetails : ViewModel() {
 
     fun addNewComment() {
         if (addComment.commentValue.trim() != "") {
+            addComment.commentValue = addComment.commentValue.replace(Regex("\\n+"), "\n")
             comments.add(addComment)
         }
         addComment = Comment(

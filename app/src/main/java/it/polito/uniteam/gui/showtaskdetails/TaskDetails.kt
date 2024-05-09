@@ -67,33 +67,34 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Comment
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.window.Dialog
 import it.polito.uniteam.isVertical
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
-import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.NavHostController
-import it.polito.uniteam.classes.Comment
-import androidx.wear.compose.material3.TextButtonDefaults
 import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.MemberIcon
 
@@ -121,6 +122,7 @@ fun TaskDetailsView(vm: taskDetails = viewModel()) {
     vm.enterEditingMode()
     //vm.newTask()*/
     var scrollState = rememberScrollState()
+    var state by remember { mutableIntStateOf(0) }
     key(vm.commentHistoryFileSelection) {
         scrollState = if (isVertical())
             rememberScrollState(vm.scrollTaskDetails)
@@ -160,112 +162,25 @@ fun TaskDetailsView(vm: taskDetails = viewModel()) {
             RowItem(title = "Repeatable:", value = vm.repeatable)
             RowMemberItem(title = "Members:", value = vm.members)
             RowItem(title = "Status:", value = vm.status)
-            Row {
-                Button(
-                    onClick = { vm.changeCommentHistoryFileSelection("comments") },
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(4.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (vm.commentHistoryFileSelection == "comments") MaterialTheme.colorScheme.primary else Color.Transparent
-                    ),
-                    border = BorderStroke(1.dp, if (vm.commentHistoryFileSelection != "comments") MaterialTheme.colorScheme.primary else Color.Transparent)
-                ) {
-                    Text(
-                        text = "Comments",
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center
-                    )
-                }
 
-                Button(
-                    onClick = { vm.changeCommentHistoryFileSelection("history") },
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(4.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (vm.commentHistoryFileSelection == "history") MaterialTheme.colorScheme.primary else Color.Transparent
-                    ),
-                    border = BorderStroke(1.dp, if (vm.commentHistoryFileSelection != "history") MaterialTheme.colorScheme.primary else Color.Transparent)
-                ) {
-                    Text(
-                        text = "History",
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center
-                    )
-                }
-
-                Button(
-                    onClick = { vm.changeCommentHistoryFileSelection("files") },
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(4.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (vm.commentHistoryFileSelection == "files") MaterialTheme.colorScheme.primary else Color.Transparent
-                    ),
-                    border = BorderStroke(1.dp, if (vm.commentHistoryFileSelection != "files") MaterialTheme.colorScheme.primary else Color.Transparent)
-                ) {
-                    Text(
-                        text = "Files",
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center
-                    )
+            val icons = listOf(Icons.Filled.Comment, Icons.Filled.History, Icons.Filled.InsertDriveFile)
+            val titles = listOf("Comments", "History", "Files")
+            Column {
+                TabRow(selectedTabIndex = state) {
+                    titles.forEachIndexed { index, title ->
+                        Tab(selected = state == index,
+                            onClick = { state = index; vm.changeCommentHistoryFileSelection(title.lowercase()); },
+                            text = { Text(text = title) },
+                            icon = { Icon(icons[index], title) })
+                    }
                 }
             }
-            /*Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.Bottom,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Spacer(modifier = Modifier.width(15.dp))
-                TextButton(
-                    onClick = { vm.changeCommentHistoryFileSelection("history") },
-                    modifier =  if (vm.commentHistoryFileSelection != "history") Modifier
-                        .weight(1f)
-                        .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(50)) else  Modifier.weight(1f),
-                    colors = if (vm.commentHistoryFileSelection == "history") ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(
-                        containerColor = Color.Transparent,
-                    )
-                ) {
-                    Text(
-                        text = "History",
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                }
-                Spacer(modifier = Modifier.width(15.dp))
-
-                TextButton(
-                    onClick = { vm.changeCommentHistoryFileSelection("files") },
-                    modifier =  if (vm.commentHistoryFileSelection != "files") Modifier
-                        .weight(1f)
-                        .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(50)) else  Modifier.weight(1f),
-                    colors = if (vm.commentHistoryFileSelection == "files") ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(
-                        containerColor = Color.Transparent,
-                    )
-                ) {
-                    Text(
-                        text = "Files",
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                }
-                Spacer(modifier = Modifier.width(15.dp))
-
-            }*/
             if (vm.commentHistoryFileSelection == "comments") {
-                CommentsView(vm = vm, label = "Comments")
+                CommentsView(vm = vm)
             } else if (vm.commentHistoryFileSelection == "files") {
                 FilesView(vm = vm)
             } else if (vm.commentHistoryFileSelection == "history") {
-                HistoryView(
-                    "History",
-                    vm.history,
-                    vm::changeCommentHistoryFileSelection,
-                    vm.commentHistoryFileSelection
-                )
+                HistoryView(vm.history)
             }
             Spacer(modifier = Modifier.height(10.dp))
         }
@@ -338,45 +253,37 @@ fun EditTaskView(vm: taskDetails = viewModel()) {
                     MembersDropdownMenuBox(
                         vm,
                         "AddMembers",
-                        vm.members,
-                        vm.possibleMembers,
-                        vm::addMembers,
-                        vm::removeMembers,
-                        vm.membersError
+                        vm.members
                     )
                     Spacer(modifier = Modifier.height(10.dp))
-
 
                     if(!isVertical()){
 
                         Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.Bottom){
-
                             Spacer(modifier = Modifier.width(15.dp))
-                                Box(modifier = Modifier.weight(1f)) {
-                                    Button( colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
-                                        vm.validate()
-                                        if (vm.taskError == "" && vm.descriptionError == "" && vm.categoryError == "" && vm.deadlineError == "" && vm.estimatedHoursError == "" && vm.spentHoursError == "" && vm.priorityError == "") {
-                                            vm.handleHistory()
-                                            vm.changeEditing()
-                                            /*navController.navigate("Tasks"){
-                                                popUpTo(navController.graph.findStartDestination().id) {
-                                                    saveState = true
-                                                }
-                                                launchSingleTop = true
-                                                restoreState = true
-                                            }*/
+                            Box(modifier = Modifier.weight(1f)) {
+                                Button(colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
+                                    /*navController.navigate("Tasks"){
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
                                         }
-                                    }, modifier = Modifier
-                                        .fillMaxWidth()) {
-                                        Text(text = "Save", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
-                                    }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }*/
+                                    vm.cancelEdit()
+                                    vm.changeEditing()
+                                }, modifier = Modifier.fillMaxWidth()) {
+                                    Text(text = "Cancel", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
                                 }
-
+                            }
 
                             Spacer(modifier = Modifier.width(15.dp))
-
-                                Box(modifier = Modifier.weight(1f)) {
-                                    Button(colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
+                            Box(modifier = Modifier.weight(1f)) {
+                                Button( colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
+                                    vm.validate()
+                                    if (vm.taskError == "" && vm.descriptionError == "" && vm.categoryError == "" && vm.deadlineError == "" && vm.estimatedHoursError == "" && vm.spentHoursError == "" && vm.priorityError == "") {
+                                        vm.handleHistory()
+                                        vm.changeEditing()
                                         /*navController.navigate("Tasks"){
                                             popUpTo(navController.graph.findStartDestination().id) {
                                                 saveState = true
@@ -384,13 +291,12 @@ fun EditTaskView(vm: taskDetails = viewModel()) {
                                             launchSingleTop = true
                                             restoreState = true
                                         }*/
-                                        vm.cancelEdit()
-                                        vm.changeEditing()
-                                    }, modifier = Modifier.fillMaxWidth()) {
-                                        Text(text = "Cancel", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
                                     }
+                                }, modifier = Modifier
+                                    .fillMaxWidth()) {
+                                    Text(text = "Save", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
                                 }
-
+                            }
 
                         }
 
@@ -409,9 +315,33 @@ fun EditTaskView(vm: taskDetails = viewModel()) {
                     verticalAlignment = Alignment.Bottom
                 ) {
 
+
                     Column(
                         modifier = Modifier
                             .fillMaxWidth(0.5f)
+                    ) {
+                        Box(modifier = Modifier.weight(1f)) {
+                            Button(colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
+                                vm.cancelEdit()
+                                vm.changeEditing()
+                                /*navController.navigate("Tasks"){
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }*/
+
+                            }, modifier = Modifier.fillMaxWidth()) {
+                                Text(text = "Cancel", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(15.dp))
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
                     ) {
                         Spacer(modifier = Modifier.width(15.dp))
 
@@ -432,29 +362,6 @@ fun EditTaskView(vm: taskDetails = viewModel()) {
                                 }
                             }, modifier = Modifier.fillMaxWidth()) {
                                 Text(text = "Save", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.width(15.dp))
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                    ) {
-                        Box(modifier = Modifier.weight(1f)) {
-                            Button(colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
-                                vm.cancelEdit()
-                                vm.changeEditing()
-                                /*navController.navigate("Tasks"){
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }*/
-
-                            }, modifier = Modifier.fillMaxWidth()) {
-                                Text(text = "Cancel", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
                             }
                         }
                     }
@@ -572,11 +479,7 @@ fun EditRowItem(
 fun MembersDropdownMenuBox(
     vm: taskDetails,
     label: String,
-    currentMembers: List<Member>,
-    possibleMembers: List<Member>,
-    addMember: (Member) -> Unit,
-    removeMember: (Member) -> Unit,
-    errorText: String
+    currentMembers: List<Member>
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -898,48 +801,28 @@ fun CustomDatePickerPreview(label: String, value: String, onChange: (String) -> 
         onValueChange = { onChange(it.toString()) }
     )
     Spacer(modifier = Modifier.padding(5.dp))
-
-
 }
 
 
 @Composable
 fun CommentsView(
-    vm: taskDetails = viewModel(),
-    label: String
+    vm: taskDetails = viewModel()
 ) {
     var date = ""
-
+    val screenHeightDp = LocalConfiguration.current.screenHeightDp
 
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = Modifier.fillMaxWidth().border(BorderStroke(1.dp, Color.White))
     ) {
-        OutlinedTextField(
-            label = {
-                Text(
-                    text = "",
-                    style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)
-                )
-            },
-            value = "",
-            onValueChange = {},
-            readOnly = true,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-        )
-
         key(vm.comments.size) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
-                    .height(199.dp)
+                    .height((screenHeightDp * 0.5).dp)
                     .padding(0.dp, 10.dp, 0.dp, 0.dp)
                     .verticalScroll(rememberScrollState(initial = Int.MAX_VALUE))
             ) {
                 vm.comments.forEachIndexed { index, comment ->
-
                     if (comment.date != date) {
                         Row(modifier = Modifier.fillMaxWidth()) {
                             Text(
@@ -949,7 +832,6 @@ fun CommentsView(
                             )
                             date = comment.date
                         }
-
                     }
                     Row {
                         OutlinedTextField(
@@ -965,20 +847,17 @@ fun CommentsView(
                                 .width(IntrinsicSize.Max),
                             enabled = (comment.user == vm.member),// <- Add this to make click event work
                             value = comment.commentValue,
-                            onValueChange = {value -> vm.comments.remove(comment); vm.comments.add(
-                                Comment(++vm.localId,comment.user,value,comment.date,comment.hour)
-                            )},
+                            onValueChange = {value ->
+                                vm.comments.replaceAll { c->
+                                    if(c.id == comment.id)
+                                        c.copy(commentValue = value.replace(Regex("\\n+"), "\n"))
+                                    else
+                                        c
+                                }
+                            },
                             trailingIcon = {
                                 Text(text = comment.hour, textAlign = TextAlign.End)
-                            },
-                            /*colors = TextFieldDefaults.outlinedTextFieldColors(
-                                disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                                disabledBorderColor = MaterialTheme.colorScheme.primary,
-                                focusedBorderColor = Color.Black,
-                                disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant)*/
+                            }
                         )
                         if (comment.user == vm.member) {
                             IconButton(
@@ -997,70 +876,50 @@ fun CommentsView(
                 }
             }
         }
-
-
     }
+    val focusManager = LocalFocusManager.current
     Row(modifier = Modifier.fillMaxWidth()) {
-        OutlinedTextField(label = { Text(text = "Add a comment") },
+        OutlinedTextField(
+            label = { Text(text = "Add a comment") },
             value = vm.addComment.commentValue,
-            onValueChange = { it -> vm.changeAddComment(it) },
-            modifier = Modifier.fillMaxWidth(),
+            onValueChange = { vm.changeAddComment(it) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height((screenHeightDp * 0.2).dp),
             trailingIcon = {
-                IconButton(onClick = { vm.addNewComment() }) {
+                IconButton(
+                    onClick = { vm.addNewComment(); focusManager.clearFocus() }
+                ) {
                     Icon(
                         Icons.Default.Send,
                         contentDescription = "Send Icon"
                     )
                 }
-            })
-
+            }
+        )
     }
-
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryView(
-    label: String,
-    history: MutableList<History>,
-    changeSelection: (String) -> Unit,
-    commentHistoryFileSelection: String
+    history: MutableList<History>
 ) {
-    val context = LocalContext.current
-    val values = history
     var date = ""
-    var expanded by remember { mutableStateOf(false) }
+    val screenHeightDp = LocalConfiguration.current.screenHeightDp
 
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = Modifier.fillMaxWidth().border(BorderStroke(1.dp, Color.White))
     ) {
-        OutlinedTextField(
-            label = {
-                Text(
-                    text = "",
-                    style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)
-                )
-            },
-            value = "",
-            onValueChange = {},
-            readOnly = true,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-                .verticalScroll(rememberScrollState(initial = Int.MAX_VALUE)),
-        )
-
-        key(values.size) {
+        key(history.size) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
-                    .height(199.dp)
+                    .height((screenHeightDp * 0.7).dp)
                     .padding(0.dp, 10.dp, 0.dp, 0.dp)
                     .verticalScroll(rememberScrollState(initial = Int.MAX_VALUE))
             ) {
-                values.forEachIndexed { index, history ->
+                history.forEachIndexed { index, history ->
 
                     if (history.date != date) {
                         Row(modifier = Modifier.fillMaxWidth()) {
@@ -1090,60 +949,31 @@ fun HistoryView(
                             value = history.comment,
                             onValueChange = {},
                             trailingIcon = {
-                            },
-                            /*colors = TextFieldDefaults.outlinedTextFieldColors(
-                                disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                                disabledBorderColor = MaterialTheme.colorScheme.primary,
-                                focusedBorderColor = Color.Black,
-                                disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant)*/
+                            }
                         )
                     }
                 }
             }
 
         }
-
-
     }
-
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilesView(
     vm: taskDetails = viewModel(),
 ) {
     var date = ""
-
+    val screenHeightDp = LocalConfiguration.current.screenHeightDp
 
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = Modifier.fillMaxWidth().border(BorderStroke(1.dp, Color.White))
     ) {
-        OutlinedTextField(
-            label = {
-                Text(
-                    text = "",
-                    style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)
-                )
-            },
-            value = "",
-            onValueChange = {},
-            readOnly = true,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-
-        )
-
         Column(
             modifier = Modifier
                 .fillMaxWidth(0.9f)
-                .height(199.dp)
+                .height((screenHeightDp * 0.6).dp)
                 .padding(0.dp, 10.dp, 0.dp, 0.dp)
                 .verticalScroll(rememberScrollState(initial = Int.MAX_VALUE))
         ) {
@@ -1180,15 +1010,7 @@ fun FilesView(
                             IconButton(onClick = { /*TODO download web*/ }) {
                                 Icon(Icons.Default.Download, contentDescription = null)
                             }
-                        },
-                        /*colors = TextFieldDefaults.outlinedTextFieldColors(
-                            disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                            disabledBorderColor = MaterialTheme.colorScheme.primary,
-                            focusedBorderColor = Color.Black,
-                            disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant)*/
+                        }
                     )
                     if (file.user == vm.member) {
                         IconButton(
@@ -1208,12 +1030,12 @@ fun FilesView(
             }
         }
     }
-    FileUpload(vm = vm)
+    FileUpload(vm = vm, modifier = Modifier.height((screenHeightDp * 0.1).dp))
 }
 
 
 @Composable
-fun FileUpload(vm: taskDetails = viewModel()) {
+fun FileUpload(vm: taskDetails = viewModel(), modifier: Modifier) {
     var selectedFileUri by remember { mutableStateOf<Uri?>(null) }
     var selectedFileName by remember { mutableStateOf<String?>(null) }
     val contentResolver = LocalContext.current.contentResolver
@@ -1238,14 +1060,13 @@ fun FileUpload(vm: taskDetails = viewModel()) {
     }
 
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxWidth().then(modifier),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Button(onClick = { chooseFileLauncher.launch("*/*") }) {
             Text("Upload File")
         }
-        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 

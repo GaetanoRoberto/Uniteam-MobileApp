@@ -32,22 +32,26 @@ fun ScheduleTaskDialog(
     val scheduledHours = remember { mutableStateOf("") }
     val isError = remember { mutableStateOf("") }
     val onConfirmation = {
-        val schedulableHours =
-            taskScheduleDatePair.first.estimatedHours - taskScheduleDatePair.first.schedules.values.sumOf { it }
-        if (scheduledHours.value.isNotEmpty() && scheduledHours.value.toInt() > schedulableHours) {
-            isError.value = "The Hours Inserted exceed The Schedulable Ones."
-        } else if (scheduledHours.value.isNotEmpty() && scheduledHours.value.toInt() == 0) {
-            isError.value = "You Need To Schedule At Least One Hour."
-        } else {
-            isError.value = ""
-            vm.scheduleTask(
-                taskScheduleDatePair.first,
-                taskScheduleDatePair.third,
-                scheduledHours.value.toInt()
-            )
-            // reset the task status and close the dialog
-            vm.assignTaskToSchedule(null)
-            vm.closeDialog()
+        try {
+            val schedulableHours =
+                taskScheduleDatePair.first.estimatedHours - taskScheduleDatePair.first.schedules.values.sumOf { it }
+            if (scheduledHours.value.isNotEmpty() && scheduledHours.value.toInt() > schedulableHours) {
+                isError.value = "The Hours Inserted exceed The Schedulable Ones."
+            } else if (scheduledHours.value.isNotEmpty() && scheduledHours.value.toInt() == 0) {
+                isError.value = "You Need To Schedule At Least One Hour."
+            } else {
+                isError.value = ""
+                vm.scheduleTask(
+                    taskScheduleDatePair.first,
+                    taskScheduleDatePair.third,
+                    scheduledHours.value.toInt()
+                )
+                // reset the task status and close the dialog
+                vm.assignTaskToSchedule(null)
+                vm.closeDialog()
+            }
+        } catch (e: RuntimeException) {
+            isError.value = "A Valid Integer Value Must Be Provided."
         }
     }
 
