@@ -148,12 +148,12 @@ private fun takePhoto(
             val screenHeightDp = configuration.screenHeightDp.dp
 
             val savedUri = Uri.fromFile(photoFile)
+            val bitmap = BitmapFactory.decodeFile(photoFile.absolutePath)
             if (flip) {
                 // Flip the image horizontally
-                val bitmap = BitmapFactory.decodeFile(photoFile.absolutePath)
                 val matrix = Matrix().apply {
                     postScale(-1f, 1f, bitmap.width / 2f, bitmap.height / 2f)
-                    if (screenHeightDp >= screenWidthDp) {
+                    if (bitmap.width >= bitmap.height && screenHeightDp >= screenWidthDp) {
                         postRotate(90f)
                     }
                 }

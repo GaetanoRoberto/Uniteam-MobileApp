@@ -750,15 +750,13 @@ fun ProfileSettings(
         BoxWithConstraints {
             if (this.maxHeight > this.maxWidth) {
                 Box(modifier = Modifier.fillMaxSize()) {
-                    Text(modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(50.dp), text = "Photo Preview", style = TextStyle(fontSize = 30.sp, textAlign = TextAlign.Center))
                     // Image at the top
                     Image(
                         painter = rememberAsyncImagePainter(vm.temporaryUri),
                         contentDescription = null,
                         modifier = Modifier
-                            .fillMaxSize()
+                            .fillMaxWidth()
+                            .fillMaxHeight(0.9f)
                             .align(Alignment.TopCenter),
                     )
 
@@ -766,13 +764,11 @@ fun ProfileSettings(
                     Column(
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
-                            .padding(bottom = 16.dp)
                             .fillMaxHeight(0.1f)
                     ) {
                         Row(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp),
+                                .fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Button(
@@ -780,10 +776,10 @@ fun ProfileSettings(
                                     vm.showPhoto(false)
                                     vm.setTemporaryUri(Uri.EMPTY)
                                 },
-                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onTertiary) ,// Imposta il colore di sfondo del bottone a rosso,
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onTertiary),// Imposta il colore di sfondo del bottone a rosso,
                                 modifier = Modifier.weight(1f)
                             ) {
-                                Text(text = "Undo",color = MaterialTheme.colorScheme.onSecondary)
+                                Text(text = "Undo", color = MaterialTheme.colorScheme.onSecondary)
                             }
 
                             Spacer(modifier = Modifier.padding(16.dp))
@@ -793,72 +789,77 @@ fun ProfileSettings(
                                     vm.showPhoto(false)
                                     vm.setUri(vm.temporaryUri)
                                     vm.setTemporaryUri(Uri.EMPTY)
-                                    Toast.makeText(context, "Profile Image Updated", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(
+                                        context,
+                                        "Profile Image Updated",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 },
-                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onTertiary) ,// Imposta il colore di sfondo del bottone a rosso,
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onTertiary),// Imposta il colore di sfondo del bottone a rosso,
                                 modifier = Modifier.weight(1f)
                             ) {
-                                Text(text = "Confirm",color = MaterialTheme.colorScheme.onSecondary)
+                                Text(
+                                    text = "Confirm",
+                                    color = MaterialTheme.colorScheme.onSecondary
+                                )
                             }
                         }
                     }
                 }
             } else {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    // Image at the top
-                    Image(
-                        painter = rememberAsyncImagePainter(vm.temporaryUri),
-                        contentDescription = null,
+                Row(modifier = Modifier.fillMaxSize()) {
+                    // Image on the left
+                    Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .fillMaxHeight(0.7f)
-                            .align(Alignment.Center)
-                    )
+                            .fillMaxHeight()
+                            .weight(1.2f),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Image(
+                            painter = rememberAsyncImagePainter(vm.temporaryUri),
+                            contentDescription = null,
+                        )
+                    }
 
                     Spacer(modifier = Modifier.width(16.dp))
 
-                    // Buttons at the bottom
-                    Row(
+                    // Buttons on the right
+                    Column(
                         modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .fillMaxHeight(0.1f)
+                            .fillMaxHeight()
+                            .weight(1f),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Button(
                             onClick = {
                                 vm.showPhoto(false)
                                 vm.setTemporaryUri(Uri.EMPTY)
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onTertiary) ,// Imposta il colore di sfondo del bottone a rosso,
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onTertiary),// Imposta il colore di sfondo del bottone a rosso,
 
-                            modifier = Modifier.width(100.dp)
+                            modifier = Modifier.width(300.dp)
                         ) {
-                            Text(text = "Undo",color = MaterialTheme.colorScheme.onSecondary)
+                            Text(text = "Undo", color = MaterialTheme.colorScheme.onSecondary)
                         }
 
-                        Spacer(modifier = Modifier.width(16.dp))
+                        Spacer(modifier = Modifier.padding(10.dp))
 
                         Button(
                             onClick = {
                                 vm.showPhoto(false)
                                 vm.setUri(vm.temporaryUri)
                                 vm.setTemporaryUri(Uri.EMPTY)
-                                Toast.makeText(context, "Profile Image Updated", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "Profile Image Updated", Toast.LENGTH_SHORT)
+                                    .show()
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onTertiary) ,// Imposta il colore di sfondo del bottone a rosso,
-                            modifier = Modifier.width(100.dp)
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onTertiary),// Imposta il colore di sfondo del bottone a rosso,
+                            modifier = Modifier.width(300.dp)
                         ) {
-                            Text(text = "Confirm",color = MaterialTheme.colorScheme.onSecondary)
+                            Text(text = "Confirm", color = MaterialTheme.colorScheme.onSecondary)
                         }
                     }
-
-                    // Text at the top
-                    Text(
-                        modifier = Modifier
-                            .fillMaxHeight(0.1f)
-                            .fillMaxWidth(),
-                        text = "Photo Preview",
-                        style = TextStyle(fontSize = 30.sp, textAlign = TextAlign.Center)
-                    )
                 }
             }
         }
