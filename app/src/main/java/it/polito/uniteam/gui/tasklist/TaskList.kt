@@ -327,7 +327,7 @@ fun TaskListView(vm: TaskList = viewModel(), navController: NavHostController) {
                                         .verticalScroll(scrollState)
                                 else
                                     Modifier
-                                        .fillMaxHeight(0.7f)
+                                        .fillMaxHeight(0.6f)
                                         .verticalScroll(scrollState)
                                     ) {
                                 ExpandableRow(
@@ -375,7 +375,8 @@ fun TaskListView(vm: TaskList = viewModel(), navController: NavHostController) {
                                                     Text(member.fullName, textAlign = TextAlign.Center)
                                                 }
                                             }
-                                            HorizontalDivider()
+                                            if (assigneeExpanded.value)
+                                                HorizontalDivider(color = Color.White, modifier = Modifier.padding(horizontal = 16.dp))
                                         }
                                     }
                                 )
@@ -429,7 +430,8 @@ fun TaskListView(vm: TaskList = viewModel(), navController: NavHostController) {
                                                     )
                                                 }
                                             }
-                                            HorizontalDivider()
+                                            if (categoryExpanded.value)
+                                                HorizontalDivider(color = Color.White, modifier = Modifier.padding(horizontal = 16.dp))
                                         }
                                     }
                                 )
@@ -483,7 +485,8 @@ fun TaskListView(vm: TaskList = viewModel(), navController: NavHostController) {
                                                     )
                                                 }
                                             }
-                                            HorizontalDivider()
+                                            if (priorityExpanded.value)
+                                                HorizontalDivider(color = Color.White, modifier = Modifier.padding(horizontal = 16.dp))
                                         }
                                     }
                                 )
@@ -539,7 +542,8 @@ fun TaskListView(vm: TaskList = viewModel(), navController: NavHostController) {
                                                     )
                                                 }
                                             }
-                                            HorizontalDivider()
+                                            if (statusExpanded.value)
+                                                HorizontalDivider(color = Color.White, modifier = Modifier.padding(horizontal = 16.dp))
                                         }
                                     }
                                 )
@@ -603,7 +607,8 @@ fun TaskListView(vm: TaskList = viewModel(), navController: NavHostController) {
                                                     )
                                                 }
                                             }
-                                            HorizontalDivider()
+                                            if (repetitionExpanded.value)
+                                                HorizontalDivider(color = Color.White, modifier = Modifier.padding(horizontal = 16.dp))
                                         }
                                     }
                                 )
@@ -614,25 +619,25 @@ fun TaskListView(vm: TaskList = viewModel(), navController: NavHostController) {
                                     },
                                     filterOptions = {
                                         Column {
-                                                Row(
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .padding(10.dp)
-                                                ) {
-                                                    CustomDatePicker(
-                                                        label = if (selectedDeadline.value != null) {
-                                                            ""
-                                                        } else {
-                                                            "Select a date"
-                                                        },
-                                                        value = selectedDeadline.value,
-                                                        onValueChange = { selectedDeadline.value = it }
-                                                    )
-                                                }
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(10.dp)
+                                            ) {
+                                                CustomDatePicker(
+                                                    label = if (selectedDeadline.value != null) {
+                                                        ""
+                                                    } else {
+                                                        "Select a date"
+                                                    },
+                                                    value = selectedDeadline.value,
+                                                    onValueChange = { selectedDeadline.value = it }
+                                                )
                                             }
+                                        }
                                     }
                                 )
-                                HorizontalDivider(thickness = 2.dp)
+                                HorizontalDivider(color = Color.White, thickness = 2.dp, modifier = Modifier.padding(horizontal = 16.dp))
                                 ExpandableRow(
                                     expanded = sortByExpanded,
                                     filter = {
@@ -737,6 +742,8 @@ fun TaskListView(vm: TaskList = viewModel(), navController: NavHostController) {
                                                     }
                                                 }
                                             }
+                                            if (sortByExpanded.value)
+                                                HorizontalDivider(color = Color.White, modifier = Modifier.padding(horizontal = 16.dp))
                                         }
                                     }
                                 )
@@ -961,7 +968,7 @@ fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Coroutin
             Spacer(modifier = Modifier.padding(5.dp))
         else
             Spacer(modifier = Modifier.padding(10.dp))
-        HorizontalDivider()
+        HorizontalDivider(color = Color.White)
         Spacer(modifier = Modifier.padding(3.dp))
         //Row creazione di un nuovo task
         Row(
@@ -1002,29 +1009,22 @@ fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Coroutin
         ) {
             SearchBar(
                 colors= SearchBarDefaults.colors(
-                    containerColor =MaterialTheme.colorScheme.onSecondaryContainer,
+                    containerColor = MaterialTheme.colorScheme.onSecondaryContainer,
                 ),
                 inputField = {
                     SearchBarDefaults.InputField(
                         query = vm.searchQuery,
                         onQueryChange = {
                             vm.searchQuery = it
-                            if (it == "") {
-                                vm.lastSearchQuery.value = vm.searchQuery
-                                vm.filteredTasksList.value = vm.tasksList.value.filter { task ->
-                                    applyFilters(task, vm.lastAppliedFilters.value, vm.lastSearchQuery.value)
-                                }
-                                sortTasks(selectedOption, selectedChip, vm)
-                            }
-                        },
-                        onSearch = {
-                            val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                            imm.hideSoftInputFromWindow(view.windowToken, 0)
-
                             vm.lastSearchQuery.value = vm.searchQuery.trim()
                             vm.filteredTasksList.value = vm.tasksList.value.filter { task ->
                                 applyFilters(task, vm.lastAppliedFilters.value, vm.lastSearchQuery.value)
                             }
+                            sortTasks(selectedOption, selectedChip, vm)
+                        },
+                        onSearch = {
+                            val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                            imm.hideSoftInputFromWindow(view.windowToken, 0)
                         },
                         expanded = false,
                         onExpandedChange = { vm.expandedSearch = it },
@@ -1091,7 +1091,7 @@ fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Coroutin
             }
         }
         Spacer(modifier = Modifier.padding(5.dp))
-        HorizontalDivider()
+        HorizontalDivider(color = Color.White)
         //Lista dei task
         if (vm.tasksList.value.isEmpty() || vm.filteredTasksList.value.isEmpty()) {
             Row(
@@ -1185,7 +1185,7 @@ fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Coroutin
 
                         }
                     )
-                    HorizontalDivider()
+                    HorizontalDivider(color = Color.White)
                 }
             }
         }
@@ -1339,7 +1339,7 @@ fun HorizontalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Corout
                 Spacer(modifier = Modifier.padding(5.dp))
             else
                 Spacer(modifier = Modifier.padding(10.dp))
-            HorizontalDivider()
+            HorizontalDivider(color = Color.White)
             Spacer(modifier = Modifier.padding(3.dp))
             //Row per searchbar, filtri e accesso al calendario
             Row(
@@ -1350,38 +1350,22 @@ fun HorizontalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Corout
             ) {
                 SearchBar(
                     colors= SearchBarDefaults.colors(
-                       containerColor =MaterialTheme.colorScheme.onSecondaryContainer,
+                       containerColor = MaterialTheme.colorScheme.onSecondaryContainer,
                         ),
                     inputField = {
                         SearchBarDefaults.InputField(
                             query = vm.searchQuery,
                             onQueryChange = {
                                 vm.searchQuery = it
-                                if (it == "") {
-                                    vm.lastSearchQuery.value = vm.searchQuery
-                                    vm.filteredTasksList.value = vm.tasksList.value.filter { task ->
-                                        applyFilters(
-                                            task,
-                                            vm.lastAppliedFilters.value,
-                                            vm.lastSearchQuery.value
-                                        )
-                                    }
-                                    sortTasks(selectedOption, selectedChip, vm)
+                                vm.lastSearchQuery.value = vm.searchQuery.trim()
+                                vm.filteredTasksList.value = vm.tasksList.value.filter { task ->
+                                    applyFilters(task, vm.lastAppliedFilters.value, vm.lastSearchQuery.value)
                                 }
+                                sortTasks(selectedOption, selectedChip, vm)
                             },
                             onSearch = {
-                                val imm =
-                                    context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                                val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                                 imm.hideSoftInputFromWindow(view.windowToken, 0)
-
-                                vm.lastSearchQuery.value = vm.searchQuery
-                                vm.filteredTasksList.value = vm.tasksList.value.filter { task ->
-                                    applyFilters(
-                                        task,
-                                        vm.lastAppliedFilters.value,
-                                        vm.lastSearchQuery.value
-                                    )
-                                }
                             },
                             expanded = false,
                             onExpandedChange = { vm.expandedSearch = it },
@@ -1454,7 +1438,7 @@ fun HorizontalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Corout
             }
         }
         Spacer(modifier = Modifier.padding(5.dp))
-        VerticalDivider()
+        VerticalDivider(color = Color.White)
         Column(
             modifier = Modifier
                 .fillMaxHeight()
@@ -1492,7 +1476,7 @@ fun HorizontalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Corout
                 }
             }
             Spacer(modifier = Modifier.padding(5.dp))
-            HorizontalDivider()
+            HorizontalDivider(color = Color.White)
             //Lista dei task
             if (vm.tasksList.value.isEmpty() || vm.filteredTasksList.value.isEmpty()) {
                 Row(
@@ -1588,7 +1572,7 @@ fun HorizontalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Corout
 
                             }
                         )
-                        HorizontalDivider()
+                        HorizontalDivider(color = Color.White)
                     }
                 }
             }
@@ -1714,7 +1698,8 @@ fun ExpandableRow(
                 )
         }
     )
-    HorizontalDivider()
+    if (!expanded.value)
+        HorizontalDivider(color = Color.White, modifier = Modifier.padding(horizontal = 16.dp))
 
     AnimatedVisibility(
         visible = expanded.value,
