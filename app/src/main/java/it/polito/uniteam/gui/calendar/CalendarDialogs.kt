@@ -27,6 +27,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.viewmodel.compose.viewModel
 import it.polito.uniteam.classes.HourMinutesPicker
+import it.polito.uniteam.classes.Status
 import it.polito.uniteam.classes.Task
 import it.polito.uniteam.gui.showtaskdetails.RowItem
 import it.polito.uniteam.gui.showtaskdetails.RowMemberItem
@@ -283,7 +284,7 @@ fun TaskDetailDialog(vm: Calendar = viewModel()) {
                 RowItem(title = "Spent Time:", value =  if(task.spentTime!= null) task.spentTime!!.first.toString() + "h " + task.spentTime!!.second.toString() + "m" else "")
                 RowItem(title = "Repeatable:", value = task.repetition)
                 RowMemberItem(title = "Members:", value = task.members)
-                RowItem(title = "Status:", value = task.status)
+                RowItem(title = "Status:", value = if(task.status==Status.IN_PROGRESS) "IN PROGRESS" else task.status)
             }
         },
         onDismissRequest = {},

@@ -122,7 +122,7 @@ class taskDetails : ViewModel() {
     }
 
     val possibleStates =
-        listOf(Status.TODO.toString(), Status.IN_PROGRESS.toString(), Status.COMPLETED.toString())
+        listOf(Status.TODO.toString(), "IN PROGRESS", Status.COMPLETED.toString())
 
 
     var estimatedHours = mutableStateOf("1")

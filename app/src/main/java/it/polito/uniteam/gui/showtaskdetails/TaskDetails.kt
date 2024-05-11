@@ -99,6 +99,7 @@ import androidx.compose.ui.text.input.ImeAction
 import it.polito.uniteam.classes.HourMinutesPicker
 import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.MemberIcon
+import it.polito.uniteam.classes.Status
 
 
 //@Preview
@@ -162,7 +163,7 @@ fun TaskDetailsView(vm: taskDetails = viewModel()) {
             RowItem(title = "Spent Time:", value = vm.spentHours.value + "h " + vm.spentMinutes.value + "m")
             RowItem(title = "Repeatable:", value = vm.repeatable)
             RowMemberItem(title = "Members:", value = vm.members)
-            RowItem(title = "Status:", value = vm.status)
+            RowItem(title = "Status:", value = if(vm.status== Status.IN_PROGRESS.toString()) "IN PROGRESS" else vm.status)
 
             val icons = listOf(Icons.Filled.Comment, Icons.Filled.History, Icons.Filled.InsertDriveFile)
             val titles = listOf("Comments", "History", "Files")
@@ -245,7 +246,7 @@ fun EditTaskView(vm: taskDetails = viewModel()) {
                         vm.repeatableValues,
                         vm::changeRepetition
                     )
-                    Demo_ExposedDropdownMenuBox("Status", vm.status, vm.possibleStates, vm::changeState)
+                    Demo_ExposedDropdownMenuBox("Status", if(vm.status== Status.IN_PROGRESS.toString()) "IN PROGRESS" else vm.status, vm.possibleStates, vm::changeState)
                     MembersDropdownMenuBox(
                         vm,
                         "AddMembers",

@@ -241,12 +241,11 @@ fun HorizontalDayEventScheduler(data: CalendarUiModel,
                             horizontalArrangement = Arrangement.Start
                         ) {
                             item(1) {
-                                //Log.i("diooo","data:" + date.toString())
                                 vm.viewedScheduledTasks.filter { it.schedules.containsKey(date.date) }
                                     .forEach { task ->
                                         DraggableItem(
                                             state = dragAndDropState,
-                                            key = task.id, // Unique key for each draggable item
+                                            key = task.id + date.hashCode(), // Unique key for each draggable item
                                             data = Pair(
                                                 task,
                                                 date.date

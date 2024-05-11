@@ -1,9 +1,11 @@
 package it.polito.uniteam.gui.calendar
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
 import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.Task
@@ -55,7 +57,7 @@ class Calendar : ViewModel() {
         taskToSchedule = task
     }
 
-    var tasksToAssign by mutableStateOf(emptyList<Task>())
+    var tasksToAssign = mutableStateListOf<Task>()
         private set
 
     var allScheduledTasks = mutableStateListOf<Task>()
@@ -77,8 +79,8 @@ class Calendar : ViewModel() {
         // get logged in user
         memberProfile = DummyDataProvider.getDummyProfile()
         // get task to assign and filter them based on the user
-        tasksToAssign = DummyDataProvider.getTasksToAssign()
-        tasksToAssign = tasksToAssign.filter { it.members.contains(memberProfile) }
+        tasksToAssign = DummyDataProvider.getTasksToAssign().toMutableStateList()
+        tasksToAssign = tasksToAssign.filter { it.members.contains(memberProfile) }.toMutableStateList()
         val tasks = DummyDataProvider.getScheduledTasks()
         tasks.forEach { task ->
             allScheduledTasks.add(task)
@@ -96,47 +98,110 @@ class Calendar : ViewModel() {
         return Pair(totalHours, minutes)
     }
 
-    fun getTotalTime(task: Task) {
-        val pair = task.schedules.values.reduce { acc, pair ->
-            sumTimes(acc, pair)
-        }
+    fun subtractTimes(time1: Pair<Int, Int>, time2: Pair<Int, Int>): Pair<Int, Int> {
+        val totalMinutes1 = time1.first * 60 + time1.second
+        val totalMinutes2 = time2.first * 60 + time2.second
+
+        val differenceMinutes = totalMinutes1 - totalMinutes2
+        val hours = differenceMinutes / 60
+        val minutes = differenceMinutes % 60
+
+        return Pair(hours, minutes)
     }
+
 
     fun scheduleTask(task: Task, scheduleDate: LocalDate, hoursToSchedule: Pair<Int,Int>) {
         // schedule task on scheduleDate with hoursToSchedule
-        // if task with that scheduleDate already present remove it
-        // MAINTAIN BOTH COPIES ALIGNED
-        viewedScheduledTasks.remove(task)
-        allScheduledTasks.remove(task)
-        // add the schedule to the task schedules
-        if (task.schedules.containsKey(scheduleDate)) {
-            val prevHours = task.schedules.remove(scheduleDate)
-            if (prevHours != null) {
-                task.schedules.put(scheduleDate, sumTimes(prevHours,hoursToSchedule))
-            }
+        // initialize this variable to then store the updated version of this task
+        var updated_task = task;
+        // get the list from the state
+        var viewedTask = viewedScheduledTasks.toMutableList()
+        if(viewedTask.any { it.id == task.id }) {
+            // if task already present, update it with the new schedule
+            viewedTask = viewedTask.map {
+                if(it.id == task.id) {
+                    if (it.schedules.containsKey(scheduleDate)) {
+                        val prevHours = it.schedules.remove(scheduleDate)
+                        if (prevHours != null) {
+                            it.schedules.put(scheduleDate, sumTimes(prevHours,hoursToSchedule))
+                        }
+                    } else {
+                        it.schedules.put(scheduleDate, hoursToSchedule)
+                    }
+                    // get the updated instance for this task
+                    updated_task = it.copy()
+                    it
+                } else {
+                    it
+                }
+            }.toMutableList()
         } else {
-            task.schedules.put(scheduleDate, hoursToSchedule)
+            // if task not present, add it with the new schedule
+            if (task.schedules.containsKey(scheduleDate)) {
+                val prevHours = task.schedules.remove(scheduleDate)
+                if (prevHours != null) {
+                    task.schedules.put(scheduleDate, sumTimes(prevHours,hoursToSchedule))
+                }
+            } else {
+                task.schedules.put(scheduleDate, hoursToSchedule)
+            }
+            // get the updated instance for this task
+            updated_task = task.copy()
+            viewedTask.add(task)
         }
-        // MAINTAIN BOTH COPIES ALIGNED
-        viewedScheduledTasks.add(task)
-        allScheduledTasks.add(task)
-        // Remove the task from tasksToAssign if completely scheduled
-        //if (task.schedules.values.sumOf { it } == task.estimatedHours)
-        //   tasksToAssign = tasksToAssign.filter { it.id != task.id }
-
+        // ASSIGN LIST TO STATE AND MAINTAIN BOTH COPIES ALIGNED
+        viewedScheduledTasks.clear()
+        viewedScheduledTasks.addAll(viewedTask)
+        allScheduledTasks.clear()
+        allScheduledTasks.addAll(viewedTask)
+        // update the task in taskstoassign to see the updated hours
+        var taskToAssignList = tasksToAssign.toMutableList()
+        taskToAssignList = taskToAssignList.map {
+            if(it.id == task.id) {
+                // return the updated task to avoid add scheduled hours 2 times (not idempotent like remove in unScheduleTask)
+                updated_task
+            } else {
+                it
+            }
+        }.toMutableStateList()
+        tasksToAssign.clear()
+        tasksToAssign.addAll(taskToAssignList)
     }
 
     fun unScheduleTask(task: Task, scheduleDate: LocalDate) {
         // remove the specific instance of the task from the scheduled ones
-        // MAINTAIN BOTH COPIES ALIGNED
-        viewedScheduledTasks.removeIf { it.schedules.containsKey(scheduleDate) && it.id == task.id }
-        allScheduledTasks.removeIf { it.schedules.containsKey(scheduleDate) && it.id == task.id }
-        // remove the previous instance of this task
-        tasksToAssign = tasksToAssign.filter { it.id != task.id }
-        // remove the scheduled information
-        task.schedules.remove(scheduleDate)
-        // Add the task back to tasksToAssign
-        tasksToAssign = tasksToAssign + task
+        // get the list from the state
+        var viewedTask = viewedScheduledTasks.toMutableList()
+        if(viewedTask.any { it.id == task.id }) {
+            // if task present, update it by removing the schedule, otherwise do nothing since nothing to remove
+            // after also filter by number of schedules (if task after unscheduling has no more schedule remove it)
+            viewedTask = viewedTask.map {
+                if(it.id == task.id) {
+                    it.schedules.remove(scheduleDate)
+                    it
+                } else {
+                    it
+                }
+            }.filter { it.schedules.isNotEmpty() }.toMutableStateList()
+        }
+        // ASSIGN LIST TO STATE AND MAINTAIN BOTH COPIES ALIGNED
+        viewedScheduledTasks.clear()
+        viewedScheduledTasks.addAll(viewedTask)
+        allScheduledTasks.clear()
+        allScheduledTasks.addAll(viewedTask)
+        // update the task in taskstoassign to see the updated hours
+        var taskToAssignList = tasksToAssign.toMutableList()
+        taskToAssignList = taskToAssignList.map {
+            if(it.id == task.id) {
+                // here we can remove 2 times since it works anyway idempotent
+                it.schedules.remove(scheduleDate)
+                it
+            } else {
+                it
+            }
+        }.toMutableStateList()
+        tasksToAssign.clear()
+        tasksToAssign.addAll(taskToAssignList)
     }
 
     val today: LocalDate
@@ -187,12 +252,5 @@ enum class showDialog {
     schedule_in_past,
     after_deadline,
     task_detail,
-    none
-}
-
-enum class handleDialog {
-    schedule_task,
-    no_permission,
-    schedule_in_past,
     none
 }

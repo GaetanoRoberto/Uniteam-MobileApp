@@ -237,7 +237,7 @@ fun VerticalHeader(
 //OGGETTO TASK
 @Composable
 fun EventItem(vm: Calendar = viewModel(), task: Task, date: LocalDate? = null, isScheduled: Boolean) {
-    var isOverSchedule by remember { mutableStateOf(false) }
+    var isOverSchedule = false
     val time: Pair<Int,Int>;
     if (isScheduled) {
         time = task.schedules.get(date)!!
@@ -266,12 +266,22 @@ fun EventItem(vm: Calendar = viewModel(), task: Task, date: LocalDate? = null, i
                     )
                 ); vm.openDialog(showDialog.task_detail)
             }
-            //.fillMaxWidth()
-            .width(120.dp)
+            .width(140.dp)
             .padding(2.dp)
             .background(MaterialTheme.colorScheme.onTertiary, RoundedCornerShape(8.dp)),
         verticalArrangement = Arrangement.Center
     ) {
+        val timeText = if(isOverSchedule)
+            if (time.first >= 100)
+                "+" + time.first.toString() + "h"
+            else
+                "+" + time.first.toString() + "h" + time.second.toString() + "m"
+        else
+            if (time.first >= 100)
+                time.first.toString() + "h"
+            else
+                time.first.toString() + "h" + time.second.toString() + "m"
+
         Row(
             modifier = Modifier
                 .padding(5.dp)
@@ -279,10 +289,7 @@ fun EventItem(vm: Calendar = viewModel(), task: Task, date: LocalDate? = null, i
             TextTrim(inputText = task.name, desiredLength = 5, style = MaterialTheme.typography.bodyMedium)
             Spacer(modifier = Modifier.weight(1f))  // Usa il peso per spingere il testo a destra
             Text(
-                text = if(isOverSchedule)
-                    "+" + time.first.toString() + "h" + time.second.toString() + "m"
-                else
-                    time.first.toString() + "h" + time.second.toString() + "m",
+                text = timeText,
                 style = MaterialTheme.typography.bodyLarge.copy(
                     //fontWeight = FontWeight.Bold,  // Testo in grassetto
                     color = MaterialTheme.colorScheme.primary // Cambio colore per maggiore visibilità
@@ -430,7 +437,7 @@ fun VerticalDayEventScheduler(
                                     .forEach { task ->
                                         DraggableItem(
                                             state = dragAndDropState,
-                                            key = task.id, // Unique key for each draggable item
+                                            key = task.id + date.hashCode(), // Unique key for each draggable item
                                             data = Pair(
                                                 task,
                                                 date.date
