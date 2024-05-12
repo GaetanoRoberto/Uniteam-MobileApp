@@ -103,7 +103,7 @@ fun ScheduleTaskDialog(
                     onConfirmation()
                 }
             ) {
-                Text("Schedule Task", color = MaterialTheme.colorScheme.onPrimary)
+                Text("Schedule Task", color = MaterialTheme.colorScheme.primary)
             }
         },
         dismissButton = {
@@ -114,7 +114,7 @@ fun ScheduleTaskDialog(
                     vm.closeDialog()
                 }
             ) {
-                Text("Undo", color = MaterialTheme.colorScheme.onPrimary)
+                Text("Undo", color = MaterialTheme.colorScheme.primary)
             }
         }
     )
@@ -142,7 +142,7 @@ fun NoPermissionDialog(vm: Calendar = viewModel()) {
                     vm.closeDialog()
                 }
             ) {
-                Text("Ok", color = MaterialTheme.colorScheme.onPrimary)
+                Text("Ok", color = MaterialTheme.colorScheme.primary)
             }
         }
     )
@@ -188,7 +188,7 @@ fun ScheduleBackInTimeDialog(vm: Calendar = viewModel()) {
                     }
                 }
             ) {
-                Text("Schedule Task", color = MaterialTheme.colorScheme.onPrimary)
+                Text("Schedule Task", color = MaterialTheme.colorScheme.primary)
             }
         },
         dismissButton = {
@@ -199,7 +199,7 @@ fun ScheduleBackInTimeDialog(vm: Calendar = viewModel()) {
                     vm.closeDialog()
                 }
             ) {
-                Text("Undo", color = MaterialTheme.colorScheme.onPrimary)
+                Text("Undo", color = MaterialTheme.colorScheme.primary)
             }
         }
     )
@@ -245,7 +245,7 @@ fun ScheduleAfterDeadlineDialog(vm: Calendar = viewModel()) {
                     }
                 }
             ) {
-                Text("Schedule Task", color = MaterialTheme.colorScheme.onPrimary)
+                Text("Schedule Task", color = MaterialTheme.colorScheme.primary)
             }
         },
         dismissButton = {
@@ -256,7 +256,7 @@ fun ScheduleAfterDeadlineDialog(vm: Calendar = viewModel()) {
                     vm.closeDialog()
                 }
             ) {
-                Text("Undo", color = MaterialTheme.colorScheme.onPrimary)
+                Text("Undo", color = MaterialTheme.colorScheme.primary)
             }
         }
     )
@@ -296,7 +296,7 @@ fun TaskDetailDialog(vm: Calendar = viewModel()) {
                     vm.closeDialog()
                 }
             ) {
-                Text("Ok", color = MaterialTheme.colorScheme.onPrimary)
+                Text("Ok", color = MaterialTheme.colorScheme.primary)
             }
         }
     )
