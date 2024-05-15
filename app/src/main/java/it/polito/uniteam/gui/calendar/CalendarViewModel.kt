@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
+import it.polito.uniteam.UniTeamModel
 import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.Task
 import java.time.DayOfWeek
@@ -15,9 +16,8 @@ import java.time.temporal.ChronoUnit
 import java.util.stream.Collectors
 import java.util.stream.Stream
 
-class Calendar : ViewModel() {
-
-    var memberProfile by mutableStateOf<Member?>(null)
+class Calendar(val model: UniTeamModel) : ViewModel() {
+    var memberProfile = model.loggedMember
         private set
 
     var selectedShowDialog by mutableStateOf(showDialog.none)

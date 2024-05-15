@@ -1,7 +1,6 @@
 package it.polito.uniteam.classes
 
 import android.net.Uri
-import it.polito.uniteam.R
 
 class Member {
     var id: Int = 0
@@ -12,11 +11,17 @@ class Member {
     var description: String = ""
     var kpi: String = ""
     var profileImage: Uri = Uri.EMPTY
+    var permissionrole: permissionRole = permissionRole.USER
+    // key teamId value role inside it
+    var teamsInfo: HashMap<Int,MemberTeamInfo>? = null
+    var chats: List<Chat> = emptyList()
 }
 
-
-
-data class MemberPreview(
-    val username: String?,
-    val profileImage: Int = R.drawable.user_icon
-)
+class MemberTeamInfo {
+    var role: categoryRole = categoryRole.NONE
+    var weeklyAvailabilityTimes: Int = 0
+    var weeklyAvailabilityHours: Pair<Int,Int> = Pair(0,0)
+}
+enum class permissionRole {
+    ADMIN, USER
+}

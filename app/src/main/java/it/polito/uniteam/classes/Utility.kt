@@ -55,6 +55,10 @@ enum class Category{
     NONE,RESEARCH, WRITING, PRESENTATION, STUDY, MEETING, PROGRAMMING, DESIGN, EXPERIMENTATION, WORK, ADMINISTRATION
 }
 
+enum class categoryRole {
+    NONE, RESEARCHER, WRITER, PRESENTER, ORGANIZER, PROGRAMMER, DESIGNER, EXPERIMENTER, EMPLOYEE, ADMINISTRATOR
+}
+
 fun String.isRepetition(): Boolean{
     if(this.equals("DAILY") || this.equals("WEEKLY") || this.equals("MONTHLY") || this.equals("NONE")){
         return true

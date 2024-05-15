@@ -16,6 +16,7 @@ data class Task (
     var repetition: Repetition = Repetition.NONE,
     var members: List<Member> = emptyList(),
     var schedules: HashMap<LocalDate,Pair<Int,Int>> = hashMapOf(),
+    var taskHistory: List<History> = emptyList()
 ) {
     override fun toString(): String {
         return "Task(id=$id, name='$name', schedules=$schedules)"
