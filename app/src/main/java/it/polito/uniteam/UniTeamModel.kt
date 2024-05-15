@@ -146,7 +146,7 @@ class UniTeamModel {
     }
 
     fun getUsersChat(memberToChatWith: Member): Chat {
-        val chat = _loggedMember?.chats?.find { it.receiver == memberToChatWith }
+        val chat = _loggedMember?.chats?.find { it.sender == _loggedMember && it.receiver == memberToChatWith }
         return chat!!
     }
 }
