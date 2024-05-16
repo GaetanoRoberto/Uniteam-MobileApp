@@ -6,7 +6,7 @@ import java.time.LocalDate
 data class Team (
     var id: Int = 0,
     var name: String = "",
-    var description: String? = null,
+    var description: String = "",
     var image: Uri = Uri.EMPTY,
     var creationDate: LocalDate = LocalDate.now(),
     var members: MutableList<Member> = mutableListOf(),

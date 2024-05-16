@@ -10,6 +10,7 @@ import it.polito.uniteam.classes.History
 import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.Task
 import it.polito.uniteam.classes.Team
+import it.polito.uniteam.gui.calendar.DummyDataProvider
 
 
 class UniTeamModel {
@@ -23,12 +24,38 @@ class UniTeamModel {
     private var _teams = mutableStateListOf<Team>()
     val teams = _teams
 
+    private var _selectedTeam = mutableStateOf<Team>(Team()) // team selected to show its details
+    val selectedTeam = _selectedTeam
+
+    fun selectTeam(id: Int){ // click on team to set the selected team to show
+        val team = getTeam(id)
+        if(team != null){
+            _selectedTeam.value = team
+        }
+
+    }
+
     fun getAllTasks() :List<Task>{
         val ret = mutableListOf<Task>()
         _teams.forEach { team->
             ret.addAll(team.tasks)
         }
         return ret
+    }
+
+    fun getAllMembers() :List<Member>{
+        val ret = mutableListOf<Member>()
+        _teams.forEach { team->
+            ret.addAll(team.members)
+        }
+        //return ret TODO( DESELECT FOR PRODUCTION )
+        //return only for testing
+        return(listOf(DummyDataProvider.member1,
+            DummyDataProvider.member2,
+            DummyDataProvider.member3,
+            DummyDataProvider.member4,
+            DummyDataProvider.member5,
+            DummyDataProvider.member6) )
     }
 
     fun getAllHistories(): List<History> {
