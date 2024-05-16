@@ -23,9 +23,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.viewmodel.compose.viewModel
+import it.polito.uniteam.Factory
 import it.polito.uniteam.classes.HourMinutesPicker
 import it.polito.uniteam.classes.Status
 import it.polito.uniteam.classes.Task
@@ -36,7 +38,7 @@ import java.time.LocalDate
 
 @Composable
 fun ScheduleTaskDialog(
-    vm: Calendar = viewModel()
+    vm: Calendar = viewModel(factory = Factory(LocalContext.current))
 ) {
     val taskScheduleDatePair = vm.taskToSchedule!!
     val scheduledHours = remember { mutableStateOf("0") }
@@ -121,7 +123,7 @@ fun ScheduleTaskDialog(
 }
 
 @Composable
-fun NoPermissionDialog(vm: Calendar = viewModel()) {
+fun NoPermissionDialog(vm: Calendar = viewModel(factory = Factory(LocalContext.current))) {
     AlertDialog(
         containerColor = MaterialTheme.colorScheme.background,
         icon = {
@@ -149,7 +151,7 @@ fun NoPermissionDialog(vm: Calendar = viewModel()) {
 }
 
 @Composable
-fun ScheduleBackInTimeDialog(vm: Calendar = viewModel()) {
+fun ScheduleBackInTimeDialog(vm: Calendar = viewModel(factory = Factory(LocalContext.current))) {
     AlertDialog(
         containerColor = MaterialTheme.colorScheme.background,
         icon = {
@@ -206,7 +208,7 @@ fun ScheduleBackInTimeDialog(vm: Calendar = viewModel()) {
 }
 
 @Composable
-fun ScheduleAfterDeadlineDialog(vm: Calendar = viewModel()) {
+fun ScheduleAfterDeadlineDialog(vm: Calendar = viewModel(factory = Factory(LocalContext.current))) {
     AlertDialog(
         containerColor = MaterialTheme.colorScheme.background,
         icon = {
@@ -263,7 +265,7 @@ fun ScheduleAfterDeadlineDialog(vm: Calendar = viewModel()) {
 }
 
 @Composable
-fun TaskDetailDialog(vm: Calendar = viewModel()) {
+fun TaskDetailDialog(vm: Calendar = viewModel(factory = Factory(LocalContext.current))) {
     val task = vm.taskToSchedule!!.first
     AlertDialog(
         containerColor = MaterialTheme.colorScheme.background,

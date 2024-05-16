@@ -1,6 +1,5 @@
 package it.polito.uniteam.gui.calendar
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -8,7 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
 import it.polito.uniteam.UniTeamModel
-import it.polito.uniteam.classes.Member
+import it.polito.uniteam.classes.DummyDataProvider
 import it.polito.uniteam.classes.Task
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -77,7 +76,7 @@ class Calendar(val model: UniTeamModel) : ViewModel() {
 
     init {
         // get logged in user
-        memberProfile = DummyDataProvider.getDummyProfile()
+        memberProfile = model.loggedMember
         // get task to assign and filter them based on the user
         tasksToAssign = DummyDataProvider.getTasksToAssign().toMutableStateList()
         tasksToAssign = tasksToAssign.filter { it.members.contains(memberProfile) }.toMutableStateList()

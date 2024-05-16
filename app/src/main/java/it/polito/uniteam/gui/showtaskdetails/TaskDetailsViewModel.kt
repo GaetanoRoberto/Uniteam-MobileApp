@@ -10,6 +10,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
+import it.polito.uniteam.UniTeamModel
 import it.polito.uniteam.classes.Category
 import it.polito.uniteam.classes.Comment
 import it.polito.uniteam.classes.File
@@ -19,14 +20,14 @@ import it.polito.uniteam.classes.Priority
 import it.polito.uniteam.classes.Repetition
 import it.polito.uniteam.classes.Status
 import it.polito.uniteam.classes.isRepetition
-import it.polito.uniteam.gui.calendar.DummyDataProvider
+import it.polito.uniteam.classes.DummyDataProvider
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.Locale
 
 @SuppressLint("MutableCollectionMutableState")
-class taskDetails : ViewModel() {
+class taskDetails(val model: UniTeamModel) : ViewModel() {
 
     var taskName by mutableStateOf("Task Name value")
         private set
@@ -389,7 +390,7 @@ class taskDetails : ViewModel() {
     }
 
     var localId by mutableIntStateOf(0)
-    val member = DummyDataProvider.getDummyProfile()
+    val member = model.loggedMember!!
     val dummyMembers = DummyDataProvider.getMembers()
 
     var comments = mutableStateListOf(

@@ -96,6 +96,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
+import it.polito.uniteam.Factory
 import it.polito.uniteam.classes.HourMinutesPicker
 import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.MemberIcon
@@ -104,7 +105,7 @@ import it.polito.uniteam.classes.Status
 
 //@Preview
 @Composable
-fun TaskScreen(vm: taskDetails = viewModel() ) {
+fun TaskScreen(vm: taskDetails = viewModel(factory = Factory(LocalContext.current)) ) {
     if (vm.editing) {
         /*vm.changeEditing()
         vm.enterEditingMode()*/
@@ -120,7 +121,7 @@ fun TaskScreen(vm: taskDetails = viewModel() ) {
 
 @Preview
 @Composable
-fun TaskDetailsView(vm: taskDetails = viewModel()) {
+fun TaskDetailsView(vm: taskDetails = viewModel(factory = Factory(LocalContext.current))) {
     /*vm.changeEditing()
     vm.enterEditingMode()
     //vm.newTask()*/
@@ -196,7 +197,7 @@ fun TaskDetailsView(vm: taskDetails = viewModel()) {
 
 
 @Composable
-fun EditTaskView(vm: taskDetails = viewModel()) {
+fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.current))) {
     /*vm.changeEditing()
     vm.enterEditingMode()*/
     Row(){
@@ -803,7 +804,7 @@ fun CustomDatePickerPreview(label: String, value: String, onChange: (String) -> 
 
 @Composable
 fun CommentsView(
-    vm: taskDetails = viewModel()
+    vm: taskDetails = viewModel(factory = Factory(LocalContext.current))
 ) {
     var date = ""
     val screenHeightDp = LocalConfiguration.current.screenHeightDp
@@ -963,7 +964,7 @@ fun HistoryView(
 
 @Composable
 fun FilesView(
-    vm: taskDetails = viewModel(),
+    vm: taskDetails = viewModel(factory = Factory(LocalContext.current)),
 ) {
     var date = ""
     val screenHeightDp = LocalConfiguration.current.screenHeightDp
@@ -1038,7 +1039,7 @@ fun FilesView(
 
 
 @Composable
-fun FileUpload(vm: taskDetails = viewModel(), modifier: Modifier) {
+fun FileUpload(vm: taskDetails = viewModel(factory = Factory(LocalContext.current)), modifier: Modifier) {
     var selectedFileUri by remember { mutableStateOf<Uri?>(null) }
     var selectedFileName by remember { mutableStateOf<String?>(null) }
     val contentResolver = LocalContext.current.contentResolver

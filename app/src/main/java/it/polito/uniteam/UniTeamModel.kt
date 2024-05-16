@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import it.polito.uniteam.classes.Chat
+import it.polito.uniteam.classes.DummyDataProvider
 import it.polito.uniteam.classes.History
 import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.Task
@@ -14,7 +15,7 @@ import it.polito.uniteam.classes.Team
 
 class UniTeamModel {
     // Calendar View Model
-    private var _loggedMember by mutableStateOf<Member?>(null)
+    private var _loggedMember by mutableStateOf<Member?>(DummyDataProvider.member1)
     val loggedMember = _loggedMember
     fun setLoggedMember(member: Member) {
         _loggedMember = member
@@ -22,6 +23,11 @@ class UniTeamModel {
 
     private var _teams = mutableStateListOf<Team>()
     val teams = _teams
+
+    init {
+        // get dummy data
+        _teams = DummyDataProvider.getTeams().toMutableStateList()
+    }
 
     fun getAllTasks() :List<Task>{
         val ret = mutableListOf<Task>()

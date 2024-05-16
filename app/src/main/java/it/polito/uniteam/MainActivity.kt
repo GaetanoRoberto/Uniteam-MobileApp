@@ -83,8 +83,6 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var outputDirectory: File
     private var cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor();
-    private val vm: UserProfileScreen by viewModels()
-    private val vm2: Calendar by viewModels()
 
     private var permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -152,9 +150,6 @@ class MainActivity : ComponentActivity() {
                     .pointerInput(Unit, interactionSource) {
                         detectTapGestures(
                             onPress = {
-                                if (vm.cameraPressed) {
-                                    vm.toggleCameraButtonPressed()
-                                }
                                 focusManager.clearFocus()
                             }
                         )
@@ -169,7 +164,7 @@ class MainActivity : ComponentActivity() {
                     ) {
                         Scaffold(
                             topBar = {
-                                MyTopAppBar(vm = viewModel(),navController)
+                                MyTopAppBar(vm = viewModel(factory = Factory(LocalContext.current)),navController)
                             },
                             /*floatingActionButton = {
                                 //if (vm.isEditing) {
@@ -213,11 +208,11 @@ class MainActivity : ComponentActivity() {
                                 Column ( Modifier.padding(paddingValue)){
                                     NavHost(navController = navController, startDestination = "Teams") {
                                         // Definisci le destinazioni per le tue schermate
-                                        composable("Teams") { TaskListView(vm = viewModel(),navController) }
-                                        composable("Tasks") { TaskScreen(vm = viewModel()) }
-                                        composable("Calendar") { CalendarAppContainer(vm = viewModel()) }
-                                        composable("Notifications") { CalendarAppContainer(vm = viewModel()) }
-                                        composable("Profile") { ProfileSettings(vm = viewModel(),outputDirectory = getOutputDirectory(),cameraExecutor = cameraExecutor)  }
+                                        composable("Teams") { TaskListView(vm = viewModel(factory = Factory(LocalContext.current)),navController) }
+                                        composable("Tasks") { TaskScreen(vm = viewModel(factory = Factory(LocalContext.current))) }
+                                        composable("Calendar") { CalendarAppContainer(vm = viewModel(factory = Factory(LocalContext.current))) }
+                                        composable("Notifications") { CalendarAppContainer(vm = viewModel(factory = Factory(LocalContext.current))) }
+                                        composable("Profile") { ProfileSettings(vm = viewModel(factory = Factory(LocalContext.current)),outputDirectory = getOutputDirectory(),cameraExecutor = cameraExecutor)  }
 
                                         /*composable("EditProfile") { ProfileSettings(vm = viewModel(),outputDirectory = getOutputDirectory(),cameraExecutor = cameraExecutor,pickImageLauncher = pickImageLauncher,edit=true,navController)  }
                                         composable("Profile") { ProfileSettings(vm = viewModel(),outputDirectory = getOutputDirectory(),cameraExecutor = cameraExecutor,pickImageLauncher = pickImageLauncher,edit=false,navController)  }*/
@@ -358,7 +353,7 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyTopAppBar(vm: UserProfileScreen = viewModel(),navController: NavHostController) {
+fun MyTopAppBar(vm: UserProfileScreen = viewModel(factory = Factory(LocalContext.current)),navController: NavHostController) {
 
 
 

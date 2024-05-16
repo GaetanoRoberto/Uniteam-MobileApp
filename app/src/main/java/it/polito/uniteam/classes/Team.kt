@@ -12,5 +12,5 @@ data class Team (
     var members: MutableList<Member> = mutableListOf(),
     var tasks: MutableList<Task> = mutableListOf(),
     var teamHistory: List<History> = emptyList(),
-    var chat: Chat = Chat()
+    var chat: Chat? = null
     )

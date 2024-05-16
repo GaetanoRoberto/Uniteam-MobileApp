@@ -96,7 +96,9 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import it.polito.uniteam.Factory
 import it.polito.uniteam.R
+import it.polito.uniteam.UniTeamModel
 import it.polito.uniteam.classes.Category
 import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.MemberIcon
@@ -112,7 +114,7 @@ import java.time.LocalDate
 import java.util.Locale
 
 
-class TaskList: ViewModel() {
+class TaskList(val model: UniTeamModel) : ViewModel() {
     var membersList = mutableStateOf<List<Member>>(listOf(
         Member().apply {
             fullName = "John Doe"
@@ -263,7 +265,7 @@ class TaskList: ViewModel() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TaskListView(vm: TaskList = viewModel(), navController: NavHostController) {
+fun TaskListView(vm: TaskList = viewModel(factory = Factory(LocalContext.current)), navController: NavHostController) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val context = LocalContext.current

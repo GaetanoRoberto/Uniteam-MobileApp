@@ -34,11 +34,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mohamedrejeb.compose.dnd.DragAndDropState
 import com.mohamedrejeb.compose.dnd.drag.DraggableItem
 import com.mohamedrejeb.compose.dnd.drop.dropTarget
+import it.polito.uniteam.Factory
 import it.polito.uniteam.classes.Task
 import java.time.LocalDate
 
@@ -46,7 +48,7 @@ import java.time.LocalDate
 fun HorizontalCalendarApp(
     modifier: Modifier = Modifier,
     dragAndDropState: DragAndDropState<Pair<Task, LocalDate?>>,
-    vm: Calendar = viewModel()
+    vm: Calendar = viewModel(factory = Factory(LocalContext.current))
 ) {
     // get CalendarUiModel from CalendarDataSource, and the lastSelectedDate is Today.
     var calendarUiModel by remember { mutableStateOf(vm.getData(lastSelectedDate = vm.today)) }
@@ -99,7 +101,7 @@ fun HorizontalCalendarApp(
 
 @Composable
 fun HorizontalHeader(
-    vm: Calendar = viewModel(),
+    vm: Calendar = viewModel(factory = Factory(LocalContext.current)),
     startDate: CalendarUiModel.Date, endDate: CalendarUiModel.Date,
     onPrevClickListener: (LocalDate) -> Unit,
     onNextClickListener: (LocalDate) -> Unit,
@@ -163,7 +165,7 @@ fun HorizontalHeader(
 @Composable
 fun HorizontalDayEventScheduler(data: CalendarUiModel,
                                 dragAndDropState: DragAndDropState<Pair<Task, LocalDate?>>,
-                                vm: Calendar = viewModel()) {
+                                vm: Calendar = viewModel(factory = Factory(LocalContext.current))) {
     Box(modifier = Modifier.fillMaxHeight()) {
         LazyColumn {
             items(items = data.visibleDates) { date ->
@@ -273,7 +275,7 @@ fun HorizontalDayEventScheduler(data: CalendarUiModel,
 @Composable
 fun HorizontalTasksToAssign(
     dragAndDropState: DragAndDropState<Pair<Task, LocalDate?>>,
-    vm: Calendar = viewModel()
+    vm: Calendar = viewModel(factory = Factory(LocalContext.current))
 ) {
     Column(
         modifier = Modifier

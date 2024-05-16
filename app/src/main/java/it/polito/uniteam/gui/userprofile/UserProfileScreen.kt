@@ -81,13 +81,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
+import it.polito.uniteam.Factory
 import it.polito.uniteam.R
+import it.polito.uniteam.UniTeamModel
 import it.polito.uniteam.ui.theme.Orange
 import java.io.File
 import java.util.concurrent.ExecutorService
 
 
-class UserProfileScreen : ViewModel() {
+class UserProfileScreen(val model: UniTeamModel) : ViewModel() {
     var isEditing by mutableStateOf(false)
         private set  //By adding "private set" only this class can change 'isEditing'
 
@@ -285,7 +287,7 @@ fun EditRowItem(value: String, keyboardType: KeyboardType = KeyboardType.Text ,o
 //fun EditProfile(vm: UserProfileScreen = viewModel(),navController: NavHostController) {
 @Preview
 @Composable
-fun EditProfile(vm: UserProfileScreen = viewModel()) {
+fun EditProfile(vm: UserProfileScreen = viewModel(factory = Factory(LocalContext.current))) {
 // Handle Back Button
     BackHandler(onBack = {
         vm.validate()
@@ -360,7 +362,7 @@ fun EditProfile(vm: UserProfileScreen = viewModel()) {
 
 @Preview
 @Composable
-fun DefaultImage(vm: UserProfileScreen = viewModel()) {
+fun DefaultImage(vm: UserProfileScreen = viewModel(factory = Factory(LocalContext.current))) {
     val name = vm.nameValue
     println(name)
     if (name.isNotBlank() || vm.photoUri != Uri.EMPTY) {
@@ -631,7 +633,7 @@ fun RowItem(modifier: Modifier = Modifier, icon: ImageVector, description: Strin
 
 @Preview
 @Composable
-fun PresentationPane(vm: UserProfileScreen = viewModel()) {
+fun PresentationPane(vm: UserProfileScreen = viewModel(factory = Factory(LocalContext.current))) {
     BoxWithConstraints {
         if (this.maxHeight > this.maxWidth) {
             Column(
@@ -701,7 +703,7 @@ fun PresentationPane(vm: UserProfileScreen = viewModel()) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileSettings(
-    vm: UserProfileScreen = viewModel(),
+    vm: UserProfileScreen = viewModel(factory = Factory(LocalContext.current)),
     outputDirectory: File,
     cameraExecutor: ExecutorService
 ) {

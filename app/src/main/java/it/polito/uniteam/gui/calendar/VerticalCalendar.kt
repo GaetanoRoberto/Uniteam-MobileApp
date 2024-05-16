@@ -42,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -50,6 +51,7 @@ import com.mohamedrejeb.compose.dnd.DragAndDropState
 import com.mohamedrejeb.compose.dnd.drag.DraggableItem
 import com.mohamedrejeb.compose.dnd.drop.dropTarget
 import com.mohamedrejeb.compose.dnd.rememberDragAndDropState
+import it.polito.uniteam.Factory
 import it.polito.uniteam.classes.MemberIcon
 import it.polito.uniteam.classes.Task
 import it.polito.uniteam.classes.TextTrim
@@ -58,7 +60,7 @@ import java.time.LocalDate
 
 @Preview(showSystemUi = true)
 @Composable
-fun CalendarAppContainer(vm: Calendar = viewModel()) {
+fun CalendarAppContainer(vm: Calendar = viewModel(factory = Factory(LocalContext.current))) {
     val dragAndDropState = rememberDragAndDropState<Pair<Task, LocalDate?>>()
     DragAndDropContainer(
         state = dragAndDropState,
@@ -103,7 +105,7 @@ fun CalendarAppContainer(vm: Calendar = viewModel()) {
 fun VerticalCalendarApp(
     modifier: Modifier = Modifier,
     dragAndDropState: DragAndDropState<Pair<Task, LocalDate?>>,
-    vm: Calendar = viewModel()
+    vm: Calendar = viewModel(factory = Factory(LocalContext.current))
 ) {
     // get CalendarUiModel from CalendarDataSource, and the lastSelectedDate is Today.
     var calendarUiModel by remember { mutableStateOf(vm.getData(lastSelectedDate = vm.today)) }
@@ -150,7 +152,7 @@ fun VerticalCalendarApp(
 
 @Composable
 fun VerticalHeader(
-    vm: Calendar = viewModel(),
+    vm: Calendar = viewModel(factory = Factory(LocalContext.current)),
     startDate: CalendarUiModel.Date, endDate: CalendarUiModel.Date,
     onPrevClickListener: (LocalDate) -> Unit,
     onNextClickListener: (LocalDate) -> Unit,
@@ -236,7 +238,7 @@ fun VerticalHeader(
 
 //OGGETTO TASK
 @Composable
-fun EventItem(vm: Calendar = viewModel(), task: Task, date: LocalDate? = null, isScheduled: Boolean) {
+fun EventItem(vm: Calendar = viewModel(factory = Factory(LocalContext.current)), task: Task, date: LocalDate? = null, isScheduled: Boolean) {
     var isOverSchedule = false
     val time: Pair<Int,Int>;
     if (isScheduled) {
@@ -354,7 +356,7 @@ fun DayItem(date: CalendarUiModel.Date) {
 fun VerticalDayEventScheduler(
     data: CalendarUiModel,
     dragAndDropState: DragAndDropState<Pair<Task, LocalDate?>>,
-    vm: Calendar = viewModel()
+    vm: Calendar = viewModel(factory = Factory(LocalContext.current))
 ) {
     Box(modifier = Modifier.fillMaxHeight(0.8f)) {
         LazyColumn {
@@ -464,7 +466,7 @@ fun VerticalDayEventScheduler(
 @Composable
 fun VerticalTasksToAssign(
     dragAndDropState: DragAndDropState<Pair<Task, LocalDate?>>,
-    vm: Calendar = viewModel()
+    vm: Calendar = viewModel(factory = Factory(LocalContext.current))
 ) {
     Row(
         modifier = Modifier
