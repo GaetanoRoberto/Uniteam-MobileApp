@@ -37,9 +37,9 @@ class UniTeamModel {
         return ret
     }
 
-    fun getAllHistories(): List<History> {
+    fun getAllHistories(): List<Pair<Team,List<History>>> {
         // TODO here no history of the single tasks so they will not be visible
-        return _teams.flatMap { it.teamHistory }
+        return _teams.map { Pair(it,it.teamHistory) }
     }
 
     fun getTeam(teamId: Int): Team {

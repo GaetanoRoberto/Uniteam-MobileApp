@@ -395,7 +395,7 @@ fun RowItem(modifier: Modifier = Modifier, title: String, value: Any) {
             modifier = Modifier
                 .weight(1f)
                 .padding(16.dp, 0.dp),
-            style = MaterialTheme.typography.headlineSmall,
+            style = MaterialTheme.typography.bodyLarge,
         )
 
     }

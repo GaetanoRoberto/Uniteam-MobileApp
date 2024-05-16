@@ -205,21 +205,38 @@ object DummyDataProvider {
         )
     }
 
-    private fun getHistory(member: Member): List<History> {
-        return listOf(
-            History(
-                id = getId(),
-                comment = "Task completed successfully",
-                date = LocalDate.now().toString(),
-                user = member
-            ),
-            History(
-                id = getId(),
-                comment = "Task assigned to team member",
-                date = LocalDate.now().toString(),
-                user = member
+    private fun getHistory(member: Member, isTeamHistory: Boolean = false): List<History> {
+        if (isTeamHistory) {
+            return listOf(
+                History(
+                    id = getId(),
+                    comment = "Task created successfully",
+                    date = LocalDate.now().toString(),
+                    user = member
+                ),
+                History(
+                    id = getId(),
+                    comment = "${member5.username} joined the team",
+                    date = LocalDate.now().toString(),
+                    user = member
+                )
             )
-        )
+        } else {
+            return listOf(
+                History(
+                    id = getId(),
+                    comment = "Task completed successfully",
+                    date = LocalDate.now().toString(),
+                    user = member
+                ),
+                History(
+                    id = getId(),
+                    comment = "Task assigned to team member",
+                    date = LocalDate.now().toString(),
+                    user = member
+                )
+            )
+        }
     }
 
     private fun getFiles(member: Member): List<File> {
@@ -260,6 +277,7 @@ object DummyDataProvider {
                 creationDate = LocalDate.now(),
                 members = members.shuffled().take(3).toMutableList(),
                 tasks = tasks.toMutableList(),
+                teamHistory = getHistory(members[i],isTeamHistory = true),
                 chat = null
             )
             teams.add(team)

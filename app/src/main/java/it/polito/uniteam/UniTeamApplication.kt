@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import it.polito.uniteam.UniTeamModel
 import it.polito.uniteam.gui.calendar.Calendar
+import it.polito.uniteam.gui.notifications.NotificationsViewModel
 import it.polito.uniteam.gui.showtaskdetails.taskDetails
 import it.polito.uniteam.gui.tasklist.TaskList
 import it.polito.uniteam.gui.userprofile.UserProfileScreen
@@ -18,7 +19,8 @@ class Factory(context: Context): ViewModelProvider.Factory {
         Calendar::class.java,
         taskDetails::class.java,
         TaskList::class.java,
-        UserProfileScreen::class.java
+        UserProfileScreen::class.java,
+        NotificationsViewModel::class.java
     )
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         for (viewModelClass in viewModelClasses) {
@@ -27,11 +29,6 @@ class Factory(context: Context): ViewModelProvider.Factory {
             }
         }
         throw IllegalArgumentException("Unknown ViewModel Class")
-        /*return if (modelClass.isAssignableFrom(StringViewModel::class.java)) {
-            StringViewModel(model) as T
-        } else if (modelClass.isAssignableFrom(CountViewModel::class.java)) {
-            CountViewModel(model) as T
-        } else throw IllegalArgumentException("Unknown ViewModel Class")*/
     }
 }
 

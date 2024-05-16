@@ -73,6 +73,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import it.polito.uniteam.gui.calendar.Calendar
 import it.polito.uniteam.gui.calendar.CalendarAppContainer
+import it.polito.uniteam.gui.notifications.Notifications
 import it.polito.uniteam.gui.showtaskdetails.EditTaskView
 import it.polito.uniteam.gui.showtaskdetails.TaskDetailsView
 import it.polito.uniteam.gui.showtaskdetails.TaskScreen
@@ -211,7 +212,7 @@ class MainActivity : ComponentActivity() {
                                         composable("Teams") { TaskListView(vm = viewModel(factory = Factory(LocalContext.current)),navController) }
                                         composable("Tasks") { TaskScreen(vm = viewModel(factory = Factory(LocalContext.current))) }
                                         composable("Calendar") { CalendarAppContainer(vm = viewModel(factory = Factory(LocalContext.current))) }
-                                        composable("Notifications") { CalendarAppContainer(vm = viewModel(factory = Factory(LocalContext.current))) }
+                                        composable("Notifications") { Notifications(vm = viewModel(factory = Factory(LocalContext.current))) }
                                         composable("Profile") { ProfileSettings(vm = viewModel(factory = Factory(LocalContext.current)),outputDirectory = getOutputDirectory(),cameraExecutor = cameraExecutor)  }
 
                                         /*composable("EditProfile") { ProfileSettings(vm = viewModel(),outputDirectory = getOutputDirectory(),cameraExecutor = cameraExecutor,pickImageLauncher = pickImageLauncher,edit=true,navController)  }
