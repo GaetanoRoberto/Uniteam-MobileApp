@@ -130,6 +130,7 @@ object DummyDataProvider {
         chat.sender = member1
         chat.receiver = member2
         val m = Message()
+        m.id = getId()
         m.message = member1.hashCode().toString() + member2.hashCode().toString()
         chat.messages = listOf(m)
         return chat
