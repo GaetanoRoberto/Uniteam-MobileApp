@@ -69,6 +69,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.filled.Comment
@@ -86,6 +88,7 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.window.Dialog
@@ -101,6 +104,7 @@ import it.polito.uniteam.classes.HourMinutesPicker
 import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.MemberIcon
 import it.polito.uniteam.classes.Status
+import it.polito.uniteam.gui.notifications.notificationsSection
 
 
 //@Preview
@@ -126,72 +130,106 @@ fun TaskDetailsView(vm: taskDetails = viewModel(factory = Factory(LocalContext.c
     vm.enterEditingMode()
     //vm.newTask()*/
     var scrollState = rememberScrollState()
-    key(vm.commentHistoryFileSelection) {
-        scrollState = if (isVertical())
-            rememberScrollState(vm.scrollTaskDetails)
-        else
-            scrollState
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(
-                    scrollState
-                )
-        ) {
-            Spacer(modifier = Modifier.padding(10.dp))
-            Row(modifier = Modifier.fillMaxWidth(0.95f), horizontalArrangement = Arrangement.End) {
-                IconButton(onClick = {
-                    vm.changeEditing()
-                    vm.enterEditingMode()
-                    vm.newTask()
-                }) {
-                    Icon(Icons.Default.Add, contentDescription = "Add ")
-                }
-                IconButton(onClick = {
-                    vm.changeEditing()
-                    vm.enterEditingMode()
-                }) {
-                    Icon(Icons.Default.Edit, contentDescription = "Edit ")
-                }
+    LaunchedEffect(vm.commentHistoryFileSelection) {
+        scrollState.scrollTo(Int.MAX_VALUE)
+    }
+    scrollState = if (isVertical())
+        rememberScrollState(vm.scrollTaskDetails)
+    else
+        scrollState
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(
+                scrollState
+            )
+    ) {
+        Spacer(modifier = Modifier.padding(10.dp))
+        Row(modifier = Modifier.fillMaxWidth(0.95f), horizontalArrangement = Arrangement.End) {
+            IconButton(onClick = {
+                vm.changeEditing()
+                vm.enterEditingMode()
+                vm.newTask()
+            }) {
+                Icon(Icons.Default.Add, contentDescription = "Add ")
             }
-
-            RowItem(title = "Name:", value = vm.taskName)
-            RowItem(title = "Description:", value = vm.description)
-            RowItem(title = "Category:", value = vm.category)
-            RowItem(title = "Priority:", value = vm.priority)
-            RowItem(title = "Deadline:", value = vm.deadline)
-            RowItem(title = "Estimated Time:", value = vm.estimatedHours.value + "h " + vm.estimatedMinutes.value + "m")
-            RowItem(title = "Spent Time:", value = vm.spentHours.value + "h " + vm.spentMinutes.value + "m")
-            RowItem(title = "Repeatable:", value = vm.repeatable)
-            RowMemberItem(title = "Members:", value = vm.members)
-            RowItem(title = "Status:", value = if(vm.status== Status.IN_PROGRESS.toString()) "IN PROGRESS" else vm.status)
-
-            val icons = listOf(Icons.Filled.Comment, Icons.Filled.History, Icons.Filled.InsertDriveFile)
-            val titles = listOf("Comments", "History", "Files")
-            Column {
-                TabRow(selectedTabIndex = vm.tabState, indicator = { tabPositions ->
-                    TabRowDefaults.Indicator(
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.tabIndicatorOffset(tabPositions[vm.tabState])
-                    )
-                }) {
-                    titles.forEachIndexed { index, title ->
-                        Tab(selected = vm.tabState == index,
-                            onClick = { vm.switchTab(index); vm.changeCommentHistoryFileSelection(title.lowercase()); },
-                            text = { Text(text = title, color = MaterialTheme.colorScheme.onPrimary) },
-                            icon = { Icon(icons[index], title, tint = MaterialTheme.colorScheme.onPrimary) })
-                    }
-                }
+            IconButton(onClick = {
+                vm.changeEditing()
+                vm.enterEditingMode()
+            }) {
+                Icon(Icons.Default.Edit, contentDescription = "Edit ")
             }
-            if (vm.commentHistoryFileSelection == "comments") {
-                CommentsView(vm = vm)
-            } else if (vm.commentHistoryFileSelection == "files") {
-                FilesView(vm = vm)
-            } else if (vm.commentHistoryFileSelection == "history") {
-                HistoryView(vm.history)
-            }
-            Spacer(modifier = Modifier.height(10.dp))
         }
+
+        RowItem(title = "Name:", value = vm.taskName)
+        RowItem(title = "Description:", value = vm.description)
+        RowItem(title = "Category:", value = vm.category)
+        RowItem(title = "Priority:", value = vm.priority)
+        RowItem(title = "Deadline:", value = vm.deadline)
+        RowItem(
+            title = "Estimated Time:",
+            value = vm.estimatedHours.value + "h " + vm.estimatedMinutes.value + "m"
+        )
+        RowItem(
+            title = "Spent Time:",
+            value = vm.spentHours.value + "h " + vm.spentMinutes.value + "m"
+        )
+        RowItem(title = "Repeatable:", value = vm.repeatable)
+        RowMemberItem(title = "Members:", value = vm.members)
+        RowItem(
+            title = "Status:",
+            value = if (vm.status == Status.IN_PROGRESS.toString()) "IN PROGRESS" else vm.status
+        )
+
+        val icons = listOf(Icons.Filled.Comment, Icons.Filled.History, Icons.Filled.InsertDriveFile)
+        val titles = listOf("Comments", "History", "Files")
+        val pagerState = rememberPagerState {
+            titles.size
+        }
+        Column {
+            LaunchedEffect(vm.tabState) {
+                pagerState.animateScrollToPage(vm.tabState)
+            }
+            LaunchedEffect(pagerState.currentPage, pagerState.isScrollInProgress) {
+                if (!pagerState.isScrollInProgress) {
+                    vm.switchTab(pagerState.currentPage)
+                    vm.changeCommentHistoryFileSelection(if (pagerState.currentPage == 0) "comments" else if (pagerState.currentPage == 1) "history" else "files")
+                }
+            }
+            TabRow(selectedTabIndex = vm.tabState, indicator = { tabPositions ->
+                TabRowDefaults.Indicator(
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.tabIndicatorOffset(tabPositions[vm.tabState])
+                )
+            }) {
+                titles.forEachIndexed { index, title ->
+                    Tab(selected = vm.tabState == index,
+                        onClick = { vm.switchTab(index); vm.changeCommentHistoryFileSelection(title.lowercase()); },
+                        text = { Text(text = title, color = MaterialTheme.colorScheme.onPrimary) },
+                        icon = {
+                            Icon(
+                                icons[index],
+                                title,
+                                tint = MaterialTheme.colorScheme.onPrimary
+                            )
+                        })
+                }
+            }
+        }
+        HorizontalPager(
+            state = pagerState, modifier = Modifier
+                .fillMaxWidth(), verticalAlignment = Alignment.Top
+        ) { index ->
+            if (index == 0) {
+                CommentsView(vm = vm)
+            } else if (index == 1) {
+                HistoryView(vm.history)
+            } else {
+                FilesView(vm = vm)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
     }
 }
 
@@ -812,15 +850,15 @@ fun CommentsView(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .border(BorderStroke(1.dp, MaterialTheme.colorScheme.onPrimary))
+            .height((screenHeightDp * 0.7).dp)
     ) {
         key(vm.comments.size) {
             Column(
                 modifier = Modifier
-                    .fillMaxWidth(0.9f)
+                    .fillMaxWidth()
                     .height((screenHeightDp * 0.5).dp)
-                    .padding(0.dp, 10.dp, 0.dp, 0.dp)
                     .verticalScroll(rememberScrollState(initial = Int.MAX_VALUE))
+                    .border(BorderStroke(1.dp, MaterialTheme.colorScheme.onPrimary))
             ) {
                 vm.comments.forEachIndexed { index, comment ->
                     if (comment.date != date) {
@@ -876,27 +914,29 @@ fun CommentsView(
                 }
             }
         }
-    }
-    val focusManager = LocalFocusManager.current
-    Row(modifier = Modifier.fillMaxWidth()) {
-        OutlinedTextField(
-            label = { Text(text = "Add a comment") },
-            value = vm.addComment.commentValue,
-            onValueChange = { vm.changeAddComment(it) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height((screenHeightDp * 0.2).dp),
-            trailingIcon = {
-                IconButton(
-                    onClick = { vm.addNewComment(); focusManager.clearFocus() }
-                ) {
-                    Icon(
-                        Icons.Default.Send,
-                        contentDescription = "Send Icon"
-                    )
+        val focusManager = LocalFocusManager.current
+        Row(modifier = Modifier
+            .fillMaxWidth()
+            .align(Alignment.BottomCenter)) {
+            OutlinedTextField(
+                label = { Text(text = "Add a comment") },
+                value = vm.addComment.commentValue,
+                onValueChange = { vm.changeAddComment(it) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height((screenHeightDp * 0.2).dp),
+                trailingIcon = {
+                    IconButton(
+                        onClick = { vm.addNewComment(); focusManager.clearFocus() }
+                    ) {
+                        Icon(
+                            Icons.Default.Send,
+                            contentDescription = "Send Icon"
+                        )
+                    }
                 }
-            }
-        )
+            )
+        }
     }
 }
 
@@ -911,12 +951,11 @@ fun HistoryView(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .border(BorderStroke(1.dp, MaterialTheme.colorScheme.onPrimary))
     ) {
-        key(history.size) {
+        //key(history.size) {
             Column(
                 modifier = Modifier
-                    .fillMaxWidth(0.9f)
+                    .fillMaxWidth(0.95f)
                     .height((screenHeightDp * 0.7).dp)
                     .padding(0.dp, 10.dp, 0.dp, 0.dp)
                     .verticalScroll(rememberScrollState(initial = Int.MAX_VALUE))
@@ -957,7 +996,7 @@ fun HistoryView(
                 }
             }
 
-        }
+        //}
     }
 }
 
@@ -972,14 +1011,14 @@ fun FilesView(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .border(BorderStroke(1.dp, MaterialTheme.colorScheme.onPrimary))
+            .height((screenHeightDp * 0.7).dp)
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth(0.9f)
+                .fillMaxWidth()
                 .height((screenHeightDp * 0.6).dp)
-                .padding(0.dp, 10.dp, 0.dp, 0.dp)
                 .verticalScroll(rememberScrollState(initial = Int.MAX_VALUE))
+                .border(BorderStroke(1.dp, MaterialTheme.colorScheme.onPrimary))
         ) {
              vm.files.forEachIndexed { index, file ->
 
@@ -1033,8 +1072,10 @@ fun FilesView(
                 }
             }
         }
+        FileUpload(vm = vm, modifier = Modifier
+            .height((screenHeightDp * 0.1).dp)
+            .align(Alignment.BottomCenter))
     }
-    FileUpload(vm = vm, modifier = Modifier.height((screenHeightDp * 0.1).dp))
 }
 
 

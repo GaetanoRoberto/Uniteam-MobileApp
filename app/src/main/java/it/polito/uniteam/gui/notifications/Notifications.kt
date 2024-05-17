@@ -8,23 +8,19 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Comment
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Tab
@@ -33,28 +29,32 @@ import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import it.polito.uniteam.Factory
-import it.polito.uniteam.classes.TextTrim
-import it.polito.uniteam.isVertical
+import it.polito.uniteam.NavControllerManager
 
 @Composable
 fun Notifications(vm: NotificationsViewModel = viewModel(factory = Factory(LocalContext.current))) {
-    if (isVertical()) {
-        VerticalNotificationsContainer(vm = vm)
-    }
-}
-
-@Composable
-fun VerticalNotificationsContainer(vm: NotificationsViewModel = viewModel(factory = Factory(LocalContext.current))) {
     val icons = listOf(Icons.Filled.Comment, Icons.Filled.Info)
     val titles = notificationsSection.entries.map { it.toString() }
     Column {
+        val pagerState = rememberPagerState {
+            titles.size
+        }
+        LaunchedEffect(vm.tabState) {
+            pagerState.animateScrollToPage(vm.tabState)
+        }
+        LaunchedEffect(pagerState.currentPage, pagerState.isScrollInProgress) {
+            if(!pagerState.isScrollInProgress) {
+                vm.switchTab(pagerState.currentPage)
+                vm.changeSection((if(pagerState.currentPage == 0) notificationsSection.MESSAGES else notificationsSection.ACTIVITIES).toString())
+            }
+        }
         TabRow(selectedTabIndex = vm.tabState, indicator = { tabPositions ->
             TabRowDefaults.Indicator(
                 color = MaterialTheme.colorScheme.onPrimary,
@@ -68,16 +68,20 @@ fun VerticalNotificationsContainer(vm: NotificationsViewModel = viewModel(factor
                     icon = { Icon(icons[index], title, tint = MaterialTheme.colorScheme.onPrimary) })
             }
         }
-        if(vm.selectedSection == notificationsSection.MESSAGES) {
-            VerticalMessagesSection(vm = vm)
-        } else {
-            VerticalActivitiesSection(vm = vm)
+        HorizontalPager(state = pagerState, modifier = Modifier
+            .fillMaxWidth()
+            .weight(1f), verticalAlignment = Alignment.Top) { index ->
+            if(index == 0) {
+                MessagesSection(vm = vm)
+            } else {
+                ActivitiesSection(vm = vm)
+            }
         }
     }
 }
 
 @Composable
-fun VerticalMessagesSection(vm: NotificationsViewModel = viewModel(factory = Factory(LocalContext.current))) {
+fun MessagesSection(vm: NotificationsViewModel = viewModel(factory = Factory(LocalContext.current))) {
     LazyColumn {
         item(vm.teamsMessages) {
             vm.teamsMessages.forEachIndexed { index, message ->
@@ -94,7 +98,7 @@ fun VerticalMessagesSection(vm: NotificationsViewModel = viewModel(factory = Fac
 fun MessageItem(teamMemberName: String, nOfMessages: Int) {
     Row(
         modifier = Modifier
-            .clickable { Log.i("diooo","reg") }
+            .clickable { Log.i("diooo", "reg") }
             .fillMaxWidth()
             .border(0.5.dp, MaterialTheme.colorScheme.onPrimary)
             .padding(10.dp),
@@ -124,7 +128,7 @@ fun MessageItem(teamMemberName: String, nOfMessages: Int) {
 }
 
 @Composable
-fun VerticalActivitiesSection(vm: NotificationsViewModel = viewModel(factory = Factory(LocalContext.current))) {
+fun ActivitiesSection(vm: NotificationsViewModel = viewModel(factory = Factory(LocalContext.current))) {
     LazyColumn {
         items(vm.teamsHistories) { TeamHistory ->
             TeamHistory.second.forEach { history ->
@@ -138,7 +142,7 @@ fun VerticalActivitiesSection(vm: NotificationsViewModel = viewModel(factory = F
 fun ActivityItem(teamName: String, Activity: String) {
     Row(
         modifier = Modifier
-            .clickable { Log.i("diooo","reg") }
+            .clickable { Log.i("diooo", "reg") }
             .fillMaxWidth()
             .border(0.5.dp, MaterialTheme.colorScheme.onPrimary)
             .padding(10.dp)
