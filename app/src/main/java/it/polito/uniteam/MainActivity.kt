@@ -56,11 +56,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
@@ -91,16 +95,16 @@ class MainActivity : ComponentActivity() {
 
         var isGranted = true
 
-        for(permission in permissions) {
-            if(!permission.value) {
+        for (permission in permissions) {
+            if (!permission.value) {
                 isGranted = false
             }
         }
 
-        if(isGranted) {
-            Log.i("UniTeam","all Permissions granted.")
+        if (isGranted) {
+            Log.i("UniTeam", "all Permissions granted.")
         } else {
-            Log.i("UniTeam","permissions denied.")
+            Log.i("UniTeam", "permissions denied.")
         }
 
     }
@@ -112,9 +116,6 @@ class MainActivity : ComponentActivity() {
             val interactionSource = remember { MutableInteractionSource() }
             val focusManager = LocalFocusManager.current
             val theme = isSystemInDarkTheme()
-            val navController = rememberNavController()
-            val navBackStackEntry by navController.currentBackStackEntryAsState()
-            val currentDestination = navBackStackEntry?.destination?.route
 
 
             UniTeamTheme(darkTheme = theme) {
@@ -139,158 +140,186 @@ class MainActivity : ComponentActivity() {
                         badgeCount = 5
                     ),
 
-                )
+                    )
                 var selectedItemIndex by rememberSaveable {
                     mutableIntStateOf(0)
                 }
-
-            Surface(
-                modifier = Modifier
-                    .fillMaxSize()
-                    // remove the focus and the opened photo/gallery menu
-                    .pointerInput(Unit, interactionSource) {
-                        detectTapGestures(
-                            onPress = {
-                                focusManager.clearFocus()
-                            }
-                        )
-                    },
-                color = MaterialTheme.colorScheme.background
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    Column(
-                        modifier = Modifier.weight(1f)
+                NavControllerManager.ProvideNavController {
+                    val navController = NavControllerManager.getNavController()
+                    val navBackStackEntry by navController.currentBackStackEntryAsState()
+                    val currentDestination = navBackStackEntry?.destination?.route
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            // remove the focus and the opened photo/gallery menu
+                            .pointerInput(Unit, interactionSource) {
+                                detectTapGestures(
+                                    onPress = {
+                                        focusManager.clearFocus()
+                                    }
+                                )
+                            },
+                        color = MaterialTheme.colorScheme.background
                     ) {
-                        Scaffold(
-                            topBar = {
-                                MyTopAppBar(vm = viewModel(factory = Factory(LocalContext.current)),navController)
-                            },
-                            /*floatingActionButton = {
-                                //if (vm.isEditing) {
-                                    if (currentDestination == "Profile") {
-                                        FloatingActionButton(onClick ={
-                                            navController.navigate("EditProfile"){
-                                                popUpTo(navController.graph.findStartDestination().id) {
-                                                    saveState = true
-                                                }
-                                                launchSingleTop = true
-                                                restoreState = true
-                                            }},
-                                            containerColor = MaterialTheme.colorScheme.primary
-                                        ){
-                                            Icon(
-                                                imageVector = Icons.Default.Edit,
-                                                contentDescription = "Edit",
-                                                tint = MaterialTheme.colorScheme.onSecondary
-                                            )
-                                        }
-                                }else if(currentDestination == "Tasks"){
-                                    FloatingActionButton(onClick ={
-                                        navController.navigate("EditTask"){
-                                            popUpTo(navController.graph.findStartDestination().id) {
-                                                saveState = true
-                                            }
-                                            launchSingleTop = true
-                                            restoreState = true
-                                        }},
-                                        containerColor = MaterialTheme.colorScheme.primary
-                                    ){
-                                        Icon(
-                                            imageVector = Icons.Default.Edit,
-                                            contentDescription = "Edit",
-                                            tint = MaterialTheme.colorScheme.onSecondary
+                        Column(
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Column(
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Scaffold(
+                                    topBar = {
+                                        MyTopAppBar(
+                                            vm = viewModel(factory = Factory(LocalContext.current)),
+                                            navController
                                         )
-                                    }
-                                }
-                                },*/
-                            content = { paddingValue ->
-                                Column ( Modifier.padding(paddingValue)){
-                                    NavHost(navController = navController, startDestination = "Teams") {
-                                        // Definisci le destinazioni per le tue schermate
-                                        composable("Teams") { TaskListView(vm = viewModel(factory = Factory(LocalContext.current)),navController) }
-                                        composable("Tasks") { TaskScreen(vm = viewModel(factory = Factory(LocalContext.current))) }
-                                        composable("Calendar") { CalendarAppContainer(vm = viewModel(factory = Factory(LocalContext.current))) }
-                                        composable("Notifications") { Notifications(vm = viewModel(factory = Factory(LocalContext.current))) }
-                                        composable("Profile") { ProfileSettings(vm = viewModel(factory = Factory(LocalContext.current)),outputDirectory = getOutputDirectory(),cameraExecutor = cameraExecutor)  }
-
-                                        /*composable("EditProfile") { ProfileSettings(vm = viewModel(),outputDirectory = getOutputDirectory(),cameraExecutor = cameraExecutor,pickImageLauncher = pickImageLauncher,edit=true,navController)  }
-                                        composable("Profile") { ProfileSettings(vm = viewModel(),outputDirectory = getOutputDirectory(),cameraExecutor = cameraExecutor,pickImageLauncher = pickImageLauncher,edit=false,navController)  }*/
-                                        /*composable("EditTask") { EditTaskView(vm = viewModel(),navController) }
-                                        composable("Tasks") { TaskDetailsView(vm = viewModel()) }*/
-
-
-                                    }
-                                }
-                            },
-                            bottomBar = {
-                                /*if (!isVertical()) {
-                                    Row {}
-                                } else {*/
-                                    NavigationBar(containerColor = MaterialTheme.colorScheme.primary) {
-                                        items.forEachIndexed { index, item ->
-                                            NavigationBarItem(
-                                                colors = NavigationBarItemColors(
-                                                    selectedIconColor = MaterialTheme.colorScheme.onPrimary,
-                                                    selectedTextColor = MaterialTheme.colorScheme.onPrimary,
-                                                    unselectedTextColor = MaterialTheme.colorScheme.onPrimary,
-                                                    disabledIconColor = MaterialTheme.colorScheme.onPrimary,
-                                                    disabledTextColor = MaterialTheme.colorScheme.onPrimary,
-                                                    selectedIndicatorColor = MaterialTheme.colorScheme.secondary,
-                                                    unselectedIconColor = MaterialTheme.colorScheme.onPrimary
-                                                ),
-                                                selected = item.title == navBackStackEntry?.destination?.route,//selectedItemIndex == index , PRIMA DELLA NAVIGATION
-                                                onClick = {
-                                                    selectedItemIndex = index
-                                                    navController.navigate(item.title){
-                                                        //println("Destination: ${navController.previousBackStackEntry?.destination?.route}")
-                                                       /* popUpTo(navController.graph.findStartDestination().id){
-                                                            //saveState = true
-                                                        }*/
-                                                        launchSingleTop = true
-                                                        //restoreState = true
-                                                    }
-                                                },
-                                                label = {
-                                                        Text(text = item.title)
-                                                },
-                                                alwaysShowLabel = true,
-                                                icon = {
-                                                    BadgedBox(
-                                                        badge = {
-                                                            if (item.badgeCount != null) {
-                                                                Badge(containerColor = MaterialTheme.colorScheme.onPrimaryContainer) {
-                                                                    Text(text = item.badgeCount.toString())
-                                                                }
-                                                            } else if (item.hasNews) {
-                                                                Badge()
-                                                            }
+                                    },
+                                    /*floatingActionButton = {
+                                        //if (vm.isEditing) {
+                                            if (currentDestination == "Profile") {
+                                                FloatingActionButton(onClick ={
+                                                    navController.navigate("EditProfile"){
+                                                        popUpTo(navController.graph.findStartDestination().id) {
+                                                            saveState = true
                                                         }
-                                                    ) {
-                                                        Icon(
-                                                            imageVector = if (index == selectedItemIndex) {
-                                                                item.selectedIcon
-                                                            } else item.unselectedIcon,
-                                                            contentDescription = item.title
-
-                                                        )
-                                                    }
+                                                        launchSingleTop = true
+                                                        restoreState = true
+                                                    }},
+                                                    containerColor = MaterialTheme.colorScheme.primary
+                                                ){
+                                                    Icon(
+                                                        imageVector = Icons.Default.Edit,
+                                                        contentDescription = "Edit",
+                                                        tint = MaterialTheme.colorScheme.onSecondary
+                                                    )
                                                 }
-                                            )
+                                        }else if(currentDestination == "Tasks"){
+                                            FloatingActionButton(onClick ={
+                                                navController.navigate("EditTask"){
+                                                    popUpTo(navController.graph.findStartDestination().id) {
+                                                        saveState = true
+                                                    }
+                                                    launchSingleTop = true
+                                                    restoreState = true
+                                                }},
+                                                containerColor = MaterialTheme.colorScheme.primary
+                                            ){
+                                                Icon(
+                                                    imageVector = Icons.Default.Edit,
+                                                    contentDescription = "Edit",
+                                                    tint = MaterialTheme.colorScheme.onSecondary
+                                                )
+                                            }
+                                        }
+                                        },*/
+                                    content = { paddingValue ->
+                                        Column(Modifier.padding(paddingValue)) {
+                                            // In your main activity or main screen composable
+                                            NavHost(
+                                                navController = navController,
+                                                startDestination = "Teams"
+                                            ) {
+                                                // Define destinations for your screens
+                                                composable("Teams") {
+                                                    TaskListView(
+                                                        vm = viewModel(
+                                                            factory = Factory(LocalContext.current)
+                                                        )
+                                                    )
+                                                }
+                                                composable("Tasks") {
+                                                    TaskScreen(
+                                                        vm = viewModel(
+                                                            factory = Factory(LocalContext.current)
+                                                        )
+                                                    )
+                                                }
+                                                composable("Calendar") {
+                                                    CalendarAppContainer(
+                                                        vm = viewModel(
+                                                            factory = Factory(LocalContext.current)
+                                                        )
+                                                    )
+                                                }
+                                                composable("Notifications") {
+                                                    Notifications(
+                                                        vm = viewModel(
+                                                            factory = Factory(LocalContext.current)
+                                                        )
+                                                    )
+                                                }
+                                                composable("Profile") {
+                                                    ProfileSettings(
+                                                        vm = viewModel(
+                                                            factory = Factory(LocalContext.current)
+                                                        ),
+                                                        outputDirectory = getOutputDirectory(),
+                                                        cameraExecutor = cameraExecutor
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    },
+                                    bottomBar = {
+                                        /*if (!isVertical()) {
+                                            Row {}
+                                        } else {*/
+                                        NavigationBar(containerColor = MaterialTheme.colorScheme.primary) {
+                                            items.forEachIndexed { index, item ->
+                                                NavigationBarItem(
+                                                    colors = NavigationBarItemColors(
+                                                        selectedIconColor = MaterialTheme.colorScheme.onPrimary,
+                                                        selectedTextColor = MaterialTheme.colorScheme.onPrimary,
+                                                        unselectedTextColor = MaterialTheme.colorScheme.onPrimary,
+                                                        disabledIconColor = MaterialTheme.colorScheme.onPrimary,
+                                                        disabledTextColor = MaterialTheme.colorScheme.onPrimary,
+                                                        selectedIndicatorColor = MaterialTheme.colorScheme.secondary,
+                                                        unselectedIconColor = MaterialTheme.colorScheme.onPrimary
+                                                    ),
+                                                    selected = item.title == navBackStackEntry?.destination?.route,//selectedItemIndex == index , PRIMA DELLA NAVIGATION
+                                                    onClick = {
+                                                        selectedItemIndex = index
+                                                        navController.navigate(item.title) {
+                                                            //println("Destination: ${navController.previousBackStackEntry?.destination?.route}")
+                                                            /* popUpTo(navController.graph.findStartDestination().id){
+                                                                 //saveState = true
+                                                             }*/
+                                                            launchSingleTop = true
+                                                            //restoreState = true
+                                                        }
+                                                    },
+                                                    label = {
+                                                        Text(text = item.title)
+                                                    },
+                                                    alwaysShowLabel = true,
+                                                    icon = {
+                                                        BadgedBox(
+                                                            badge = {
+                                                                if (item.badgeCount != null) {
+                                                                    Badge(containerColor = MaterialTheme.colorScheme.onPrimaryContainer) {
+                                                                        Text(text = item.badgeCount.toString())
+                                                                    }
+                                                                } else if (item.hasNews) {
+                                                                    Badge()
+                                                                }
+                                                            }
+                                                        ) {
+                                                            Icon(
+                                                                imageVector = if (index == selectedItemIndex) {
+                                                                    item.selectedIcon
+                                                                } else item.unselectedIcon,
+                                                                contentDescription = item.title
+
+                                                            )
+                                                        }
+                                                    }
+                                                )
+                                            }
                                         }
                                     }
-                                }
-                            //}
-                        )
-
-
-                        //CalendarAppContainer(vm = viewModel())
-                        //TaskScreen(vm = viewModel())
-                        //TaskListView(vm = viewModel())
-                    }
-
-                   // BottomBar(navController = navController)
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -327,12 +356,12 @@ class MainActivity : ComponentActivity() {
 
         var launch = false
         for (permission in permissions) {
-            if(!hasPermission(permission)) {
+            if (!hasPermission(permission)) {
                 launch = true
                 break
             }
         }
-        if(launch) {
+        if (launch) {
             permissionLauncher.launch(permissions)
         }
     }
@@ -354,12 +383,10 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyTopAppBar(vm: UserProfileScreen = viewModel(factory = Factory(LocalContext.current)),navController: NavHostController) {
-
-
-
-
-// Stampa delle informazioni sul back stack
+fun MyTopAppBar(
+    vm: UserProfileScreen = viewModel(factory = Factory(LocalContext.current)),
+    navController: NavHostController
+) {
     TopAppBar(
         title = {
             Row(
@@ -399,17 +426,23 @@ fun MyTopAppBar(vm: UserProfileScreen = viewModel(factory = Factory(LocalContext
             }
         },
         actions = {
-            IconButton(onClick = {navController.navigate("Profile") {
+            IconButton(onClick = {
+                navController.navigate("Profile") {
 
-                /*popUpTo(navController.graph.findStartDestination().id) {
-                    // Pop everything up to the "destination_a" destination off the back stack before
-                    // navigating to the "destination_b" destination
-                    //saveState = true
-                }*/
-                launchSingleTop = true //avoiding multiple copies on the top of the back stack
-                //restoreState = true
-            } }, colors = IconButtonDefaults.iconButtonColors(MaterialTheme.colorScheme.secondary)) {
-                Icon(imageVector = Icons.Default.ManageAccounts, contentDescription = "Profile", tint = MaterialTheme.colorScheme.onSecondary)
+                    /*popUpTo(navController.graph.findStartDestination().id) {
+                        // Pop everything up to the "destination_a" destination off the back stack before
+                        // navigating to the "destination_b" destination
+                        //saveState = true
+                    }*/
+                    launchSingleTop = true //avoiding multiple copies on the top of the back stack
+                    //restoreState = true
+                }
+            }, colors = IconButtonDefaults.iconButtonColors(MaterialTheme.colorScheme.secondary)) {
+                Icon(
+                    imageVector = Icons.Default.ManageAccounts,
+                    contentDescription = "Profile",
+                    tint = MaterialTheme.colorScheme.onSecondary
+                )
             }
             //SCOMMENTA PER PENNINA IN TOPBAR
             /*
@@ -440,3 +473,25 @@ fun isVertical(): Boolean {
     val context = LocalContext.current
     return context.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
 }
+
+class NavControllerManager {
+    companion object {
+        private val LocalNavController = staticCompositionLocalOf<NavHostController> {
+            error("NavController not provided")
+        }
+
+        @Composable
+        fun ProvideNavController(content: @Composable () -> Unit) {
+            val navController = rememberNavController()
+            CompositionLocalProvider(LocalNavController provides navController) {
+                content()
+            }
+        }
+
+        @Composable
+        fun getNavController(): NavHostController {
+            return LocalNavController.current
+        }
+    }
+}
+

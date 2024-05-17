@@ -97,6 +97,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import it.polito.uniteam.Factory
+import it.polito.uniteam.NavControllerManager
 import it.polito.uniteam.R
 import it.polito.uniteam.UniTeamModel
 import it.polito.uniteam.classes.Category
@@ -265,7 +266,7 @@ class TaskList(val model: UniTeamModel) : ViewModel() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TaskListView(vm: TaskList = viewModel(factory = Factory(LocalContext.current)), navController: NavHostController) {
+fun TaskListView(vm: TaskList = viewModel(factory = Factory(LocalContext.current))) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -813,9 +814,9 @@ fun TaskListView(vm: TaskList = viewModel(factory = Factory(LocalContext.current
                 //Resto della UI
                 Box(modifier = Modifier.padding(5.dp, 5.dp, 5.dp, 0.dp)) {
                     if (isVertical())
-                        VerticalTaskListView(vm, drawerState, scope, context, view, selectedOption, selectedChip.value,navController)
+                        VerticalTaskListView(vm, drawerState, scope, context, view, selectedOption, selectedChip.value)
                     else
-                        HorizontalTaskListView(vm, drawerState, scope, context, view, selectedOption, selectedChip.value,navController)
+                        HorizontalTaskListView(vm, drawerState, scope, context, view, selectedOption, selectedChip.value)
                 }
                 //Dialog per l'assegnazione di un task
                 when {
@@ -831,7 +832,8 @@ fun TaskListView(vm: TaskList = viewModel(factory = Factory(LocalContext.current
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: CoroutineScope, context: Context, view: View, selectedOption: String, selectedChip: String,navController: NavHostController) {
+fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: CoroutineScope, context: Context, view: View, selectedOption: String, selectedChip: String) {
+    val navController = NavControllerManager.getNavController()
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -1197,7 +1199,8 @@ fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Coroutin
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HorizontalTaskListView(vm: TaskList, drawerState: DrawerState, scope: CoroutineScope, context: Context, view: View, selectedOption: String, selectedChip: String,navController: NavHostController) {
+fun HorizontalTaskListView(vm: TaskList, drawerState: DrawerState, scope: CoroutineScope, context: Context, view: View, selectedOption: String, selectedChip: String) {
+    val navController = NavControllerManager.getNavController()
     Row(
         modifier = Modifier.fillMaxSize()
     ) {
