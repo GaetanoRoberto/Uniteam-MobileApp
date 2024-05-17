@@ -129,9 +129,11 @@ fun TaskDetailsView(vm: taskDetails = viewModel(factory = Factory(LocalContext.c
     /*vm.changeEditing()
     vm.enterEditingMode()
     //vm.newTask()*/
+    val isVertical = isVertical()
     var scrollState = rememberScrollState()
     LaunchedEffect(vm.commentHistoryFileSelection) {
-        scrollState.scrollTo(Int.MAX_VALUE)
+        if (isVertical)
+            scrollState.scrollTo(Int.MAX_VALUE)
     }
     scrollState = if (isVertical())
         rememberScrollState(vm.scrollTaskDetails)
