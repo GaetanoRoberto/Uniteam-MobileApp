@@ -370,7 +370,7 @@ class taskDetails(val model: UniTeamModel) : ViewModel() {
         membersError = ""
     }
 
-    var scrollTaskDetails by mutableIntStateOf(0)
+    //var scrollTaskDetails by mutableIntStateOf(0)
     var tabState by mutableIntStateOf(0)
     fun switchTab(index: Int) {
         tabState = index
@@ -386,7 +386,7 @@ class taskDetails(val model: UniTeamModel) : ViewModel() {
             commentHistoryFileSelection = "history"
 
         }
-        scrollTaskDetails = Int.MAX_VALUE
+        //scrollTaskDetails = Int.MAX_VALUE
     }
 
     var localId by mutableIntStateOf(0)
