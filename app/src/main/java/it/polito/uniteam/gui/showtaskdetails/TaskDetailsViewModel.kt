@@ -151,7 +151,21 @@ class taskDetails(val model: UniTeamModel) : ViewModel() {
         }
     }
 
-    var spentHours = mutableStateOf("3")
+    var spentTime = mutableMapOf(DummyDataProvider.member1 to Pair(2,20))
+        private set
+
+    fun addSpentTime(member: Member, time: Pair<Int,Int>) {
+        if(spentTime.contains(member)) {
+            val prevHours = spentTime.remove(member)
+            if (prevHours != null) {
+                spentTime.put(member, model.sumTimes(prevHours,time))
+            }
+        } else {
+            spentTime.put(member,time)
+        }
+        Log.i("diooo",spentTime.toString())
+    }
+    var spentHours = mutableStateOf("0")
         private set
     var spentMinutes = mutableStateOf("0")
         private set
@@ -168,8 +182,11 @@ class taskDetails(val model: UniTeamModel) : ViewModel() {
                 spentTimeError.value = "Invalid Minute Value."
             } else {
                 spentTimeError.value = ""
-                spentHours.value = hours.toString()
-                spentMinutes.value = minutes.toString()
+                spentHours.value = "0"
+                spentMinutes.value = "0"
+                addSpentTime(member,Pair(hours,minutes))
+                /*spentHours.value = hours.toString()
+                spentMinutes.value = minutes.toString()*/
             }
         } catch (e: RuntimeException) {
             spentTimeError.value = "Valid Positive Numbers Must Be Provided."
@@ -184,11 +201,10 @@ class taskDetails(val model: UniTeamModel) : ViewModel() {
         DummyDataProvider.member5,
         DummyDataProvider.member6
     )
-    var members = mutableStateListOf<Member>()
+    var members = mutableStateListOf<Member>(possibleMembers[0],possibleMembers[1])
 
     var openAssignDialog = mutableStateOf(false)
     var membersError by mutableStateOf("")
-        private set
 
     fun addMembers(m: Member) {
         members.add(m)

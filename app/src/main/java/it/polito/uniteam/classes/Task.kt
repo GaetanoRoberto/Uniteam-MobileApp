@@ -11,7 +11,7 @@ data class Task (
     var creationDate: LocalDate = LocalDate.now(),
     var deadline: LocalDate? = null,
     var estimatedTime: Pair<Int,Int> = Pair(0,0),
-    var spentTime: Pair<Int,Int>? = null,
+    var spentTime: HashMap<Member,Pair<Int,Int>> = hashMapOf(),
     var status: Status = Status.TODO,
     var repetition: Repetition = Repetition.NONE,
     var members: List<Member> = emptyList(),

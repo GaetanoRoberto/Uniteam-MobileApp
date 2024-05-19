@@ -778,7 +778,7 @@ fun ProfileSettings(
                                     vm.showPhoto(false)
                                     vm.setTemporaryUri(Uri.EMPTY)
                                 },
-                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onTertiary),// Imposta il colore di sfondo del bottone a rosso,
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),// Imposta il colore di sfondo del bottone a rosso,
                                 modifier = Modifier.weight(1f)
                             ) {
                                 Text(text = "Undo", color = MaterialTheme.colorScheme.onSecondary)
@@ -797,7 +797,7 @@ fun ProfileSettings(
                                         Toast.LENGTH_SHORT
                                     ).show()
                                 },
-                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onTertiary),// Imposta il colore di sfondo del bottone a rosso,
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),// Imposta il colore di sfondo del bottone a rosso,
                                 modifier = Modifier.weight(1f)
                             ) {
                                 Text(
@@ -839,7 +839,7 @@ fun ProfileSettings(
                                 vm.showPhoto(false)
                                 vm.setTemporaryUri(Uri.EMPTY)
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onTertiary),// Imposta il colore di sfondo del bottone a rosso,
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),// Imposta il colore di sfondo del bottone a rosso,
 
                             modifier = Modifier.width(300.dp)
                         ) {
@@ -856,7 +856,7 @@ fun ProfileSettings(
                                 Toast.makeText(context, "Profile Image Updated", Toast.LENGTH_SHORT)
                                     .show()
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onTertiary),// Imposta il colore di sfondo del bottone a rosso,
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),// Imposta il colore di sfondo del bottone a rosso,
                             modifier = Modifier.width(300.dp)
                         ) {
                             Text(text = "Confirm", color = MaterialTheme.colorScheme.onSecondary)

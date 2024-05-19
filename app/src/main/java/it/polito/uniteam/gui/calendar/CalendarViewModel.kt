@@ -89,16 +89,6 @@ class Calendar(val model: UniTeamModel) : ViewModel() {
         }
     }
 
-    fun sumTimes(time1: Pair<Int, Int>, time2: Pair<Int, Int>): Pair<Int, Int> {
-        val totalMinutes = time1.second + time2.second
-        val minutesOverflow = totalMinutes / 60
-        val minutes = totalMinutes % 60
-
-        val totalHours = time1.first + time2.first + minutesOverflow
-
-        return Pair(totalHours, minutes)
-    }
-
     fun subtractTimes(time1: Pair<Int, Int>, time2: Pair<Int, Int>): Pair<Int, Int> {
         val totalMinutes1 = time1.first * 60 + time1.second
         val totalMinutes2 = time2.first * 60 + time2.second
@@ -124,7 +114,7 @@ class Calendar(val model: UniTeamModel) : ViewModel() {
                     if (it.schedules.containsKey(Pair(memberProfile,scheduleDate))) {
                         val prevHours = it.schedules.remove(Pair(memberProfile,scheduleDate))
                         if (prevHours != null) {
-                            it.schedules.put(Pair(memberProfile!!,scheduleDate), sumTimes(prevHours,hoursToSchedule))
+                            it.schedules.put(Pair(memberProfile!!,scheduleDate), model.sumTimes(prevHours,hoursToSchedule))
                         }
                     } else {
                         it.schedules.put(Pair(memberProfile!!,scheduleDate), hoursToSchedule)
@@ -141,7 +131,7 @@ class Calendar(val model: UniTeamModel) : ViewModel() {
             if (task.schedules.containsKey(Pair(memberProfile,scheduleDate))) {
                 val prevHours = task.schedules.remove(Pair(memberProfile,scheduleDate))
                 if (prevHours != null) {
-                    task.schedules.put(Pair(memberProfile!!,scheduleDate), sumTimes(prevHours,hoursToSchedule))
+                    task.schedules.put(Pair(memberProfile!!,scheduleDate), model.sumTimes(prevHours,hoursToSchedule))
                 }
             } else {
                 task.schedules.put(Pair(memberProfile!!,scheduleDate), hoursToSchedule)

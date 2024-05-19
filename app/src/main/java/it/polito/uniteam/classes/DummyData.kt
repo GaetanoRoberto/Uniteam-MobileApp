@@ -147,7 +147,7 @@ object DummyDataProvider {
                 creationDate = LocalDate.now().minusDays(3)
                 deadline = LocalDate.now().plusDays(3)
                 estimatedTime = Pair(5, 0)
-                spentTime = Pair(2, 0)
+                spentTime = hashMapOf(member4 to Pair(2, 0))
                 status = Status.IN_PROGRESS
                 repetition = Repetition.NONE
                 members = listOf(member4, member5, member6)
@@ -162,7 +162,7 @@ object DummyDataProvider {
                 creationDate = LocalDate.now().minusDays(3)
                 deadline = LocalDate.now().plusDays(4)
                 estimatedTime = Pair(4, 0)
-                spentTime = Pair(1, 0)
+                spentTime = hashMapOf(member1 to Pair(1, 0))
                 status = Status.IN_PROGRESS
                 repetition = Repetition.WEEKLY
                 members = listOf(member1, member2)
@@ -177,7 +177,7 @@ object DummyDataProvider {
                 creationDate = LocalDate.now().minusDays(3)
                 deadline = LocalDate.now().plusDays(5)
                 estimatedTime = Pair(3, 0)
-                spentTime = Pair(2, 0)
+                spentTime = hashMapOf(member3 to Pair(2, 0))
                 status = Status.IN_PROGRESS
                 repetition = Repetition.DAILY
                 members = listOf(member3, member4)
@@ -300,7 +300,7 @@ object DummyDataProvider {
                 creationDate = LocalDate.now().minusDays(3)
                 deadline = LocalDate.now().plusDays(3)
                 estimatedTime = Pair(5,0)
-                spentTime = Pair(2,0)
+                spentTime = hashMapOf(member4 to Pair(2, 0))
                 status = Status.IN_PROGRESS
                 repetition = Repetition.NONE
                 members = listOf(member4, member5, member6)
@@ -315,7 +315,7 @@ object DummyDataProvider {
                 creationDate = LocalDate.now().minusDays(3)
                 deadline = LocalDate.now().plusDays(4)
                 estimatedTime = Pair(4,0)
-                spentTime = Pair(1,0)
+                spentTime = hashMapOf(member1 to Pair(1, 0))
                 status = Status.IN_PROGRESS
                 repetition = Repetition.WEEKLY
                 members = listOf(member1, member2)
@@ -330,7 +330,7 @@ object DummyDataProvider {
                 creationDate = LocalDate.now().minusDays(3)
                 deadline = LocalDate.now().plusDays(5)
                 estimatedTime = Pair(3,0)
-                spentTime = Pair(2,0)
+                spentTime = hashMapOf(member3 to Pair(2, 0))
                 status = Status.IN_PROGRESS
                 repetition = Repetition.DAILY
                 members = listOf(member3, member4)
@@ -345,7 +345,7 @@ object DummyDataProvider {
                 creationDate = LocalDate.now().minusDays(3)
                 deadline = LocalDate.now().plusDays(6)
                 estimatedTime = Pair(8,0)
-                spentTime = Pair(2,0)
+                spentTime = hashMapOf(member1 to Pair(2, 0))
                 status = Status.IN_PROGRESS
                 repetition = Repetition.WEEKLY
                 members = listOf(member1, member2)
@@ -359,7 +359,7 @@ object DummyDataProvider {
                 creationDate = LocalDate.now().minusDays(3)
                 deadline = LocalDate.now().plusDays(7)
                 estimatedTime = Pair(10,0)
-                spentTime = Pair(3,0)
+                spentTime = hashMapOf(member3 to Pair(3, 0))
                 status = Status.TODO
                 repetition = Repetition.DAILY
                 members = listOf(member3, member4)
@@ -373,7 +373,7 @@ object DummyDataProvider {
                 creationDate = LocalDate.now().minusDays(3)
                 deadline = LocalDate.now().plusDays(8)
                 estimatedTime = Pair(5,0)
-                spentTime = Pair(1,0)
+                spentTime = hashMapOf(member5 to Pair(2,0))
                 status = Status.TODO
                 repetition = Repetition.NONE
                 members = listOf(member5, member6)
@@ -392,7 +392,7 @@ object DummyDataProvider {
                 creationDate = LocalDate.now().minusDays(3)
                 deadline = LocalDate.now().plusDays(3)
                 estimatedTime = Pair(5,0)
-                spentTime = Pair(2,0)
+                spentTime = hashMapOf(member4 to Pair(2,0))
                 status = Status.IN_PROGRESS
                 repetition = Repetition.NONE
                 members = listOf(member4, member5, member6)
@@ -407,7 +407,7 @@ object DummyDataProvider {
                 creationDate = LocalDate.now().minusDays(3)
                 deadline = LocalDate.now().plusDays(4)
                 estimatedTime = Pair(4,0)
-                spentTime = Pair(1,0)
+                spentTime = hashMapOf(member2 to Pair(1,0))
                 status = Status.IN_PROGRESS
                 repetition = Repetition.WEEKLY
                 members = listOf(member1, member2)
@@ -422,7 +422,7 @@ object DummyDataProvider {
                 creationDate = LocalDate.now().minusDays(3)
                 deadline = LocalDate.now().plusDays(5)
                 estimatedTime = Pair(3,0)
-                spentTime = Pair(2,0)
+                spentTime = hashMapOf(member3 to Pair(2,0))
                 status = Status.IN_PROGRESS
                 repetition = Repetition.DAILY
                 members = listOf(member3, member4)

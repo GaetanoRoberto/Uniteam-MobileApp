@@ -156,4 +156,14 @@ class UniTeamModel {
         val chat = _loggedMember?.chats?.find { it.sender == _loggedMember && it.receiver == memberToChatWith }
         return chat!!
     }
+
+    fun sumTimes(time1: Pair<Int, Int>, time2: Pair<Int, Int>): Pair<Int, Int> {
+        val totalMinutes = time1.second + time2.second
+        val minutesOverflow = totalMinutes / 60
+        val minutes = totalMinutes % 60
+
+        val totalHours = time1.first + time2.first + minutesOverflow
+
+        return Pair(totalHours, minutes)
+    }
 }
