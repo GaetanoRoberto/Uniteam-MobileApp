@@ -32,7 +32,8 @@ class UniTeamModel {
     fun getAllTasks() :List<Task>{
         val ret = mutableListOf<Task>()
         _teams.forEach { team->
-            ret.addAll(team.tasks)
+            val tasks = team.tasks.filter { it.members.contains(_loggedMember) }
+            ret.addAll(tasks)
         }
         return ret
     }

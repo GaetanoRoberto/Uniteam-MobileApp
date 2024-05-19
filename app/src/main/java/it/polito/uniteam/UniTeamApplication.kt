@@ -8,6 +8,7 @@ import it.polito.uniteam.UniTeamModel
 import it.polito.uniteam.gui.calendar.Calendar
 import it.polito.uniteam.gui.notifications.NotificationsViewModel
 import it.polito.uniteam.gui.showtaskdetails.taskDetails
+import it.polito.uniteam.gui.statistics.StatisticsViewModel
 import it.polito.uniteam.gui.tasklist.TaskList
 import it.polito.uniteam.gui.userprofile.UserProfileScreen
 
@@ -20,7 +21,8 @@ class Factory(context: Context): ViewModelProvider.Factory {
         taskDetails::class.java,
         TaskList::class.java,
         UserProfileScreen::class.java,
-        NotificationsViewModel::class.java
+        NotificationsViewModel::class.java,
+        StatisticsViewModel::class.java
     )
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         for (viewModelClass in viewModelClasses) {

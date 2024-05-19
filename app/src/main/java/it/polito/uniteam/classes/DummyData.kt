@@ -151,7 +151,7 @@ object DummyDataProvider {
                 status = Status.IN_PROGRESS
                 repetition = Repetition.NONE
                 members = listOf(member4, member5, member6)
-                schedules = hashMapOf(getDate(DayOfWeek.TUESDAY) to Pair(5, 0))
+                schedules = hashMapOf(Pair(member4,getDate(DayOfWeek.TUESDAY)) to Pair(5, 0))
             },
             Task().apply {
                 id = getId()
@@ -166,7 +166,7 @@ object DummyDataProvider {
                 status = Status.IN_PROGRESS
                 repetition = Repetition.WEEKLY
                 members = listOf(member1, member2)
-                schedules = hashMapOf(getDate(DayOfWeek.WEDNESDAY) to Pair(4, 0))
+                schedules = hashMapOf(Pair(member1,getDate(DayOfWeek.WEDNESDAY)) to Pair(4, 0))
             },
             Task().apply {
                 id = getId()
@@ -181,7 +181,7 @@ object DummyDataProvider {
                 status = Status.IN_PROGRESS
                 repetition = Repetition.DAILY
                 members = listOf(member3, member4)
-                schedules = hashMapOf(getDate(DayOfWeek.FRIDAY) to Pair(3, 0))
+                schedules = hashMapOf(Pair(member3,getDate(DayOfWeek.FRIDAY)) to Pair(3, 0))
             }
         )
     }
@@ -292,7 +292,7 @@ object DummyDataProvider {
     fun getTasksToAssign(): List<Task> {
         return listOf(
             Task().apply {
-                id = getId()
+                id = 1
                 name = "Task1"
                 description = "Description1"
                 category = Category.MEETING
@@ -304,10 +304,10 @@ object DummyDataProvider {
                 status = Status.IN_PROGRESS
                 repetition = Repetition.NONE
                 members = listOf(member4, member5, member6)
-                schedules = hashMapOf(getDate(DayOfWeek.TUESDAY) to Pair(5,0))
+                schedules = hashMapOf(Pair(member4,getDate(DayOfWeek.TUESDAY)) to Pair(5,0))
             },
             Task().apply {
-                id = getId()
+                id = 2
                 name = "Task2"
                 description = "Description2"
                 category = Category.PROGRAMMING
@@ -319,10 +319,10 @@ object DummyDataProvider {
                 status = Status.IN_PROGRESS
                 repetition = Repetition.WEEKLY
                 members = listOf(member1, member2)
-                schedules = hashMapOf(getDate(DayOfWeek.WEDNESDAY) to Pair(4,0))
+                schedules = hashMapOf(Pair(member1,getDate(DayOfWeek.WEDNESDAY)) to Pair(4,0))
             },
             Task().apply {
-                id = getId()
+                id = 3
                 name = "Task3"
                 description = "Description3"
                 category = Category.DESIGN
@@ -334,10 +334,10 @@ object DummyDataProvider {
                 status = Status.IN_PROGRESS
                 repetition = Repetition.DAILY
                 members = listOf(member3, member4)
-                schedules = hashMapOf(getDate(DayOfWeek.FRIDAY) to Pair(3,0))
+                schedules = hashMapOf(Pair(member3,getDate(DayOfWeek.FRIDAY)) to Pair(3,0))
             },
             Task().apply {
-                id = getId()
+                id = 4
                 name = "Task4"
                 description = "Description1"
                 category = Category.MEETING
@@ -351,7 +351,7 @@ object DummyDataProvider {
                 members = listOf(member1, member2)
             },
             Task().apply {
-                id = getId()
+                id = 5
                 name = "Task5"
                 description = "Description2"
                 category = Category.PROGRAMMING
@@ -365,7 +365,7 @@ object DummyDataProvider {
                 members = listOf(member3, member4)
             },
             Task().apply {
-                id = getId()
+                id = 6
                 name = "Task6"
                 description = "Description3"
                 category = Category.DESIGN
@@ -384,7 +384,7 @@ object DummyDataProvider {
     fun getScheduledTasks(): List<Task> {
         return listOf(
             Task().apply {
-                id = getId()
+                id = 1
                 name = "Task1"
                 description = "Description1"
                 category = Category.MEETING
@@ -396,10 +396,10 @@ object DummyDataProvider {
                 status = Status.IN_PROGRESS
                 repetition = Repetition.NONE
                 members = listOf(member4, member5, member6)
-                schedules = hashMapOf(getDate(DayOfWeek.TUESDAY) to Pair(5,0))
+                schedules = hashMapOf(Pair(member4,getDate(DayOfWeek.TUESDAY)) to Pair(5,0))
             },
             Task().apply {
-                id = getId()
+                id = 2
                 name = "Task2"
                 description = "Description2"
                 category = Category.PROGRAMMING
@@ -411,10 +411,10 @@ object DummyDataProvider {
                 status = Status.IN_PROGRESS
                 repetition = Repetition.WEEKLY
                 members = listOf(member1, member2)
-                schedules = hashMapOf(getDate(DayOfWeek.WEDNESDAY) to Pair(4,0))
+                schedules = hashMapOf(Pair(member2,getDate(DayOfWeek.WEDNESDAY)) to Pair(4,0))
             },
             Task().apply {
-                id = getId()
+                id = 3
                 name = "Task3"
                 description = "Description3"
                 category = Category.DESIGN
@@ -426,7 +426,7 @@ object DummyDataProvider {
                 status = Status.IN_PROGRESS
                 repetition = Repetition.DAILY
                 members = listOf(member3, member4)
-                schedules = hashMapOf(getDate(DayOfWeek.FRIDAY) to Pair(3,0))
+                schedules = hashMapOf(Pair(member3,getDate(DayOfWeek.FRIDAY)) to Pair(3,0))
             }
         )
     }

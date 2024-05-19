@@ -224,7 +224,7 @@ fun HorizontalDayEventScheduler(data: CalendarUiModel,
                                             // data passed from the DraggableItem, so move from 1 day to another
                                             val task = state.data.first
                                             val oldDate = state.data.second
-                                            val hoursToSchedule = task.schedules.get(oldDate)
+                                            val hoursToSchedule = task.schedules.get(Pair(vm.memberProfile,oldDate))
                                             // remove the old day scheduled and add the new one
                                             vm.unScheduleTask(task, oldDate!!)
                                             if (hoursToSchedule != null) {
@@ -243,7 +243,7 @@ fun HorizontalDayEventScheduler(data: CalendarUiModel,
                             horizontalArrangement = Arrangement.Start
                         ) {
                             item(1) {
-                                vm.viewedScheduledTasks.filter { it.schedules.containsKey(date.date) }
+                                vm.viewedScheduledTasks.filter { it.schedules.any { it.key.second == date.date } }
                                     .forEach { task ->
                                         DraggableItem(
                                             state = dragAndDropState,
