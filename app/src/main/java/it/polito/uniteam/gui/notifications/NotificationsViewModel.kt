@@ -9,6 +9,7 @@ import it.polito.uniteam.UniTeamModel
 import it.polito.uniteam.classes.Message
 import it.polito.uniteam.classes.messageStatus
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 class NotificationsViewModel(val model: UniTeamModel) : ViewModel() {
     var teamsHistories by mutableStateOf(model.getAllHistories())
@@ -18,21 +19,24 @@ class NotificationsViewModel(val model: UniTeamModel) : ViewModel() {
         Message(
             id = 1,
             message = "",
-            creationDate = LocalDate.now(),
+            senderId = 1,
+            creationDate = LocalDateTime.now(),
             membersUnread = listOf(model.loggedMember!!),
             status = messageStatus.UNREAD
         ),
         Message(
             id = 2,
             message = "",
-            creationDate = LocalDate.now(),
+            senderId = 2,
+            creationDate = LocalDateTime.now(),
             membersUnread = listOf(model.loggedMember),
             status = messageStatus.UNREAD
         ),
         Message(
             id = 3,
             message = "",
-            creationDate = LocalDate.now(),
+            senderId = 3,
+            creationDate = LocalDateTime.now(),
             membersUnread = listOf(model.loggedMember),
             status = messageStatus.UNREAD
         )

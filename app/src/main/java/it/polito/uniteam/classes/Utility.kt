@@ -117,7 +117,54 @@ fun MemberIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: 
         }
     }
 }
-
+@Composable
+fun TeamIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: Modifier = Modifier.padding(0.dp, 0.dp, 20.dp, 0.dp), team: Team) {
+    Box(modifier = modifierScale) {
+        if (team.image != Uri.EMPTY) {
+            Image(
+                painter = rememberAsyncImagePainter(team.image),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(22.dp)
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop
+            )
+        } else {
+            val initials = team.name.trim().split(' ');
+            var initialsValue = initials
+                .mapNotNull { it.firstOrNull()?.toString() }
+                .first();
+            if (initials.size >= 2) {
+                initialsValue += initials
+                    .mapNotNull { it.firstOrNull()?.toString() }
+                    .last()
+            }
+            Box(
+                modifier = Modifier
+                    .then(modifierPadding)
+                    .size(22.dp)
+                    .drawBehind {
+                        drawCircle(
+                            color = Orange,
+                            radius = this.size.maxDimension
+                        )
+                    }
+            ) {
+                Text(
+                    text = initialsValue,
+                    style = TextStyle(
+                        color = Color.White,
+                        fontSize = 13.sp,
+                        textAlign = TextAlign.Center,
+                    ),
+                    modifier = Modifier.align(Alignment.Center),
+                    maxLines = 1,
+                    overflow = TextOverflow.Clip
+                )
+            }
+        }
+    }
+}
 @Composable
 fun TextTrim(inputText: String, desiredLength: Int, modifier: Modifier = Modifier, style: TextStyle = LocalTextStyle.current) {
     val text = if (inputText.length > desiredLength) {
