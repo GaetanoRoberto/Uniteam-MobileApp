@@ -205,6 +205,7 @@ class Calendar(val model: UniTeamModel) : ViewModel() {
         tasksToAssign.addAll(taskToAssignList)
     }
 
+    var calendarUiModel by mutableStateOf<CalendarUiModel>(getData(lastSelectedDate = today))
     val today: LocalDate
         get() {
             return LocalDate.now()

@@ -51,7 +51,7 @@ fun HorizontalCalendarApp(
     vm: Calendar = viewModel(factory = Factory(LocalContext.current))
 ) {
     // get CalendarUiModel from CalendarDataSource, and the lastSelectedDate is Today.
-    var calendarUiModel by remember { mutableStateOf(vm.getData(lastSelectedDate = vm.today)) }
+    var calendarUiModel by remember { mutableStateOf(vm.calendarUiModel) }
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -65,6 +65,7 @@ fun HorizontalCalendarApp(
                     startDate = finalStartDate,
                     lastSelectedDate = calendarUiModel.selectedDate.date
                 )
+                vm.calendarUiModel = calendarUiModel
             },
             onNextClickListener = { endDate ->
                 // refresh the CalendarUiModel with new data
@@ -74,6 +75,7 @@ fun HorizontalCalendarApp(
                     startDate = finalStartDate,
                     lastSelectedDate = calendarUiModel.selectedDate.date
                 )
+                vm.calendarUiModel = calendarUiModel
             },
             onTodayClickListener = {
                 val finalStartDate = calendarUiModel.selectedDate.date
@@ -81,7 +83,7 @@ fun HorizontalCalendarApp(
                     startDate = finalStartDate,
                     lastSelectedDate = calendarUiModel.selectedDate.date
                 )
-
+                vm.calendarUiModel = calendarUiModel
             }
 
         )
