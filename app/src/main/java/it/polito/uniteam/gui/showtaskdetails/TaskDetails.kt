@@ -4,6 +4,7 @@ package it.polito.uniteam.gui.showtaskdetails
 import android.content.ContentResolver
 import android.net.Uri
 import android.provider.OpenableColumns
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -131,14 +132,14 @@ fun TaskDetailsView(vm: taskDetails = viewModel(factory = Factory(LocalContext.c
     //vm.newTask()*/
     val isVertical = isVertical()
     var scrollState = rememberScrollState()
+    val isFirstRender = remember { mutableStateOf(true) }
     LaunchedEffect(vm.commentHistoryFileSelection) {
-        if (isVertical)
+        if (isVertical && !isFirstRender.value) {
             scrollState.scrollTo(Int.MAX_VALUE)
+        }
+        isFirstRender.value = false
     }
-    scrollState = if (isVertical())
-        rememberScrollState(vm.scrollTaskDetails)
-    else
-        scrollState
+    scrollState = rememberScrollState()
     Column(
         modifier = Modifier
             .fillMaxSize()
