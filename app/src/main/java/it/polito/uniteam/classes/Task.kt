@@ -24,3 +24,10 @@ data class Task (
         return "Task(id=$id, name='$name', schedules=$schedules)"
     }
 }
+
+data class TaskForCalendar(
+    val team: String,
+    val name: String,
+    val date: LocalDate,
+    val estimatedTime: Pair<Int,Int> = Pair(0,0)
+    )

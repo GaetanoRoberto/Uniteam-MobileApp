@@ -6,6 +6,7 @@ import it.polito.uniteam.classes.Priority
 import it.polito.uniteam.classes.Repetition
 import it.polito.uniteam.classes.Status
 import it.polito.uniteam.classes.Task
+import it.polito.uniteam.classes.Team
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters
@@ -183,6 +184,85 @@ object DummyDataProvider {
         } else {
             return LocalDate.now().with(TemporalAdjusters.previousOrSame(day))
         }
+    }
+
+    fun getTeams(): List<Team>{
+        return listOf(
+            Team().apply {
+                id=1
+                name= "Team1"
+                description= "description1"
+                members= mutableListOf(member1, member2)
+                tasks= mutableListOf(Task().apply {
+                    id = 1
+                    name = "Task1"
+                    description = "Description1"
+                    category = Category.MEETING
+                    priority = Priority.HIGH
+                    creationDate = LocalDate.now().minusDays(3)
+                    deadline = LocalDate.now().plusDays(3)
+                    estimatedTime = Pair(5,0)
+                    spentTime = Pair(2,0)
+                    status = Status.IN_PROGRESS
+                    repetition = Repetition.NONE
+                    members = listOf(member1, member5, member6)
+                    schedules = hashMapOf(getDate(DayOfWeek.TUESDAY) to Pair(5,0))
+                },
+                    Task().apply {
+                        id = 2
+                        name = "Task2"
+                        description = "Description2"
+                        category = Category.PROGRAMMING
+                        priority = Priority.MEDIUM
+                        creationDate = LocalDate.now().minusDays(3)
+                        deadline = LocalDate.now().plusDays(4)
+                        estimatedTime = Pair(4,0)
+                        spentTime = Pair(1,0)
+                        status = Status.IN_PROGRESS
+                        repetition = Repetition.WEEKLY
+                        members = listOf(member1, member2)
+                        schedules = hashMapOf(getDate(DayOfWeek.WEDNESDAY) to Pair(4,0))
+                    })
+
+            },
+            Team().apply {
+                id=2
+                name= "Team2"
+                description= "description1"
+                members= mutableListOf(member1, member2)
+                tasks= mutableListOf(Task().apply {
+                    id = 3
+                    name = "Task3"
+                    description = "Description1"
+                    category = Category.MEETING
+                    priority = Priority.HIGH
+                    creationDate = LocalDate.now().minusDays(3)
+                    deadline = LocalDate.now().plusDays(3)
+                    estimatedTime = Pair(5,0)
+                    spentTime = Pair(2,0)
+                    status = Status.IN_PROGRESS
+                    repetition = Repetition.NONE
+                    members = listOf(member1, member5, member6)
+                    schedules = hashMapOf(getDate(DayOfWeek.TUESDAY) to Pair(5,0))
+                },
+                    Task().apply {
+                        id = 4
+                        name = "Task4"
+                        description = "Description2"
+                        category = Category.PROGRAMMING
+                        priority = Priority.MEDIUM
+                        creationDate = LocalDate.now().minusDays(3)
+                        deadline = LocalDate.now().plusDays(4)
+                        estimatedTime = Pair(4,0)
+                        spentTime = Pair(1,0)
+                        status = Status.IN_PROGRESS
+                        repetition = Repetition.WEEKLY
+                        members = listOf(member1, member2)
+                        schedules = hashMapOf(getDate(DayOfWeek.WEDNESDAY) to Pair(4,0))
+                    })
+
+            }
+        )
     }
 
     fun getScheduledTasks(): List<Task> {

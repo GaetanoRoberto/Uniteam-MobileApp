@@ -17,13 +17,13 @@ import kotlinx.coroutines.flow.StateFlow
 
 class UniTeamModel {
     // Calendar View Model
-    private var _loggedMember by mutableStateOf<Member?>(null)
+    private var _loggedMember by mutableStateOf<Member?>(DummyDataProvider.member1)
     val loggedMember = _loggedMember
     fun setLoggedMember(member: Member) {
         _loggedMember = member
     }
 
-    private var _teams = mutableStateListOf<Team>()
+    private var _teams = mutableStateListOf<Team>(DummyDataProvider.getTeams()[0], DummyDataProvider.getTeams()[1])
     val teams = _teams
 
     private var _selectedTeam = mutableStateOf(Team(name= "default", description = "default"))// team selected to show its details

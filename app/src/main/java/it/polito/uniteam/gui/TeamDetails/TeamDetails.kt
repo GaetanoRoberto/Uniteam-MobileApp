@@ -92,6 +92,7 @@ import it.polito.uniteam.gui.showtaskdetails.RowMemberItem
 import it.polito.uniteam.gui.showtaskdetails.taskDetails
 import it.polito.uniteam.gui.userprofile.AlertDialogExample
 import it.polito.uniteam.gui.userprofile.UserProfileScreen
+import it.polito.uniteam.gui.yourTasksCalendar.YourTasksCalendarViewModel
 import it.polito.uniteam.isVertical
 import it.polito.uniteam.ui.theme.Orange
 
@@ -188,6 +189,8 @@ class Factory(context: Context): ViewModelProvider.Factory{
     override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
         return if(modelClass.isAssignableFrom(TeamDetailsViewModel::class.java))
             TeamDetailsViewModel(model) as T
+        else if(modelClass.isAssignableFrom(YourTasksCalendarViewModel::class.java))
+            YourTasksCalendarViewModel(model) as T
         else throw IllegalArgumentException("Unknown ViewModel class")
 
     }
