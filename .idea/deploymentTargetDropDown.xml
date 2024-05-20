@@ -2,6 +2,9 @@
 <project version="4">
   <component name="deploymentTargetDropDown">
     <value>
+      <entry key="MainActivity">
+        <State />
+      </entry>
       <entry key="OtherProfileSettings">
         <State />
       </entry>
@@ -12,9 +15,6 @@
         <State />
       </entry>
       <entry key="TeamViewScreen">
-        <State />
-      </entry>
-      <entry key="YourTasksCalendarViewScreen">
         <State />
       </entry>
       <entry key="app">
