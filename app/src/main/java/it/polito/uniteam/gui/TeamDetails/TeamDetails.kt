@@ -134,12 +134,18 @@ class TeamDetailsViewModel(val model: UniTeamModel): ViewModel() {
         if (teamNameError.isEmpty() && descriptionError.isEmpty()) {
             model.changeSelectedTeamName(selectedTeam.value.name)
             model.changeSelectedTeamDescription(selectedTeam.value.description)
+            val existingTeams = model.getAllTeams().map { it.id }
+            // new team creation
+            if(!existingTeams.contains(selectedTeam.value.id)){
+                model.addTeam(selectedTeam.value)
+            }
 
         }
 
     }
 
     var editing by mutableStateOf(false)
+    var newTeam by mutableStateOf(false)
     fun changeEditing() {
         if(editing == true){
             selectedTeam = mutableStateOf(model.selectedTeam)
@@ -151,17 +157,25 @@ class TeamDetailsViewModel(val model: UniTeamModel): ViewModel() {
         editing = !editing
     }
 
+    fun teamCreation(flag: Boolean){
+        newTeam = flag
+    }
+
     fun onCancel(){
         Log.d("view", selectedTeam.value.members.size.toString())
 
         model.changeSelectedTeamMembers(teamMembersBeforeEditing)
     }
 
+    fun onNew(){
+        model.newTeam()
+        teamCreation(true)
+    }
+
     var openAssignDialog = mutableStateOf(false)
 
     var possibleMembers = model.getAllMembers()
-    var teamNameBeforeEditing = model.selectedTeam.name.toString()
-    var teamDescriptionBeforeEditing = model.selectedTeam.description.toString()
+
     var teamMembersBeforeEditing = model.selectedTeam.members.toList()
 
 
@@ -198,11 +212,11 @@ fun TeamDetailsView(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
         Spacer(modifier = Modifier.padding(10.dp))
         Row(modifier = Modifier.fillMaxWidth(0.95f), horizontalArrangement = Arrangement.End) {
             IconButton(onClick = {
-                //vm.changeEditing()
-                //vm.enterEditingMode()
-                //vm.newTask()
+                vm.onNew()
+                vm.changeEditing()
+
             }) {
-                Icon(Icons.Default.Add, contentDescription = "Add ")
+                Icon(Icons.Default.Add, contentDescription = "New team ")
             }
             IconButton(onClick = {
                 vm.changeEditing()
@@ -268,6 +282,10 @@ val selectedTeam = vm.selectedTeam.value
                                         restoreState = true
                                     }*/
                                     vm.onCancel()
+                                    if(vm.newTeam){
+                                        TODO("Navigate to team list")
+                                    }
+                                    vm.teamCreation(false)
 
                                     vm.changeEditing()
                                 }, modifier = Modifier.fillMaxWidth()) {
@@ -321,6 +339,10 @@ val selectedTeam = vm.selectedTeam.value
                         Box(modifier = Modifier.weight(1f)) {
                             Button(colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
                                 vm.onCancel()
+                                if(vm.newTeam){
+                                    TODO("Navigate to team list")
+                                }
+                                vm.teamCreation(false)
                                 vm.changeEditing()
                                 /*navController.navigate("Tasks"){
                                     popUpTo(navController.graph.findStartDestination().id) {

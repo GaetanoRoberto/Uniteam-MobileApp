@@ -27,7 +27,7 @@ class UniTeamModel {
     val teams = _teams
 
     private var _selectedTeam = mutableStateOf(Team(name= "default", description = "default"))// team selected to show its details
-    val selectedTeam= _selectedTeam.value
+    var selectedTeam= _selectedTeam.value
 
     fun selectTeam(id: Int){ // click on team to set the selected team to show
         val team = getTeam(id)
@@ -35,6 +35,18 @@ class UniTeamModel {
             _selectedTeam.value = team
         }
 
+    }
+
+    fun newTeam(){
+        var newId: Int
+
+        if(_teams.size <1 ){
+            newId = 0
+        }else{
+            newId = _teams.map { it.id }.max() +1
+        }
+        _selectedTeam = mutableStateOf(Team(id = newId, name= "", description = ""))
+        selectedTeam= _selectedTeam.value
     }
 
     fun changeSelectedTeamName(s:String){
@@ -80,6 +92,9 @@ class UniTeamModel {
 
     fun getTeam(teamId: Int): Team {
         return _teams.filter { it.id == teamId }[0]
+    }
+    fun getAllTeams(): List<Team> {
+        return _teams
     }
 
     fun addTeam(team: Team) {
