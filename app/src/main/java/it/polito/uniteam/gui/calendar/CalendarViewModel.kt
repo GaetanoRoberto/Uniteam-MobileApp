@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import it.polito.uniteam.UniTeamModel
 import it.polito.uniteam.classes.DummyDataProvider
@@ -17,7 +18,7 @@ import java.time.temporal.ChronoUnit
 import java.util.stream.Collectors
 import java.util.stream.Stream
 
-class Calendar(val model: UniTeamModel) : ViewModel() {
+class Calendar(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
     var memberProfile = model.loggedMember
         private set
 

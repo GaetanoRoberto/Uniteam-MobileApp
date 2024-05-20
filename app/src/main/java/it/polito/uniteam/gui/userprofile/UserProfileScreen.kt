@@ -76,6 +76,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -89,7 +90,7 @@ import java.io.File
 import java.util.concurrent.ExecutorService
 
 
-class UserProfileScreen(val model: UniTeamModel) : ViewModel() {
+class UserProfileScreen(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
     var isEditing by mutableStateOf(false)
         private set  //By adding "private set" only this class can change 'isEditing'
 

@@ -93,6 +93,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -115,7 +116,7 @@ import java.time.LocalDate
 import java.util.Locale
 
 
-class TaskList(val model: UniTeamModel) : ViewModel() {
+class TaskList(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
     var membersList = mutableStateOf<List<Member>>(listOf(
         Member().apply {
             fullName = "John Doe"

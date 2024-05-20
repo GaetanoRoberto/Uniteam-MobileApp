@@ -2,9 +2,11 @@ package it.polito.uniteam
 
 import android.app.Application
 import android.content.Context
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import it.polito.uniteam.UniTeamModel
+import androidx.lifecycle.createSavedStateHandle
+import androidx.lifecycle.viewmodel.CreationExtras
 import it.polito.uniteam.gui.calendar.Calendar
 import it.polito.uniteam.gui.notifications.NotificationsViewModel
 import it.polito.uniteam.gui.showtaskdetails.taskDetails
@@ -24,10 +26,11 @@ class Factory(context: Context): ViewModelProvider.Factory {
         NotificationsViewModel::class.java,
         StatisticsViewModel::class.java
     )
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+
+    override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
         for (viewModelClass in viewModelClasses) {
             if (modelClass.isAssignableFrom(viewModelClass)) {
-                return viewModelClass.getConstructor(UniTeamModel::class.java).newInstance(model) as T
+                return viewModelClass.getConstructor(UniTeamModel::class.java,SavedStateHandle::class.java).newInstance(model,extras.createSavedStateHandle()) as T
             }
         }
         throw IllegalArgumentException("Unknown ViewModel Class")

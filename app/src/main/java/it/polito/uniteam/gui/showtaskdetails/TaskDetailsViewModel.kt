@@ -9,6 +9,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import it.polito.uniteam.UniTeamModel
 import it.polito.uniteam.classes.Category
@@ -27,7 +28,7 @@ import java.time.LocalTime
 import java.util.Locale
 
 @SuppressLint("MutableCollectionMutableState")
-class taskDetails(val model: UniTeamModel) : ViewModel() {
+class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
 
     var taskName by mutableStateOf("Task Name value")
         private set
