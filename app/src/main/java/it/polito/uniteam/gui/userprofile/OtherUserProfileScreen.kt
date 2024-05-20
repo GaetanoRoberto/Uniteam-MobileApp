@@ -226,9 +226,7 @@ fun RowTeamItem(modifier: Modifier = Modifier, team: Team) {
 @Preview
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OtherProfileSettings(
-    vm: UserProfileScreen = viewModel(),
-) {
+fun OtherProfileSettings(vm: OtherUserProfileScreen = viewModel(factory = Factory(LocalContext.current.applicationContext))) {
 
 
     BoxWithConstraints {
@@ -236,7 +234,7 @@ fun OtherProfileSettings(
             Box(modifier = Modifier.fillMaxSize()) {
                 // Image at the top
                 Image(
-                    painter = rememberAsyncImagePainter(vm.temporaryUri),
+                    painter = rememberAsyncImagePainter(vm.member.profileImage),
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -261,7 +259,7 @@ fun OtherProfileSettings(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.Center
                             ) {
-                                DefaultImage(vm)
+                                DefaultImageForTeam(vm)
                             }
                             Spacer(modifier = Modifier.height(30.dp))
                             OtherUserProfile()
@@ -279,7 +277,7 @@ fun OtherProfileSettings(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Center
                             ) {
-                                DefaultImage(vm)
+                                DefaultImageForTeam(vm)
                             }
                             Spacer(modifier = Modifier.height(30.dp))
                             OtherUserProfile()
@@ -290,6 +288,66 @@ fun OtherProfileSettings(
             }
         }
     }
+
+
+
+@Preview
+@Composable
+fun DefaultImageForTeam(vm: OtherUserProfileScreen = viewModel(factory = Factory(LocalContext.current.applicationContext))) {
+    val name = vm.member.fullName
+    println(name)
+    if (name.isNotBlank() || vm.member.profileImage != Uri.EMPTY) {
+
+        Card(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
+            Row(
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.background),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+
+                // Box per contenere l'icona della fotocamera
+                Box(modifier = Modifier.size(200.dp), contentAlignment = Alignment.Center) {
+                    if (vm.member.profileImage != Uri.EMPTY) {
+                        Image(
+                            painter = rememberAsyncImagePainter(vm.member.profileImage),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(160.dp)
+                                .clip(CircleShape), // Clip the image into a circular shape
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        val initials = name.trim().split(' ');
+                        var initialsValue = initials
+                            .mapNotNull { it.firstOrNull()?.toString() }
+                            .first();
+
+                        if (initials.size >=2) {
+                            initialsValue += initials
+                                .mapNotNull { it.firstOrNull()?.toString() }
+                                .last()
+                        }
+                        Text(
+                            modifier = Modifier
+                                .padding(40.dp)
+                                .size(80.dp)
+                                .drawBehind {
+                                    drawCircle(
+                                        color = Orange,
+                                        radius = this.size.maxDimension
+                                    )
+                                },
+                            text = initialsValue,
+                            style = TextStyle(color = Color.White, fontSize = 60.sp, textAlign = TextAlign.Center)
+                        )
+                    }
+
+                }
+            }
+        }
+    }
+}
 
 
 

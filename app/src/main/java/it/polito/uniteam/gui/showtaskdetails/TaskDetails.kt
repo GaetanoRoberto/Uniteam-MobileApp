@@ -422,7 +422,7 @@ fun RowMemberItem(modifier: Modifier = Modifier, title: String, value: List<Memb
         modifier = modifier.horizontalScroll(rememberScrollState()),
     ) {
         for ((i, member) in value.withIndex()) {
-            MemberIcon(member = member, modifierScale = Modifier.scale(0.65f), modifierPadding = Modifier.padding(start = if (i == 0) 12.dp else 0.dp))
+            MemberIcon(member = member, modifierScale = Modifier.scale(0.65f), modifierPadding = Modifier.padding(start = if (i == 0) 16.dp else 0.dp))
             Text(
                 member.username.toString() + if (i < value.size - 1) {
                     ", "

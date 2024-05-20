@@ -72,7 +72,6 @@ fun YourTasksCalendarView(vm: YourTasksCalendarViewModel = viewModel(factory = F
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .border(BorderStroke(1.dp, MaterialTheme.colorScheme.onPrimary))
     ) {
         key(taskOrdered.size) {
             Column(

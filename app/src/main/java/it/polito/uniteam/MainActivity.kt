@@ -214,16 +214,16 @@ class MainActivity : ComponentActivity() {
                                 },*/
                             content = { paddingValue ->
                                 Column ( Modifier.padding(paddingValue)){
-                                    NavHost(navController = navController, startDestination = "Teams") {
+                                    NavHost(navController = navController, startDestination = "EditTeam") {
                                         // Definisci le destinazioni per le tue schermate
                                         composable("Teams") { TaskListView(vm = viewModel(),navController) }
                                         composable("Tasks") { TaskScreen(vm = viewModel()) }
                                         composable("Calendar") { CalendarAppContainer(vm = viewModel()) }
                                         composable("Notifications") { CalendarAppContainer(vm = viewModel()) }
                                         composable("Profile") { ProfileSettings(vm = viewModel(),outputDirectory = getOutputDirectory(),cameraExecutor = cameraExecutor)  }
-                                        composable("OtherUserProfile") { OtherProfileSettings(vm = viewModel()) }
-                                        composable("YourTasksCalendar") { YourTasksCalendarViewScreen(vm = viewModel()) }
-                                        composable("EditTeam") { TeamViewScreen(vm = viewModel()) }
+                                        composable("OtherUserProfile") { OtherProfileSettings() }
+                                        composable("YourTasksCalendar") { YourTasksCalendarViewScreen() }
+                                        composable("EditTeam") { TeamViewScreen() }
 
                                         /*composable("EditProfile") { ProfileSettings(vm = viewModel(),outputDirectory = getOutputDirectory(),cameraExecutor = cameraExecutor,pickImageLauncher = pickImageLauncher,edit=true,navController)  }
                                         composable("Profile") { ProfileSettings(vm = viewModel(),outputDirectory = getOutputDirectory(),cameraExecutor = cameraExecutor,pickImageLauncher = pickImageLauncher,edit=false,navController)  }*/
