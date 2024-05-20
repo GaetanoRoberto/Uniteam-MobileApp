@@ -28,6 +28,8 @@ class UniTeamModel {
 
     private var _selectedTeam = mutableStateOf(Team(name= "default", description = "default"))// team selected to show its details
     var selectedTeam= _selectedTeam.value
+    private var _selectedUser = mutableStateOf(DummyDataProvider.member2)// team selected to show its details
+    var selectedUser= _selectedUser.value
 
     fun selectTeam(id: Int){ // click on team to set the selected team to show
         val team = getTeam(id)
@@ -35,6 +37,10 @@ class UniTeamModel {
             _selectedTeam.value = team
         }
 
+    }
+
+    fun selectUser(id:Int){
+        _selectedUser.value = getMemberById(id).first!!
     }
 
     fun newTeam(){

@@ -91,6 +91,7 @@ import it.polito.uniteam.gui.showtaskdetails.RowItem
 import it.polito.uniteam.gui.showtaskdetails.RowMemberItem
 import it.polito.uniteam.gui.showtaskdetails.taskDetails
 import it.polito.uniteam.gui.userprofile.AlertDialogExample
+import it.polito.uniteam.gui.userprofile.OtherUserProfileScreen
 import it.polito.uniteam.gui.userprofile.UserProfileScreen
 import it.polito.uniteam.gui.yourTasksCalendar.YourTasksCalendarViewModel
 import it.polito.uniteam.isVertical
@@ -191,6 +192,8 @@ class Factory(context: Context): ViewModelProvider.Factory{
             TeamDetailsViewModel(model) as T
         else if(modelClass.isAssignableFrom(YourTasksCalendarViewModel::class.java))
             YourTasksCalendarViewModel(model) as T
+        else if(modelClass.isAssignableFrom(OtherUserProfileScreen::class.java))
+            OtherUserProfileScreen(model) as T
         else throw IllegalArgumentException("Unknown ViewModel class")
 
     }
