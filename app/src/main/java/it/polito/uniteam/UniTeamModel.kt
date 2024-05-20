@@ -11,6 +11,8 @@ import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.Task
 import it.polito.uniteam.classes.Team
 import it.polito.uniteam.gui.calendar.DummyDataProvider
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 
 class UniTeamModel {
@@ -24,8 +26,8 @@ class UniTeamModel {
     private var _teams = mutableStateListOf<Team>()
     val teams = _teams
 
-    private var _selectedTeam = mutableStateOf<Team>(Team()) // team selected to show its details
-    val selectedTeam = _selectedTeam
+    private var _selectedTeam = mutableStateOf(Team(name= "default", description = "default"))// team selected to show its details
+    val selectedTeam= _selectedTeam.value
 
     fun selectTeam(id: Int){ // click on team to set the selected team to show
         val team = getTeam(id)
@@ -34,6 +36,19 @@ class UniTeamModel {
         }
 
     }
+
+    fun changeSelectedTeamName(s:String){
+        _selectedTeam.value.name= s
+    }
+    fun changeSelectedTeamDescription(s:String){
+        _selectedTeam.value.description = s
+    }
+
+    fun changeSelectedTeamMembers(members: List<Member>){
+        _selectedTeam.value.members.apply {
+            clear()
+            addAll(members.toMutableList())
+        }    }
 
     fun getAllTasks() :List<Task>{
         val ret = mutableListOf<Task>()

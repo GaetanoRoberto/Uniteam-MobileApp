@@ -46,6 +46,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
@@ -96,13 +97,12 @@ import it.polito.uniteam.ui.theme.Orange
 
 class TeamDetailsViewModel(val model: UniTeamModel): ViewModel() {
     // from model
-    private val _selectedTeam = mutableStateOf(model.selectedTeam.value)
-    val selectedTeam: State<Team> get() = _selectedTeam
+    var selectedTeam = mutableStateOf( model.selectedTeam)
     // internal
     var teamNameError by mutableStateOf("")
         private set
     fun changeTeamName(s: String) {
-        _selectedTeam.value = _selectedTeam.value.copy(name = s)
+        selectedTeam.value = selectedTeam.value.copy(name = s)
         checkTeamName()
         Log.d("Deb", selectedTeam.value.name)
     }
@@ -118,7 +118,7 @@ class TeamDetailsViewModel(val model: UniTeamModel): ViewModel() {
         private set
 
     fun changeDescription(s: String) {
-        _selectedTeam.value = _selectedTeam.value.copy(description = s)
+        selectedTeam.value = selectedTeam.value.copy(description = s)
         checkDescription()    }
 
     private fun checkDescription() {
@@ -132,21 +132,39 @@ class TeamDetailsViewModel(val model: UniTeamModel): ViewModel() {
         checkTeamName()
         checkDescription()
         if (teamNameError.isEmpty() && descriptionError.isEmpty()) {
-            model.deleteTeam(model.selectedTeam.value.id)
-            model.addTeam(selectedTeam.value)
+            model.changeSelectedTeamName(selectedTeam.value.name)
+            model.changeSelectedTeamDescription(selectedTeam.value.description)
+
         }
 
     }
 
     var editing by mutableStateOf(false)
     fun changeEditing() {
+        if(editing == true){
+            selectedTeam = mutableStateOf(model.selectedTeam)
+            teamMembersBeforeEditing = model.selectedTeam.members.toList()
 
+        }
+        selectedTeam = mutableStateOf(model.selectedTeam)
+        Log.d("model", model.selectedTeam.name)
         editing = !editing
+    }
+
+    fun onCancel(){
+        Log.d("view", selectedTeam.value.members.size.toString())
+
+        model.changeSelectedTeamMembers(teamMembersBeforeEditing)
     }
 
     var openAssignDialog = mutableStateOf(false)
 
     var possibleMembers = model.getAllMembers()
+    var teamNameBeforeEditing = model.selectedTeam.name.toString()
+    var teamDescriptionBeforeEditing = model.selectedTeam.description.toString()
+    var teamMembersBeforeEditing = model.selectedTeam.members.toList()
+
+
 
 
 }
@@ -160,10 +178,20 @@ class Factory(context: Context): ViewModelProvider.Factory{
 
     }
 }
+
+@Preview
+@Composable
+fun TeamViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalContext.current.applicationContext))){
+    if(vm.editing){
+        TeamDetailsEdit()
+    }else{
+        TeamDetailsView()
+    }
+}
 @Preview
 @Composable
 fun TeamDetailsView(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalContext.current.applicationContext))) {
-    val selectedTeam = vm.selectedTeam.value
+
     Column(modifier = Modifier
         .fillMaxSize()
         .verticalScroll(rememberScrollState())) {
@@ -177,17 +205,17 @@ fun TeamDetailsView(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
                 Icon(Icons.Default.Add, contentDescription = "Add ")
             }
             IconButton(onClick = {
-                //vm.changeEditing()
+                vm.changeEditing()
                 //vm.enterEditingMode()
             }) {
                 Icon(Icons.Default.Edit, contentDescription = "Edit ")
             }
         }
 
-        RowItem(title = "Name:", value = selectedTeam.name)
-        RowItem(title = "Description:", value = selectedTeam.description.toString())
-        RowMemberItem(title = "Members:", value = selectedTeam.members)
-        RowItem(title = "Creation Date:", value = selectedTeam.creationDate.toString())
+        RowItem(title = "Name:", value = vm.selectedTeam.value.name)
+        RowItem(title = "Description:", value = vm.selectedTeam.value.description.toString())
+        RowMemberItem(title = "Members:", value = vm.selectedTeam.value.members)
+        RowItem(title = "Creation Date:", value = vm.selectedTeam.value.creationDate.toString())
 
     }
 }
@@ -196,7 +224,7 @@ fun TeamDetailsView(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
 @Preview
 @Composable
 fun TeamDetailsEdit(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalContext.current.applicationContext))){
-
+val selectedTeam = vm.selectedTeam.value
     Row(){
         Column(modifier = Modifier.fillMaxSize(),  verticalArrangement = Arrangement.Bottom) {
             Row(modifier = Modifier.fillMaxHeight(0.9f)) {
@@ -209,20 +237,20 @@ fun TeamDetailsEdit(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
                     Spacer(modifier = Modifier.padding(10.dp))
                     EditRowItem(
                         label = "Name:",
-                        value = vm.selectedTeam.value.name,
+                        value = selectedTeam.name,
                         errorText = vm.teamNameError,
                         onChange = vm::changeTeamName
                     )
                     EditRowItem(
                         label = "Description:",
-                        value = vm.selectedTeam.value.description,
+                        value = selectedTeam.description,
                         errorText = vm.descriptionError,
                         onChange = vm::changeDescription
                     )
                     TeamMembersDropdownMenuBox(
                         vm,
                         "AddMembers",
-                        vm.selectedTeam.value.members
+                        selectedTeam.members
                     )
                     Spacer(modifier = Modifier.height(10.dp))
 
@@ -239,6 +267,7 @@ fun TeamDetailsEdit(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
                                         launchSingleTop = true
                                         restoreState = true
                                     }*/
+                                    vm.onCancel()
 
                                     vm.changeEditing()
                                 }, modifier = Modifier.fillMaxWidth()) {
@@ -291,6 +320,7 @@ fun TeamDetailsEdit(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
                     ) {
                         Box(modifier = Modifier.weight(1f)) {
                             Button(colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
+                                vm.onCancel()
                                 vm.changeEditing()
                                 /*navController.navigate("Tasks"){
                                     popUpTo(navController.graph.findStartDestination().id) {
@@ -423,6 +453,7 @@ fun TeamMembersDropdownMenuBox(
 
 @Composable
 fun TeamAssignMemberDialog(vm: TeamDetailsViewModel) {
+    val selectedTeam = vm.selectedTeam.value
 
     val selectedMembers = remember { mutableStateMapOf<Member, Boolean>() }
     vm.possibleMembers.forEach { member ->
@@ -446,13 +477,13 @@ fun TeamAssignMemberDialog(vm: TeamDetailsViewModel) {
                 ) {
                     if (isVertical())
                         Text(
-                            text = vm.selectedTeam.value.name,
+                            text = selectedTeam.name,
                             style = MaterialTheme.typography.headlineSmall,
                             textAlign = TextAlign.Center
                         )
                     else
                         Text(
-                            text = vm.selectedTeam.value.name,
+                            text = selectedTeam.name,
                             style = MaterialTheme.typography.headlineSmall,
                             textAlign = TextAlign.Center,
                             overflow = TextOverflow.Ellipsis,
