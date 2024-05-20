@@ -7,13 +7,17 @@ import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters
 
 object DummyDataProvider {
-    private var tempId: Int = 0
-    private fun getId(): Int {
-        return ++tempId
-    }
+    private var memberId: Int = 0
+    private var taskId: Int = 0
+    private var teamId: Int = 0
+    private var chatId: Int = 0
+    private var historyId: Int = 0
+    private var messageId: Int = 0
+    private var fileId: Int = 0
+    private var commentId: Int = 0
     
     val member1 = Member().apply {
-        id = getId()
+        id = ++memberId
         fullName = "John Doe"
         username = "johndoe"
         email = "john@example.com"
@@ -31,7 +35,7 @@ object DummyDataProvider {
     }
 
     val member2 = Member().apply {
-        id = getId()
+        id = ++memberId
         fullName = "Jane Smith"
         username = "janesmith"
         email = "jane@example.com"
@@ -49,7 +53,7 @@ object DummyDataProvider {
     }
 
     val member3 = Member().apply {
-        id = getId()
+        id = ++memberId
         fullName = "Alice Johnson"
         username = "alicejohnson"
         email = "alice@example.com"
@@ -67,7 +71,7 @@ object DummyDataProvider {
     }
 
     val member4 = Member().apply {
-        id = getId()
+        id = ++memberId
         fullName = "Michael Johnson"
         username = "michaelj"
         email = "michael@example.com"
@@ -85,7 +89,7 @@ object DummyDataProvider {
     }
 
     val member5 = Member().apply {
-        id = getId()
+        id = ++memberId
         fullName = "Emily Brown"
         username = "emilyb"
         email = "emily@example.com"
@@ -103,7 +107,7 @@ object DummyDataProvider {
     }
 
     val member6 = Member().apply {
-        id = getId()
+        id = ++memberId
         fullName = "Alex Smith"
         username = "alexsmith"
         email = "alex@example.com"
@@ -126,11 +130,11 @@ object DummyDataProvider {
 
     private fun getChat(member1: Member, member2: Member): Chat {
         val chat = Chat()
-        chat.id = getId()
+        chat.id = ++chatId
         chat.sender = member1
         chat.receiver = member2
         val m = Message()
-        m.id = getId()
+        m.id = ++messageId
         m.message = member1.hashCode().toString() + member2.hashCode().toString()
         chat.messages = listOf(m)
         return chat
@@ -139,7 +143,7 @@ object DummyDataProvider {
     private fun getTasks(member1: Member, member2: Member, member3: Member): List<Task> {
         return listOf(
             Task().apply {
-                id = getId()
+                id = ++taskId
                 name = "Task1"
                 description = "Description1"
                 category = Category.MEETING
@@ -154,7 +158,7 @@ object DummyDataProvider {
                 schedules = hashMapOf(Pair(member4,getDate(DayOfWeek.TUESDAY)) to Pair(5, 0))
             },
             Task().apply {
-                id = getId()
+                id = ++taskId
                 name = "Task2"
                 description = "Description2"
                 category = Category.PROGRAMMING
@@ -169,7 +173,7 @@ object DummyDataProvider {
                 schedules = hashMapOf(Pair(member1,getDate(DayOfWeek.WEDNESDAY)) to Pair(4, 0))
             },
             Task().apply {
-                id = getId()
+                id = ++taskId
                 name = "Task3"
                 description = "Description3"
                 category = Category.DESIGN
@@ -189,14 +193,14 @@ object DummyDataProvider {
     private fun getComments(member1: Member, member2: Member): List<Comment> {
         return listOf(
             Comment(
-                id = getId() ,
+                id = ++commentId,
                 user = member1,
                 commentValue = "Great job!",
                 date = LocalDate.now().toString(),
                 hour = "10:00 AM"
             ),
             Comment(
-                id = getId() ,
+                id = ++commentId,
                 user = member2,
                 commentValue = "Thanks!",
                 date = LocalDate.now().toString(),
@@ -209,13 +213,13 @@ object DummyDataProvider {
         if (isTeamHistory) {
             return listOf(
                 History(
-                    id = getId(),
+                    id = ++historyId,
                     comment = "Task created successfully",
                     date = LocalDate.now().toString(),
                     user = member
                 ),
                 History(
-                    id = getId(),
+                    id = ++historyId,
                     comment = "${member5.username} joined the team",
                     date = LocalDate.now().toString(),
                     user = member
@@ -224,13 +228,13 @@ object DummyDataProvider {
         } else {
             return listOf(
                 History(
-                    id = getId(),
+                    id = ++historyId,
                     comment = "Task completed successfully",
                     date = LocalDate.now().toString(),
                     user = member
                 ),
                 History(
-                    id = getId(),
+                    id = ++historyId,
                     comment = "Task assigned to team member",
                     date = LocalDate.now().toString(),
                     user = member
@@ -242,14 +246,14 @@ object DummyDataProvider {
     private fun getFiles(member: Member): List<File> {
         return listOf(
             File(
-                id = getId(),
+                id = ++fileId,
                 user = member,
                 filename = "Report.pdf",
                 date = LocalDate.now().toString(),
                 uri = Uri.EMPTY
             ),
             File(
-                id = getId(),
+                id = ++fileId,
                 user = member,
                 filename = "Presentation.pptx",
                 date = LocalDate.now().toString(),
@@ -270,7 +274,7 @@ object DummyDataProvider {
                 task.taskFiles = getFiles(members[i])
             }
             val team = Team(
-                id = getId(),
+                id = ++teamId,
                 name = "Team $i",
                 description = "Description for Team $i",
                 image = Uri.EMPTY,
