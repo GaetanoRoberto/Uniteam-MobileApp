@@ -1,5 +1,5 @@
 package it.polito.uniteam.gui.chat
-
+import androidx.compose.ui.Alignment
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,7 +31,6 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -82,6 +81,7 @@ fun ChatBody(vm: ChatViewModel){
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .height((screenHeightDp * 0.57).dp)
             .background(
                 MaterialTheme.colorScheme.secondary, RoundedCornerShape(
                     topStart = 30.dp, topEnd = 30.dp
@@ -94,26 +94,27 @@ fun ChatBody(vm: ChatViewModel){
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height((screenHeightDp * 0.62).dp)
                     .verticalScroll(rememberScrollState(initial = Int.MAX_VALUE))
                     //.border(BorderStroke(1.dp, MaterialTheme.colorScheme.onPrimary))
             ) {
                 vm.messages.forEach { message ->
-                    ChatRow(message = message, vm)
+                    if (vm.chat.teamId != null)
+                        ChatRowTeam(message = message, vm)
+                    else
+                        //ChatRowTeam(message = message, vm)
+                        ChatRowDirect(message = message, vm)
                 }
             }
         }
     }
 }
 @Composable
-fun ChatRow(
+fun ChatRowDirect(
     message: Message,
     vm: ChatViewModel
 ) {
-    val member = vm.getMemberById(message.senderId)
     val loggedMember = vm.getLoggedMember()
-    val isSender = message.senderId == vm.chat.sender.id
-
+    val isSender = message.senderId == loggedMember?.id
     val alignment = if (isSender) Alignment.End else Alignment.Start
 
     Column(
@@ -121,19 +122,6 @@ fun ChatRow(
         horizontalAlignment = alignment
     ) {
         Row(modifier = Modifier.padding(all = 8.dp)) {
-
-            if (!isSender){
-                MemberIcon(modifierScale= Modifier.scale(0.9f), modifierPadding = Modifier.padding(4.dp, 12.dp, 15.dp, 0.dp),member = vm.chat.receiver!! )
-            }
-
-            //Spacer(modifier = Modifier.width(8.dp))
-            Column {
-                Text(text = member?.fullName ?: "Unknown", style = TextStyle(
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
-                )
-                )
                 Box(
                     modifier = Modifier
                         .background(
@@ -152,13 +140,67 @@ fun ChatRow(
                     )
                 }
             }
+            Text(
+                text = message.creationDate.format(DateTimeFormatter.ofPattern("dd MMM Y HH:mm")), style = TextStyle(
+                color = MaterialTheme.colorScheme.onPrimary,
+                fontSize = 12.sp
+            ),
+            modifier = Modifier.padding(vertical = 6.dp, horizontal = 15.dp),
+            )
 
-            if (isSender){
-                MemberIcon(modifierScale= Modifier.scale(0.9f), modifierPadding = Modifier.padding(15.dp, 12.dp, 4.dp, 0.dp),member = vm.chat.sender)
+        }
+}
+
+@Composable
+fun ChatRowTeam(
+    message: Message,
+    vm: ChatViewModel
+) {
+    val member = vm.getMemberById(message.senderId)
+    val loggedMember = vm.getLoggedMember()
+    val isSender = message.senderId == loggedMember?.id
+
+    val alignment = if (isSender) Alignment.End else Alignment.Start
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = alignment
+    ) {
+        Row(modifier = Modifier.padding(all = 8.dp)) {
+            if (!isSender){
+                if (member != null) {
+                    MemberIcon(modifierScale= Modifier.scale(0.9f), modifierPadding = Modifier.padding(4.dp, 12.dp, 15.dp, 0.dp),member = member )
+                }
+            }
+            Column {
+                if (!isSender){
+                    Text(text = member?.fullName ?: "Unknown", style = TextStyle(
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                ))
+                }
+                Box(
+                    modifier = Modifier
+                        .background(
+                            if (message.senderId == loggedMember?.id) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer,
+                            RoundedCornerShape(30.dp)
+                        ),
+                    contentAlignment = Center
+                ) {
+                    Text(
+                        text = message.message, style = TextStyle(
+                            color = Color.White,
+                            fontSize = 16.sp
+                        ),
+                        modifier = Modifier.padding(vertical = 6.dp, horizontal = 25.dp),//cambia grandezza card messaggio
+                        textAlign = TextAlign.Start
+                    )
+                }
             }
         }//Fine row
         Text(
-            text = message.creationDate.format(DateTimeFormatter.ofPattern("dd MMM Y  HH:mm")),
+            text = message.creationDate.format(DateTimeFormatter.ofPattern("dd MMM Y HH:mm")),
             style = TextStyle(
                 color = MaterialTheme.colorScheme.onPrimary,
                 fontSize = 12.sp
@@ -177,6 +219,7 @@ fun ChatHeader(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .height((LocalConfiguration.current.screenHeightDp * 0.08).dp)
             .padding(16.dp),
         horizontalArrangement = Arrangement.Start
     ) {
@@ -207,18 +250,18 @@ fun SendMessage(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 2.dp)
+        //.align(Alignment.BottomCenter)
+            //.padding(bottom = 2.dp)
             .background(MaterialTheme.colorScheme.secondary),
         verticalAlignment = Alignment.CenterVertically
-                //.align(Alignment.BottomCenter)
             ) {
         OutlinedTextField(
             label = { Text(text = "Type a message") },
             value = messageText,
             onValueChange = { messageText = it },
             modifier = Modifier
-                .weight(1f)
-                .height((LocalConfiguration.current.screenHeightDp * 0.1).dp),
+                .height((LocalConfiguration.current.screenHeightDp * 0.15).dp)
+                .weight(1f),
             trailingIcon = {
                 IconButton(
                     onClick = {

@@ -11,16 +11,18 @@ object DummyDataProvider {
     private fun getId(): Int {
         return ++tempId
     }
-/*
-    val directChat = Chat(
-        id = 123456,
-        sender = UniTeamModel().loggedMember!!,
-        receiver = UniTeamModel().getMemberById(2).first,
-        messages = listOf(
-            Message(1,1, "Ciao!"),
-            Message(2,2, "Ciao Alice!")
-        )
-    )*/
+    private var teamId: Int = 0
+
+    /*
+        val directChat = Chat(
+            id = 123456,
+            sender = UniTeamModel().loggedMember!!,
+            receiver = UniTeamModel().getMemberById(2).first,
+            messages = listOf(
+                Message(1,1, "Ciao!"),
+                Message(2,2, "Ciao Alice!")
+            )
+        )*/
 
     val member1 = Member().apply {
         id = getId()
@@ -280,7 +282,7 @@ object DummyDataProvider {
                 task.taskFiles = getFiles(members[i])
             }
             val team = Team(
-                id = getId(),
+                id = ++teamId,
                 name = "Team $i",
                 description = "Description for Team $i",
                 image = Uri.EMPTY,
@@ -294,7 +296,6 @@ object DummyDataProvider {
         }
         return teams
     }
-
     private fun getDate(day: DayOfWeek): LocalDate {
         return LocalDate.now().with(TemporalAdjusters.nextOrSame(day))
     }
