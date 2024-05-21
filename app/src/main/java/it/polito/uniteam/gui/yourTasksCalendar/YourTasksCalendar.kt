@@ -54,7 +54,7 @@ fun YourTasksCalendarView(vm: YourTasksCalendarViewModel = viewModel(factory = F
                 if(task.members.contains(vm.loggedMember)){
                     //task is assigned to the member
                     for((k,v) in task.schedules){
-                     //   taskOrdered.add(TaskForCalendar(team = team.name, name=task.name, date = k, estimatedTime = v))
+                        taskOrdered.add(TaskForCalendar(team = team.name, name=task.name, date = k, estimatedTime = v))
                     }
                 }else{
                     //task is not assigned to the member
