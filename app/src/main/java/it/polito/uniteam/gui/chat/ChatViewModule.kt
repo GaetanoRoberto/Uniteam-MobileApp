@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import it.polito.uniteam.UniTeamModel
 import it.polito.uniteam.classes.Chat
@@ -12,7 +13,7 @@ import it.polito.uniteam.classes.Message
 import it.polito.uniteam.classes.Team
 
 
-class ChatViewModel(val model: UniTeamModel) : ViewModel() {
+class ChatViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
 
     val messages = mutableStateListOf<Message>(
         Message(1, 1, "Ciao!"),

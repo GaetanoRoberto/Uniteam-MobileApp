@@ -1,6 +1,7 @@
 package it.polito.uniteam.gui.chatlist
 
 import androidx.compose.runtime.mutableStateListOf
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import it.polito.uniteam.UniTeamModel
 import it.polito.uniteam.classes.Chat
@@ -8,7 +9,7 @@ import it.polito.uniteam.classes.Message
 import it.polito.uniteam.classes.messageStatus
 import java.time.LocalDateTime
 
-class ChatListViewModel(val model: UniTeamModel) : ViewModel() {
+class ChatListViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
     val loggedMember = model.loggedMember
     fun getTeam(teamId: Int) = model.getTeam(teamId)
     fun getMembers() = getTeam(1).members

@@ -78,16 +78,17 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toIcon
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
+import it.polito.uniteam.Factory
 import it.polito.uniteam.R
 import it.polito.uniteam.UniTeamModel
 import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.MemberIcon
 import it.polito.uniteam.classes.Team
 import it.polito.uniteam.classes.TeamIcon
-import it.polito.uniteam.gui.TeamDetails.Factory
 import it.polito.uniteam.gui.TeamDetails.TeamDetailsViewModel
 import it.polito.uniteam.gui.showtaskdetails.RowMemberItem
 import it.polito.uniteam.ui.theme.Orange
@@ -95,7 +96,7 @@ import java.io.File
 import java.util.concurrent.ExecutorService
 
 
-class OtherUserProfileScreen (val model: UniTeamModel): ViewModel() {
+class OtherUserProfileScreen (val model: UniTeamModel, val savedStateHandle: SavedStateHandle): ViewModel() {
     val member = model.selectedUser
     val teamsInCommon = model.teams.filter{
         it.members.contains(member) && it.members.contains(model.loggedMember)

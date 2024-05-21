@@ -24,16 +24,17 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import it.polito.uniteam.Factory
 import it.polito.uniteam.UniTeamModel
 import it.polito.uniteam.classes.History
 import it.polito.uniteam.classes.TaskForCalendar
-import it.polito.uniteam.gui.TeamDetails.Factory
 import it.polito.uniteam.gui.TeamDetails.TeamDetailsViewModel
 import java.time.LocalDate
 
-class YourTasksCalendarViewModel(val model: UniTeamModel): ViewModel() {
+class YourTasksCalendarViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHandle): ViewModel() {
     val tasks = model.getAllTasks().filter { it.members.contains(model.loggedMember) }
     val loggedMember = model.loggedMember
     fun getAllTeams() = model.getAllTeams()

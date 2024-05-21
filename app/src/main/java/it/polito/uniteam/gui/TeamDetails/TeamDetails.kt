@@ -92,6 +92,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
+import it.polito.uniteam.Factory
 import it.polito.uniteam.R
 import it.polito.uniteam.UniTeamApplication
 import it.polito.uniteam.UniTeamModel
@@ -273,21 +274,6 @@ class TeamDetailsViewModel(val model: UniTeamModel): ViewModel() {
 
 
 }
-
-class Factory(context: Context): ViewModelProvider.Factory{
-    val model: UniTeamModel = (context.applicationContext as? UniTeamApplication)?.model ?: throw IllegalArgumentException("Bad application config")
-    override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
-        return if(modelClass.isAssignableFrom(TeamDetailsViewModel::class.java))
-            TeamDetailsViewModel(model) as T
-        else if(modelClass.isAssignableFrom(YourTasksCalendarViewModel::class.java))
-            YourTasksCalendarViewModel(model) as T
-        else if(modelClass.isAssignableFrom(OtherUserProfileScreen::class.java))
-            OtherUserProfileScreen(model) as T
-        else throw IllegalArgumentException("Unknown ViewModel class")
-
-    }
-}
-
 
 @Composable
 fun TeamViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalContext.current.applicationContext)),

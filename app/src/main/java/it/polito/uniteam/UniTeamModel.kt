@@ -1,6 +1,7 @@
 package it.polito.uniteam
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -14,6 +15,7 @@ import it.polito.uniteam.classes.Task
 import it.polito.uniteam.classes.Team
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlin.math.log
 
 
 class UniTeamModel {
@@ -24,7 +26,7 @@ class UniTeamModel {
         _loggedMember = member
     }
 
-    private var _teams = mutableStateListOf<Team>(DummyDataProvider.getTeams()[0], DummyDataProvider.getTeams()[1])
+    private var _teams = mutableStateListOf<Team>()
     val teams = _teams
 
     private var _selectedTeam = mutableStateOf(Team(name= "default", description = "default" ))// team selected to show its details
@@ -107,6 +109,7 @@ class UniTeamModel {
     }
 
     fun getTeam(teamId: Int): Team {
+        Log.i("diooo",_teams.toString())
         return _teams.filter { it.id == teamId }[0]
     }
     fun getAllTeams(): List<Team> {

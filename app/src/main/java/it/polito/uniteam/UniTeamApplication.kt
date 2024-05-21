@@ -15,7 +15,9 @@ import it.polito.uniteam.gui.notifications.NotificationsViewModel
 import it.polito.uniteam.gui.showtaskdetails.taskDetails
 import it.polito.uniteam.gui.statistics.StatisticsViewModel
 import it.polito.uniteam.gui.tasklist.TaskList
+import it.polito.uniteam.gui.userprofile.OtherUserProfileScreen
 import it.polito.uniteam.gui.userprofile.UserProfileScreen
+import it.polito.uniteam.gui.yourTasksCalendar.YourTasksCalendarViewModel
 
 class Factory(context: Context): ViewModelProvider.Factory {
     // assuming that an application provides a model, if not throw an error
@@ -29,7 +31,9 @@ class Factory(context: Context): ViewModelProvider.Factory {
         NotificationsViewModel::class.java,
         ChatViewModel::class.java,
         ChatListViewModel::class.java,
-        StatisticsViewModel::class.java
+        StatisticsViewModel::class.java,
+        YourTasksCalendarViewModel::class.java,
+        OtherUserProfileScreen::class.java
     )
 
     override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
