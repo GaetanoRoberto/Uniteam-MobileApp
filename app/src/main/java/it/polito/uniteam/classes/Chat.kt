@@ -1,11 +1,14 @@
 package it.polito.uniteam.classes
 
+import androidx.compose.runtime.mutableStateListOf
+
 data class Chat (
-    var id:Int = 0,
-    var sender: Member = Member(),
+    val id: Int = 0,
+    val sender: Member = Member(),
     // null if team chat
-    var receiver: Member? = null,
+    val receiver: Member? = null,
     // null if personal chat
-    var teamId: Int? = null,
-    var messages: List<Message> = emptyList()
+    val teamId: Int? = null,
+    //var messages: List<Message> = emptyList()
+    var messages : List<Message> = mutableStateListOf()
 )

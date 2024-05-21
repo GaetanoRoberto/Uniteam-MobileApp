@@ -117,8 +117,6 @@ fun MemberIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: 
         }
     }
 }
-
-
 @Composable
 fun TeamIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: Modifier = Modifier.padding(0.dp, 0.dp, 20.dp, 0.dp), team: Team) {
     Box(modifier = modifierScale) {
@@ -167,7 +165,6 @@ fun TeamIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: Mo
         }
     }
 }
-
 @Composable
 fun TextTrim(inputText: String, desiredLength: Int, modifier: Modifier = Modifier, style: TextStyle = LocalTextStyle.current) {
     val text = if (inputText.length > desiredLength) {

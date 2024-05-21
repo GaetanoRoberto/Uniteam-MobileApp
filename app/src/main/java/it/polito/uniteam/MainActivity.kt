@@ -78,6 +78,8 @@ import androidx.navigation.compose.rememberNavController
 import it.polito.uniteam.gui.TeamDetails.TeamViewScreen
 import it.polito.uniteam.gui.calendar.Calendar
 import it.polito.uniteam.gui.calendar.CalendarAppContainer
+import it.polito.uniteam.gui.chat.ChatScreen
+//import it.polito.uniteam.gui.chat.ChatScreen
 import it.polito.uniteam.gui.notifications.Notifications
 import it.polito.uniteam.gui.showtaskdetails.EditTaskView
 import it.polito.uniteam.gui.showtaskdetails.TaskDetailsView
@@ -220,7 +222,7 @@ class MainActivity : ComponentActivity() {
                                             // In your main activity or main screen composable
                                             NavHost(
                                                 navController = navController,
-                                                startDestination = "Teams"
+                                                startDestination = "Chat"
                                             ) {
                                                 // Define destinations for your screens
                                                 composable("Teams") {
@@ -251,6 +253,13 @@ class MainActivity : ComponentActivity() {
                                                         )
                                                     )
                                                 }
+                                                composable("Chat") {
+                                                    ChatScreen(
+                                                        vm = viewModel(
+                                                            factory = Factory(LocalContext.current)
+                                                        )
+                                                    )
+                                                }
                                                 composable("Profile") {
                                                     ProfileSettings(
                                                         vm = viewModel(
@@ -260,6 +269,7 @@ class MainActivity : ComponentActivity() {
                                                         cameraExecutor = cameraExecutor
                                                     )
                                                 }
+
                                             }
                                         }
                                     },
