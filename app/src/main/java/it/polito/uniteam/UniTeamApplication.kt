@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModelProvider
 import it.polito.uniteam.UniTeamModel
 import it.polito.uniteam.gui.calendar.Calendar
 import it.polito.uniteam.gui.chat.ChatViewModel
+import it.polito.uniteam.gui.chatlist.ChatListViewModel
 import it.polito.uniteam.gui.notifications.NotificationsViewModel
 //import it.polito.uniteam.gui.chat.ChatViewModel
 import it.polito.uniteam.gui.showtaskdetails.taskDetails
@@ -23,7 +24,8 @@ class Factory(context: Context): ViewModelProvider.Factory {
         TaskList::class.java,
         UserProfileScreen::class.java,
         NotificationsViewModel::class.java,
-        ChatViewModel::class.java
+        ChatViewModel::class.java,
+        ChatListViewModel::class.java
     )
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         for (viewModelClass in viewModelClasses) {
