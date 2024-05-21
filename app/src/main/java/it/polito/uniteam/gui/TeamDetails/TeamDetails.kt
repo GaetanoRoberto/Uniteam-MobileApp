@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -91,6 +92,8 @@ import it.polito.uniteam.gui.showtaskdetails.RowItem
 import it.polito.uniteam.gui.showtaskdetails.RowMemberItem
 import it.polito.uniteam.gui.showtaskdetails.taskDetails
 import it.polito.uniteam.gui.userprofile.AlertDialogExample
+import it.polito.uniteam.gui.userprofile.DefaultImageForTeam
+import it.polito.uniteam.gui.userprofile.OtherUserProfile
 import it.polito.uniteam.gui.userprofile.OtherUserProfileScreen
 import it.polito.uniteam.gui.userprofile.UserProfileScreen
 import it.polito.uniteam.gui.yourTasksCalendar.YourTasksCalendarViewModel
@@ -205,7 +208,64 @@ fun TeamViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalC
     if(vm.editing){
         TeamDetailsEdit()
     }else{
-        TeamDetailsView()
+        BoxWithConstraints {
+
+            Box(modifier = Modifier.fillMaxSize()) {
+                // Image at the top
+                Image(
+                    painter = rememberAsyncImagePainter(vm.selectedTeam.value.image),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.9f)
+                        .align(Alignment.TopCenter),
+                )
+
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                //
+                BoxWithConstraints {
+                    if (this.maxHeight > this.maxWidth) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(0.8f).padding(0.dp,20.dp,0.dp,0.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+
+                                DefaultImageForTeamScreen(vm)
+                            }
+                            Spacer(modifier = Modifier.height(0.dp))
+                            TeamDetailsView()
+
+                        }
+                    } else {
+                        Row(
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth(0.33f)
+                                    .fillMaxHeight()
+                                    .padding(10.dp, 0.dp, 10.dp, 0.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                DefaultImageForTeamScreen(vm)
+                            }
+                            Spacer(modifier = Modifier.height(30.dp))
+                            TeamDetailsView()
+
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 @Preview
@@ -254,6 +314,17 @@ val selectedTeam = vm.selectedTeam.value
                         .verticalScroll(rememberScrollState())
                         .padding(10.dp, 0.dp)
                 ) {
+                    Box{
+                        Image(
+                            painter = rememberAsyncImagePainter(vm.selectedTeam.value.image),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .fillMaxHeight(0.9f)
+                                .align(Alignment.TopCenter),
+                        )
+                    }
+
                     Spacer(modifier = Modifier.padding(10.dp))
                     EditRowItem(
                         label = "Name:",
@@ -577,4 +648,65 @@ fun TeamAssignMemberDialog(vm: TeamDetailsViewModel) {
     }
 
 }
+
+
+
+@Preview
+@Composable
+fun DefaultImageForTeamScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalContext.current.applicationContext))) {
+    val name = vm.selectedTeam.value.name
+    println(name)
+    if (name.isNotBlank() || vm.selectedTeam.value.image != Uri.EMPTY) {
+
+        Card(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
+            Row(
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.background),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+
+                // Box per contenere l'icona della fotocamera
+                Box(modifier = Modifier.size(200.dp), contentAlignment = Alignment.Center) {
+                    if (vm.selectedTeam.value.image != Uri.EMPTY) {
+                        Image(
+                            painter = rememberAsyncImagePainter(vm.selectedTeam.value.image),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(160.dp)
+                                .clip(CircleShape), // Clip the image into a circular shape
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        val initials = name.trim().split(' ');
+                        var initialsValue = initials
+                            .mapNotNull { it.firstOrNull()?.toString() }
+                            .first();
+
+                        if (initials.size >=2) {
+                            initialsValue += initials
+                                .mapNotNull { it.firstOrNull()?.toString() }
+                                .last()
+                        }
+                        Text(
+                            modifier = Modifier
+                                .padding(40.dp)
+                                .size(80.dp)
+                                .drawBehind {
+                                    drawCircle(
+                                        color = Orange,
+                                        radius = this.size.maxDimension
+                                    )
+                                },
+                            text = initialsValue,
+                            style = TextStyle(color = Color.White, fontSize = 60.sp, textAlign = TextAlign.Center)
+                        )
+                    }
+
+                }
+            }
+        }
+    }
+}
+
 

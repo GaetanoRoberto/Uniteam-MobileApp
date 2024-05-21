@@ -26,7 +26,7 @@ class UniTeamModel {
     private var _teams = mutableStateListOf<Team>(DummyDataProvider.getTeams()[0], DummyDataProvider.getTeams()[1])
     val teams = _teams
 
-    private var _selectedTeam = mutableStateOf(Team(name= "default", description = "default"))// team selected to show its details
+    private var _selectedTeam = mutableStateOf(Team(name= "default", description = "default" ))// team selected to show its details
     var selectedTeam= _selectedTeam.value
     private var _selectedUser = mutableStateOf(DummyDataProvider.member2)// team selected to show its details
     var selectedUser= _selectedUser.value

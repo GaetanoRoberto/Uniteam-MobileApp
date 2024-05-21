@@ -191,6 +191,7 @@ object DummyDataProvider {
             Team().apply {
                 id=1
                 name= "Team1"
+
                 description= "description1"
                 members= mutableListOf(member1, member2)
                 tasks= mutableListOf(Task().apply {
