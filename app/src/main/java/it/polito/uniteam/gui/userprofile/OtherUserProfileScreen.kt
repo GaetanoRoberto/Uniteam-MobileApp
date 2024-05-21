@@ -140,9 +140,7 @@ fun OtherUserProfile(vm: OtherUserProfileScreen = viewModel(factory = Factory(Lo
                 RowItem(icon = Icons.Default.JoinInner, description = "Teams", value = "Teams in common:" )
                     vm.teamsInCommon.forEach{
                         Row(modifier = Modifier.fillMaxWidth(0.8f)) {
-                            RowTeamItem(team = it)
-
-                        }
+                            RowTeamItem(team = it, role = vm.member.teamsInfo?.get(it.id)?.role.toString(), member= vm.member)                        }
 
                     }/*
                 Row(modifier = Modifier.fillMaxWidth()) {
@@ -188,7 +186,7 @@ fun OtherUserProfile(vm: OtherUserProfileScreen = viewModel(factory = Factory(Lo
                     vm.teamsInCommon.forEach{
                         Row(modifier = Modifier
                             .fillMaxWidth(0.8f)
-                            .padding(0.dp, 0.dp, 0.dp, 0.dp)) {RowTeamItem(team = it)}
+                            .padding(0.dp, 0.dp, 0.dp, 0.dp)) {RowTeamItem(team = it, role = vm.member.teamsInfo?.get(it.id)?.role.toString(), member= vm.member)}
 
 
 
@@ -205,11 +203,11 @@ fun OtherUserProfile(vm: OtherUserProfileScreen = viewModel(factory = Factory(Lo
 
 
 @Composable
-fun RowTeamItem(modifier: Modifier = Modifier, team: Team) {
-
-    Row(
-     modifier = Modifier.padding(6.dp, 0.dp, 0.dp, 0.dp)
-    ) {
+fun RowTeamItem(modifier: Modifier = Modifier, team: Team, role: String, member: Member) {
+    Column {
+        Row(
+            modifier = Modifier.padding(6.dp, 0.dp, 0.dp, 0.dp)
+        ) {
 
             TeamIcon(team = team, modifierScale = Modifier.scale(0.65f),)
             Text(
@@ -219,7 +217,34 @@ fun RowTeamItem(modifier: Modifier = Modifier, team: Team) {
                 style = MaterialTheme.typography.headlineSmall,
             )
 
+
+        }
+        // not good to visualize
+        if(role != "null"){
+            Row {
+                Text(
+                    " Role: " + role ,
+                    modifier = Modifier
+                        .padding(8.dp, 0.dp, 0.dp,5.dp).fillMaxWidth(),
+                    style = MaterialTheme.typography.bodySmall,
+                    textAlign = TextAlign.Start,
+                )
+            }
+        }
+        if(member.teamsInfo?.get(team.id)?.weeklyAvailabilityHours?.first != null){
+            Row {
+                Text(
+                    " Availability hours: " + member.teamsInfo?.get(team.id)?.weeklyAvailabilityHours?.first + "," + member.teamsInfo?.get(team.id)?.weeklyAvailabilityHours?.second + "h" ,
+                    modifier = Modifier
+                        .padding(8.dp, 0.dp, 0.dp,5.dp).fillMaxWidth(),
+                    style = MaterialTheme.typography.bodySmall,
+                    textAlign = TextAlign.Start,
+                )
+            }
+        }
+
     }
+
     Spacer(modifier = Modifier.padding(5.dp))
 }
 
