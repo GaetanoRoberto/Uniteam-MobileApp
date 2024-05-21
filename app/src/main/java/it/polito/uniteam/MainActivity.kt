@@ -223,7 +223,7 @@ class MainActivity : ComponentActivity() {
                                         composable("Profile") { ProfileSettings(vm = viewModel(),outputDirectory = getOutputDirectory(),cameraExecutor = cameraExecutor)  }
                                         composable("OtherUserProfile") { OtherProfileSettings() }
                                         composable("YourTasksCalendar") { YourTasksCalendarViewScreen() }
-                                        composable("EditTeam") { TeamViewScreen() }
+                                        composable("EditTeam") { TeamViewScreen(outputDirectory = getOutputDirectory(),cameraExecutor = cameraExecutor) }
 
                                         /*composable("EditProfile") { ProfileSettings(vm = viewModel(),outputDirectory = getOutputDirectory(),cameraExecutor = cameraExecutor,pickImageLauncher = pickImageLauncher,edit=true,navController)  }
                                         composable("Profile") { ProfileSettings(vm = viewModel(),outputDirectory = getOutputDirectory(),cameraExecutor = cameraExecutor,pickImageLauncher = pickImageLauncher,edit=false,navController)  }*/

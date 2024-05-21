@@ -1,5 +1,6 @@
 package it.polito.uniteam
 
+import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -60,6 +61,9 @@ class UniTeamModel {
     }
     fun changeSelectedTeamDescription(s:String){
         _selectedTeam.value.description = s
+    }
+    fun changeSelectedTeamImage(u: Uri){
+        _selectedTeam.value.image = u
     }
 
     fun changeSelectedTeamMembers(members: List<Member>){
