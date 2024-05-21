@@ -11,11 +11,11 @@ data class Task (
     var creationDate: LocalDate = LocalDate.now(),
     var deadline: LocalDate? = null,
     var estimatedTime: Pair<Int,Int> = Pair(0,0),
-    var spentTime: Pair<Int,Int>? = null,
+    var spentTime: HashMap<Member,Pair<Int,Int>> = hashMapOf(),
     var status: Status = Status.TODO,
     var repetition: Repetition = Repetition.NONE,
     var members: List<Member> = emptyList(),
-    var schedules: HashMap<LocalDate,Pair<Int,Int>> = hashMapOf(),
+    var schedules: HashMap<Pair<Member,LocalDate>,Pair<Int,Int>> = hashMapOf(),
     var taskFiles: List<File> = emptyList(),
     var taskComments: List<Comment> = emptyList(),
     var taskHistory: List<History> = emptyList()
@@ -24,3 +24,10 @@ data class Task (
         return "Task(id=$id, name='$name', schedules=$schedules)"
     }
 }
+
+data class TaskForCalendar(
+    val team: String,
+    val name: String,
+    val date: LocalDate,
+    val estimatedTime: Pair<Int,Int> = Pair(0,0)
+    )

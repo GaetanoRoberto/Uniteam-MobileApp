@@ -175,7 +175,7 @@ fun TaskDetailsView(vm: taskDetails = viewModel(factory = Factory(LocalContext.c
         )
         RowItem(
             title = "Spent Time:",
-            value = vm.spentHours.value + "h " + vm.spentMinutes.value + "m"
+            value = vm.spentTime.values.sumOf { it.first }.toString() + "h " + vm.spentTime.values.sumOf { it.second }.toString() + "m"
         )
         RowItem(title = "Repeatable:", value = vm.repeatable)
         RowMemberItem(title = "Members:", value = vm.members)
@@ -280,7 +280,7 @@ fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.curr
                     CustomDatePickerPreview("Deadline", vm.deadline, vm::changeDeadline)
                     Text(text = "Estimated Time:")
                     HourMinutesPicker(hourState = vm.estimatedHours, minuteState = vm.estimatedMinutes, errorMsg = vm.estimatedTimeError)
-                    Text(text = "Spent Time:")
+                    Text(text = "Your Spent Time To Add:")
                     HourMinutesPicker(hourState = vm.spentHours, minuteState = vm.spentMinutes, errorMsg = vm.spentTimeError)
                     Demo_ExposedDropdownMenuBox(
                         "Repeatable",
@@ -425,7 +425,7 @@ fun RowItem(modifier: Modifier = Modifier, title: String, value: Any) {
             modifier = Modifier
                 .weight(1f)
                 .padding(16.dp, 0.dp),
-            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
         )
     }
     Row(
@@ -464,7 +464,7 @@ fun RowMemberItem(modifier: Modifier = Modifier, title: String, value: List<Memb
         modifier = modifier.horizontalScroll(rememberScrollState()),
     ) {
         for ((i, member) in value.withIndex()) {
-            MemberIcon(member = member, modifierScale = Modifier.scale(0.65f), modifierPadding = Modifier.padding(start = if (i == 0) 12.dp else 0.dp))
+            MemberIcon(member = member, modifierScale = Modifier.scale(0.65f), modifierPadding = Modifier.padding(start = if (i == 0) 16.dp else 0.dp))
             Text(
                 member.username.toString() + if (i < value.size - 1) {
                     ", "
@@ -593,7 +593,7 @@ fun MembersDropdownMenuBox(
 
 @Composable
 fun AssignMemberDialog(vm: taskDetails) {
-
+    val screenHeightDp = LocalConfiguration.current.screenHeightDp
     val selectedMembers = remember { mutableStateMapOf<Member, Boolean>() }
     vm.possibleMembers.forEach { member ->
         selectedMembers[member] = vm.members.toMutableList().contains(member)
@@ -638,10 +638,7 @@ fun AssignMemberDialog(vm: taskDetails) {
                 }
 
                 LazyColumn(
-                    modifier = if (isVertical()) Modifier.heightIn(
-                        0.dp,
-                        265.dp
-                    ) else Modifier.heightIn(0.dp, 165.dp)
+                    modifier = Modifier.heightIn(0.dp, (screenHeightDp * 0.4).dp)
                 ) {
                     item(1) {
                         vm.possibleMembers.forEach { member ->
@@ -663,20 +660,35 @@ fun AssignMemberDialog(vm: taskDetails) {
                     } 
                     }
                 }
+                if (vm.membersError.isNotEmpty()) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(10.dp, 10.dp, 0.dp, 0.dp), horizontalArrangement = Arrangement.Start
+                    ) {
+                        Text(text = vm.membersError, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+                    }
+                }
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(10.dp),
                     horizontalArrangement = Arrangement.Center,
                 ) {
-                    TextButton(onClick = { vm.openAssignDialog.value = false }) {
+                    TextButton(onClick = { vm.openAssignDialog.value = false; vm.membersError = "" }) {
                         Text("Cancel")
                     }
                     Spacer(modifier = Modifier.padding(10.dp))
                     TextButton(onClick = {
-                        vm.members.clear()
-                        vm.members.addAll(selectedMembers.filterValues { it }.keys.toMutableStateList())
-                        vm.openAssignDialog.value = false
+                        Log.i("diooo",selectedMembers.toString())
+                        if(selectedMembers.all { !it.value }) {
+                            vm.membersError = "You Must Select at Least One Member."
+                        } else {
+                            vm.members.clear()
+                            vm.members.addAll(selectedMembers.filterValues { it }.keys.toMutableStateList())
+                            vm.openAssignDialog.value = false
+                            vm.membersError = ""
+                        }
                     }
                     ) {
                         Text("Confirm")

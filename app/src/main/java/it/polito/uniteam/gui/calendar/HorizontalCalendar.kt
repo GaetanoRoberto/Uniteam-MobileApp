@@ -51,7 +51,7 @@ fun HorizontalCalendarApp(
     vm: Calendar = viewModel(factory = Factory(LocalContext.current))
 ) {
     // get CalendarUiModel from CalendarDataSource, and the lastSelectedDate is Today.
-    var calendarUiModel by remember { mutableStateOf(vm.getData(lastSelectedDate = vm.today)) }
+    var calendarUiModel by remember { mutableStateOf(vm.calendarUiModel) }
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -65,6 +65,7 @@ fun HorizontalCalendarApp(
                     startDate = finalStartDate,
                     lastSelectedDate = calendarUiModel.selectedDate.date
                 )
+                vm.calendarUiModel = calendarUiModel
             },
             onNextClickListener = { endDate ->
                 // refresh the CalendarUiModel with new data
@@ -74,6 +75,7 @@ fun HorizontalCalendarApp(
                     startDate = finalStartDate,
                     lastSelectedDate = calendarUiModel.selectedDate.date
                 )
+                vm.calendarUiModel = calendarUiModel
             },
             onTodayClickListener = {
                 val finalStartDate = calendarUiModel.selectedDate.date
@@ -81,7 +83,7 @@ fun HorizontalCalendarApp(
                     startDate = finalStartDate,
                     lastSelectedDate = calendarUiModel.selectedDate.date
                 )
-
+                vm.calendarUiModel = calendarUiModel
             }
 
         )
@@ -191,6 +193,7 @@ fun HorizontalDayEventScheduler(data: CalendarUiModel,
                                             // data passed from the DraggableItem, so move from 1 day to another
                                             vm.checkDialogs(
                                                 state.data.first,
+                                                state.data.second,
                                                 currentDate.value.date,
                                                 isNewSchedule = false
                                             )
@@ -206,6 +209,7 @@ fun HorizontalDayEventScheduler(data: CalendarUiModel,
                                             // no data passed from the DraggableItem, so coming from the bottom
                                             vm.checkDialogs(
                                                 state.data.first,
+                                                null,
                                                 currentDate.value.date,
                                                 isNewSchedule = true
                                             )
@@ -224,7 +228,7 @@ fun HorizontalDayEventScheduler(data: CalendarUiModel,
                                             // data passed from the DraggableItem, so move from 1 day to another
                                             val task = state.data.first
                                             val oldDate = state.data.second
-                                            val hoursToSchedule = task.schedules.get(oldDate)
+                                            val hoursToSchedule = task.schedules.get(Pair(vm.memberProfile,oldDate))
                                             // remove the old day scheduled and add the new one
                                             vm.unScheduleTask(task, oldDate!!)
                                             if (hoursToSchedule != null) {
@@ -243,7 +247,7 @@ fun HorizontalDayEventScheduler(data: CalendarUiModel,
                             horizontalArrangement = Arrangement.Start
                         ) {
                             item(1) {
-                                vm.viewedScheduledTasks.filter { it.schedules.containsKey(date.date) }
+                                vm.viewedScheduledTasks.filter { it.schedules.any { it.key.second == date.date } }
                                     .forEach { task ->
                                         DraggableItem(
                                             state = dragAndDropState,
@@ -303,7 +307,7 @@ fun HorizontalTasksToAssign(
                     onDrop = { state -> // Data passed from the draggable item
                         // Unschedule only if the data was passed, otherwise already unscheduled
                         if (state.data.second != null) {
-                            vm.checkDialogs(state.data.first, state.data.second!!)
+                            vm.checkDialogs(state.data.first, state.data.second!!, LocalDate.now())
                             // Unschedule only if i have the permission to do it
                             if (vm.selectedShowDialog != showDialog.no_permission) {
                                 vm.unScheduleTask(state.data.first, state.data.second!!)

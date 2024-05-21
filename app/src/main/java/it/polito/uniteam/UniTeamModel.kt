@@ -1,5 +1,6 @@
 package it.polito.uniteam
 
+import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -11,6 +12,8 @@ import it.polito.uniteam.classes.History
 import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.Task
 import it.polito.uniteam.classes.Team
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 
 class UniTeamModel {
@@ -21,8 +24,53 @@ class UniTeamModel {
         _loggedMember = member
     }
 
-    private var _teams = mutableStateListOf<Team>()
+    private var _teams = mutableStateListOf<Team>(DummyDataProvider.getTeams()[0], DummyDataProvider.getTeams()[1])
     val teams = _teams
+
+    private var _selectedTeam = mutableStateOf(Team(name= "default", description = "default" ))// team selected to show its details
+    var selectedTeam= _selectedTeam.value
+    private var _selectedUser = mutableStateOf(DummyDataProvider.member2)// team selected to show its details
+    var selectedUser= _selectedUser.value
+
+    fun selectTeam(id: Int){ // click on team to set the selected team to show
+        val team = getTeam(id)
+        if(team != null){
+            _selectedTeam.value = team
+        }
+
+    }
+
+    fun selectUser(id:Int){
+        _selectedUser.value = getMemberById(id).first!!
+    }
+
+    fun newTeam(){
+        var newId: Int
+
+        if(_teams.size <1 ){
+            newId = 0
+        }else{
+            newId = _teams.map { it.id }.max() +1
+        }
+        _selectedTeam = mutableStateOf(Team(id = newId, name= "", description = ""))
+        selectedTeam= _selectedTeam.value
+    }
+
+    fun changeSelectedTeamName(s:String){
+        _selectedTeam.value.name= s
+    }
+    fun changeSelectedTeamDescription(s:String){
+        _selectedTeam.value.description = s
+    }
+    fun changeSelectedTeamImage(u: Uri){
+        _selectedTeam.value.image = u
+    }
+
+    fun changeSelectedTeamMembers(members: List<Member>){
+        _selectedTeam.value.members.apply {
+            clear()
+            addAll(members.toMutableList())
+        }    }
 
     init {
         // get dummy data
@@ -32,9 +80,25 @@ class UniTeamModel {
     fun getAllTasks() :List<Task>{
         val ret = mutableListOf<Task>()
         _teams.forEach { team->
-            ret.addAll(team.tasks)
+            val tasks = team.tasks.filter { it.members.contains(_loggedMember) }
+            ret.addAll(tasks)
         }
         return ret
+    }
+
+    fun getAllMembers() :List<Member>{
+        val ret = mutableListOf<Member>()
+        _teams.forEach { team->
+            ret.addAll(team.members)
+        }
+        //return ret TODO( DESELECT FOR PRODUCTION )
+        //return only for testing
+        return(listOf(DummyDataProvider.member1,
+            DummyDataProvider.member2,
+            DummyDataProvider.member3,
+            DummyDataProvider.member4,
+            DummyDataProvider.member5,
+            DummyDataProvider.member6) )
     }
 
     fun getAllHistories(): List<Pair<Team,List<History>>> {
@@ -44,6 +108,9 @@ class UniTeamModel {
 
     fun getTeam(teamId: Int): Team {
         return _teams.filter { it.id == teamId }[0]
+    }
+    fun getAllTeams(): List<Team> {
+        return _teams
     }
 
     fun addTeam(team: Team) {
@@ -154,5 +221,15 @@ class UniTeamModel {
     fun getUsersChat(memberToChatWith: Member): Chat {
         val chat = _loggedMember?.chats?.find { it.sender == _loggedMember && it.receiver == memberToChatWith }
         return chat!!
+    }
+
+    fun sumTimes(time1: Pair<Int, Int>, time2: Pair<Int, Int>): Pair<Int, Int> {
+        val totalMinutes = time1.second + time2.second
+        val minutesOverflow = totalMinutes / 60
+        val minutes = totalMinutes % 60
+
+        val totalHours = time1.first + time2.first + minutesOverflow
+
+        return Pair(totalHours, minutes)
     }
 }

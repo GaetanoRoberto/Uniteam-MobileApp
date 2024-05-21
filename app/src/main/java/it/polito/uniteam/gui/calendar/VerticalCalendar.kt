@@ -52,6 +52,7 @@ import com.mohamedrejeb.compose.dnd.drag.DraggableItem
 import com.mohamedrejeb.compose.dnd.drop.dropTarget
 import com.mohamedrejeb.compose.dnd.rememberDragAndDropState
 import it.polito.uniteam.Factory
+import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.MemberIcon
 import it.polito.uniteam.classes.Task
 import it.polito.uniteam.classes.TextTrim
@@ -108,7 +109,7 @@ fun VerticalCalendarApp(
     vm: Calendar = viewModel(factory = Factory(LocalContext.current))
 ) {
     // get CalendarUiModel from CalendarDataSource, and the lastSelectedDate is Today.
-    var calendarUiModel by remember { mutableStateOf(vm.getData(lastSelectedDate = vm.today)) }
+    var calendarUiModel by remember { mutableStateOf(vm.calendarUiModel) }
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -123,6 +124,7 @@ fun VerticalCalendarApp(
                     startDate = finalStartDate,
                     lastSelectedDate = calendarUiModel.selectedDate.date
                 )
+                vm.calendarUiModel = calendarUiModel
             },
             onNextClickListener = { endDate ->
                 // refresh the CalendarUiModel with new data
@@ -132,6 +134,7 @@ fun VerticalCalendarApp(
                     startDate = finalStartDate,
                     lastSelectedDate = calendarUiModel.selectedDate.date
                 )
+                vm.calendarUiModel = calendarUiModel
             },
             onTodayClickListener = {
                 val finalStartDate = calendarUiModel.selectedDate.date
@@ -139,7 +142,7 @@ fun VerticalCalendarApp(
                     startDate = finalStartDate,
                     lastSelectedDate = calendarUiModel.selectedDate.date
                 )
-
+                vm.calendarUiModel = calendarUiModel
             }
 
         )
@@ -240,9 +243,12 @@ fun VerticalHeader(
 @Composable
 fun EventItem(vm: Calendar = viewModel(factory = Factory(LocalContext.current)), task: Task, date: LocalDate? = null, isScheduled: Boolean) {
     var isOverSchedule = false
+    // if scheduled assign memberTime otherwise not scheduled so no member/date provided
+    var memberTime: Map<Pair<Member, LocalDate>, Pair<Int, Int>>? = null;
     val time: Pair<Int,Int>;
     if (isScheduled) {
-        time = task.schedules.get(date)!!
+        memberTime = task.schedules.filter { it.key.second == date }
+        time = memberTime.values.first()
     } else {
         val totalMinutes1 = task.estimatedTime.first * 60 + task.estimatedTime.second
         val totalMinutes2 = task.schedules.values.sumOf { it.first } * 60 + task.schedules.values.sumOf { it.second }
@@ -304,18 +310,20 @@ fun EventItem(vm: Calendar = viewModel(factory = Factory(LocalContext.current)),
                 .padding(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // handle if more than two members, display ...
-            task.members.forEachIndexed { index, member ->
-                if (index < 2) {
-                    MemberIcon(
-                        modifierScale = Modifier.scale(0.6f),
-                        modifierPadding = Modifier.padding(0.dp, 0.dp, 8.dp, 8.dp),
-                        member = member
-                    )
-                }
-            }
-            if (task.members.size > 2) {
-                Text(text = "...", color = Color.White)
+            if (memberTime!=null) {
+                // get scheduled member
+                MemberIcon(
+                    modifierScale = Modifier.scale(0.6f),
+                    modifierPadding = Modifier.padding(0.dp, 0.dp, 8.dp, 8.dp),
+                    member = memberTime.keys.first().first
+                )
+            } else {
+                // are not scheduled, so taskstoassign use the logged member
+                MemberIcon(
+                    modifierScale = Modifier.scale(0.6f),
+                    modifierPadding = Modifier.padding(0.dp, 0.dp, 8.dp, 8.dp),
+                    member = vm.memberProfile!!
+                )
             }
         }
     }
@@ -383,6 +391,7 @@ fun VerticalDayEventScheduler(
                                             // data passed from the DraggableItem, so move from 1 day to another
                                             vm.checkDialogs(
                                                 state.data.first,
+                                                state.data.second,
                                                 currentDate.value.date,
                                                 isNewSchedule = false
                                             )
@@ -398,6 +407,7 @@ fun VerticalDayEventScheduler(
                                             // no data passed from the DraggableItem, so coming from the bottom
                                             vm.checkDialogs(
                                                 state.data.first,
+                                                null,
                                                 currentDate.value.date,
                                                 isNewSchedule = true
                                             )
@@ -416,7 +426,7 @@ fun VerticalDayEventScheduler(
                                             // data passed from the DraggableItem, so move from 1 day to another
                                             val task = state.data.first
                                             val oldDate = state.data.second
-                                            val hoursToSchedule = task.schedules.get(oldDate)
+                                            val hoursToSchedule = task.schedules.get(Pair(vm.memberProfile,oldDate))
                                             // remove the old day scheduled and add the new one
                                             vm.unScheduleTask(task, oldDate!!)
                                             if (hoursToSchedule != null) {
@@ -435,11 +445,11 @@ fun VerticalDayEventScheduler(
                             horizontalArrangement = Arrangement.Start
                         ) {
                             item(1) {
-                                vm.viewedScheduledTasks.filter { it.schedules.containsKey(date.date) }
+                                vm.viewedScheduledTasks.filter { it.schedules.any { it.key.second == date.date } }
                                     .forEach { task ->
                                         DraggableItem(
                                             state = dragAndDropState,
-                                            key = task.id + date.hashCode(), // Unique key for each draggable item
+                                            key = task.id + date.hashCode(),// + task.schedules.keys.filter { it.second==date.date }[0].first.hashCode(), // Unique key for each draggable item
                                             data = Pair(
                                                 task,
                                                 date.date
@@ -492,7 +502,7 @@ fun VerticalTasksToAssign(
                         onDrop = { state -> // Data passed from the draggable item
                             // Unschedule only if the data was passed, otherwise already unscheduled
                             if (state.data.second != null) {
-                                vm.checkDialogs(state.data.first, state.data.second!!)
+                                vm.checkDialogs(state.data.first, state.data.second!!, LocalDate.now())
                                 // Unschedule only if i have the permission to do it
                                 if (vm.selectedShowDialog != showDialog.no_permission) {
                                     vm.unScheduleTask(state.data.first, state.data.second!!)

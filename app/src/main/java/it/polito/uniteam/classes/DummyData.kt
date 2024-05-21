@@ -16,6 +16,17 @@ object DummyDataProvider {
     private var fileId: Int = 0
     private var commentId: Int = 0
 
+    /*
+        val directChat = Chat(
+            id = 123456,
+            sender = UniTeamModel().loggedMember!!,
+            receiver = UniTeamModel().getMemberById(2).first,
+            messages = listOf(
+                Message(1,1, "Ciao!"),
+                Message(2,2, "Ciao Alice!")
+            )
+        )*/
+
     val member1 = Member().apply {
         id = ++memberId
         fullName = "John Doe"
@@ -127,6 +138,19 @@ object DummyDataProvider {
     fun getMembers(): List<Member> {
         return listOf(member1, member2, member3, member4, member5, member6)
     }
+/*
+    private fun getChat(member1: Member, member2: Member): Chat {
+        val chat = Chat()
+        chat.id = ++chatId
+        chat.sender = member1
+        chat.receiver = member2
+        val m = Message()
+        m.id = ++messageId
+        m.message = member1.hashCode().toString() + member2.hashCode().toString()
+        chat.messages = listOf(m)
+        return chat
+    }
+*/
 
     private fun getTasks(member1: Member, member2: Member, member3: Member): List<Task> {
         return listOf(
@@ -139,11 +163,11 @@ object DummyDataProvider {
                 creationDate = LocalDate.now().minusDays(3)
                 deadline = LocalDate.now().plusDays(3)
                 estimatedTime = Pair(5, 0)
-                spentTime = Pair(2, 0)
+                spentTime = hashMapOf(member4 to Pair(2, 0))
                 status = Status.IN_PROGRESS
                 repetition = Repetition.NONE
                 members = listOf(member4, member5, member6)
-                schedules = hashMapOf(getDate(DayOfWeek.TUESDAY) to Pair(5, 0))
+                schedules = hashMapOf(Pair(member4,getDate(DayOfWeek.TUESDAY)) to Pair(5, 0))
             },
             Task().apply {
                 id = ++taskId
@@ -154,14 +178,14 @@ object DummyDataProvider {
                 creationDate = LocalDate.now().minusDays(3)
                 deadline = LocalDate.now().plusDays(4)
                 estimatedTime = Pair(4, 0)
-                spentTime = Pair(1, 0)
+                spentTime = hashMapOf(member1 to Pair(1, 0))
                 status = Status.IN_PROGRESS
                 repetition = Repetition.WEEKLY
                 members = listOf(member1, member2)
-                schedules = hashMapOf(getDate(DayOfWeek.WEDNESDAY) to Pair(4, 0))
+                schedules = hashMapOf(Pair(member1,getDate(DayOfWeek.WEDNESDAY)) to Pair(4, 0))
             },
             Task().apply {
-                id =++taskId
+                id = ++taskId
                 name = "Task3"
                 description = "Description3"
                 category = Category.DESIGN
@@ -169,11 +193,11 @@ object DummyDataProvider {
                 creationDate = LocalDate.now().minusDays(3)
                 deadline = LocalDate.now().plusDays(5)
                 estimatedTime = Pair(3, 0)
-                spentTime = Pair(2, 0)
+                spentTime = hashMapOf(member3 to Pair(2, 0))
                 status = Status.IN_PROGRESS
                 repetition = Repetition.DAILY
                 members = listOf(member3, member4)
-                schedules = hashMapOf(getDate(DayOfWeek.FRIDAY) to Pair(3, 0))
+                schedules = hashMapOf(Pair(member3,getDate(DayOfWeek.FRIDAY)) to Pair(3, 0))
             }
         )
     }
@@ -181,7 +205,7 @@ object DummyDataProvider {
     private fun getComments(member1: Member, member2: Member): List<Comment> {
         return listOf(
             Comment(
-                id =++commentId,
+                id = ++commentId,
                 user = member1,
                 commentValue = "Great job!",
                 date = LocalDate.now().toString(),
@@ -207,7 +231,7 @@ object DummyDataProvider {
                     user = member
                 ),
                 History(
-                    id =  ++historyId,
+                    id = ++historyId,
                     comment = "${member5.username} joined the team",
                     date = LocalDate.now().toString(),
                     user = member
@@ -216,7 +240,7 @@ object DummyDataProvider {
         } else {
             return listOf(
                 History(
-                    id =  ++historyId,
+                    id = ++historyId,
                     comment = "Task completed successfully",
                     date = LocalDate.now().toString(),
                     user = member
@@ -234,7 +258,7 @@ object DummyDataProvider {
     private fun getFiles(member: Member): List<File> {
         return listOf(
             File(
-                id =++fileId,
+                id = ++fileId,
                 user = member,
                 filename = "Report.pdf",
                 date = LocalDate.now().toString(),
@@ -276,10 +300,10 @@ object DummyDataProvider {
         }
         return teams
     }
-
     private fun getDate(day: DayOfWeek): LocalDate {
         return LocalDate.now().with(TemporalAdjusters.nextOrSame(day))
     }
+
     fun getTasksToAssign(): List<Task> {
         return listOf(
             Task().apply {
@@ -291,11 +315,11 @@ object DummyDataProvider {
                 creationDate = LocalDate.now().minusDays(3)
                 deadline = LocalDate.now().plusDays(3)
                 estimatedTime = Pair(5,0)
-                spentTime = Pair(2,0)
+                spentTime = hashMapOf(member4 to Pair(2, 0))
                 status = Status.IN_PROGRESS
                 repetition = Repetition.NONE
                 members = listOf(member4, member5, member6)
-                schedules = hashMapOf(getDate(DayOfWeek.TUESDAY) to Pair(5,0))
+                schedules = hashMapOf(Pair(member4,getDate(DayOfWeek.TUESDAY)) to Pair(5,0))
             },
             Task().apply {
                 id = 2
@@ -306,11 +330,11 @@ object DummyDataProvider {
                 creationDate = LocalDate.now().minusDays(3)
                 deadline = LocalDate.now().plusDays(4)
                 estimatedTime = Pair(4,0)
-                spentTime = Pair(1,0)
+                spentTime = hashMapOf(member1 to Pair(1, 0))
                 status = Status.IN_PROGRESS
                 repetition = Repetition.WEEKLY
                 members = listOf(member1, member2)
-                schedules = hashMapOf(getDate(DayOfWeek.WEDNESDAY) to Pair(4,0))
+                schedules = hashMapOf(Pair(member1,getDate(DayOfWeek.WEDNESDAY)) to Pair(4,0))
             },
             Task().apply {
                 id = 3
@@ -321,11 +345,11 @@ object DummyDataProvider {
                 creationDate = LocalDate.now().minusDays(3)
                 deadline = LocalDate.now().plusDays(5)
                 estimatedTime = Pair(3,0)
-                spentTime = Pair(2,0)
+                spentTime = hashMapOf(member3 to Pair(2, 0))
                 status = Status.IN_PROGRESS
                 repetition = Repetition.DAILY
                 members = listOf(member3, member4)
-                schedules = hashMapOf(getDate(DayOfWeek.FRIDAY) to Pair(3,0))
+                schedules = hashMapOf(Pair(member3,getDate(DayOfWeek.FRIDAY)) to Pair(3,0))
             },
             Task().apply {
                 id = 4
@@ -336,7 +360,7 @@ object DummyDataProvider {
                 creationDate = LocalDate.now().minusDays(3)
                 deadline = LocalDate.now().plusDays(6)
                 estimatedTime = Pair(8,0)
-                spentTime = Pair(2,0)
+                spentTime = hashMapOf(member1 to Pair(2, 0))
                 status = Status.IN_PROGRESS
                 repetition = Repetition.WEEKLY
                 members = listOf(member1, member2)
@@ -350,7 +374,7 @@ object DummyDataProvider {
                 creationDate = LocalDate.now().minusDays(3)
                 deadline = LocalDate.now().plusDays(7)
                 estimatedTime = Pair(10,0)
-                spentTime = Pair(3,0)
+                spentTime = hashMapOf(member3 to Pair(3, 0))
                 status = Status.TODO
                 repetition = Repetition.DAILY
                 members = listOf(member3, member4)
@@ -364,7 +388,7 @@ object DummyDataProvider {
                 creationDate = LocalDate.now().minusDays(3)
                 deadline = LocalDate.now().plusDays(8)
                 estimatedTime = Pair(5,0)
-                spentTime = Pair(1,0)
+                spentTime = hashMapOf(member5 to Pair(2,0))
                 status = Status.TODO
                 repetition = Repetition.NONE
                 members = listOf(member5, member6)
@@ -383,11 +407,11 @@ object DummyDataProvider {
                 creationDate = LocalDate.now().minusDays(3)
                 deadline = LocalDate.now().plusDays(3)
                 estimatedTime = Pair(5,0)
-                spentTime = Pair(2,0)
+                spentTime = hashMapOf(member4 to Pair(2,0))
                 status = Status.IN_PROGRESS
                 repetition = Repetition.NONE
                 members = listOf(member4, member5, member6)
-                schedules = hashMapOf(getDate(DayOfWeek.TUESDAY) to Pair(5,0))
+                schedules = hashMapOf(Pair(member4,getDate(DayOfWeek.TUESDAY)) to Pair(5,0))
             },
             Task().apply {
                 id = 2
@@ -398,14 +422,14 @@ object DummyDataProvider {
                 creationDate = LocalDate.now().minusDays(3)
                 deadline = LocalDate.now().plusDays(4)
                 estimatedTime = Pair(4,0)
-                spentTime = Pair(1,0)
+                spentTime = hashMapOf(member2 to Pair(1,0))
                 status = Status.IN_PROGRESS
                 repetition = Repetition.WEEKLY
                 members = listOf(member1, member2)
-                schedules = hashMapOf(getDate(DayOfWeek.WEDNESDAY) to Pair(4,0))
+                schedules = hashMapOf(Pair(member2,getDate(DayOfWeek.WEDNESDAY)) to Pair(4,0))
             },
             Task().apply {
-                id =3
+                id = 3
                 name = "Task3"
                 description = "Description3"
                 category = Category.DESIGN
@@ -413,11 +437,11 @@ object DummyDataProvider {
                 creationDate = LocalDate.now().minusDays(3)
                 deadline = LocalDate.now().plusDays(5)
                 estimatedTime = Pair(3,0)
-                spentTime = Pair(2,0)
+                spentTime = hashMapOf(member3 to Pair(2,0))
                 status = Status.IN_PROGRESS
                 repetition = Repetition.DAILY
                 members = listOf(member3, member4)
-                schedules = hashMapOf(getDate(DayOfWeek.FRIDAY) to Pair(3,0))
+                schedules = hashMapOf(Pair(member3,getDate(DayOfWeek.FRIDAY)) to Pair(3,0))
             }
         )
     }

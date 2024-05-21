@@ -75,6 +75,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import it.polito.uniteam.gui.TeamDetails.TeamViewScreen
 import it.polito.uniteam.gui.calendar.Calendar
 import it.polito.uniteam.gui.calendar.CalendarAppContainer
 import it.polito.uniteam.gui.chat.ChatScreen
@@ -84,8 +85,11 @@ import it.polito.uniteam.gui.notifications.Notifications
 import it.polito.uniteam.gui.showtaskdetails.EditTaskView
 import it.polito.uniteam.gui.showtaskdetails.TaskDetailsView
 import it.polito.uniteam.gui.showtaskdetails.TaskScreen
+import it.polito.uniteam.gui.statistics.Statistics
 import it.polito.uniteam.gui.tasklist.TaskListView
+import it.polito.uniteam.gui.userprofile.OtherProfileSettings
 import it.polito.uniteam.gui.userprofile.ProfileSettings
+import it.polito.uniteam.gui.yourTasksCalendar.YourTasksCalendarViewScreen
 
 class MainActivity : ComponentActivity() {
 
@@ -275,6 +279,13 @@ class MainActivity : ComponentActivity() {
                                                     )
                                                 }
 
+                                                composable("Statistics") {
+                                                    Statistics(
+                                                        vm = viewModel(
+                                                            factory = Factory(LocalContext.current)
+                                                        )
+                                                    )
+                                                }
                                             }
                                         }
                                     },
