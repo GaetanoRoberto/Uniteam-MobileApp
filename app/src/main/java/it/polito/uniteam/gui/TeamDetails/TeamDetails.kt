@@ -527,17 +527,6 @@ fun TeamEditViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(Lo
             modifier = Modifier.fillMaxSize()
         ) {
 
-            if (vm.editing)
-                Button(onClick = { vm.validate() }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary) // Imposta il colore di sfondo del bottone a rosso
-                ) {
-                    Text("Done",color = MaterialTheme.colorScheme.onSecondary)
-
-                }
-            else
-                IconButton(onClick = { vm.changeEditing() }, colors = IconButtonDefaults.iconButtonColors(MaterialTheme.colorScheme.secondary),
-                ) {
-                    Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.onSecondary)
-                }
             Spacer(modifier = Modifier.height(16.dp))
 
             //
@@ -761,7 +750,7 @@ val selectedTeam = vm.selectedTeam.value
                                     }*/
                                     vm.onCancel()
                                     if(vm.newTeam){
-                                        TODO("Navigate to team list")
+                                        //TODO("Navigate to team list")
                                     }
                                     vm.teamCreation(false)
 
@@ -818,7 +807,7 @@ val selectedTeam = vm.selectedTeam.value
                             Button(colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
                                 vm.onCancel()
                                 if(vm.newTeam){
-                                    TODO("Navigate to team list")
+                                    //TODO("Navigate to team list")
                                 }
                                 vm.teamCreation(false)
                                 vm.changeEditing()
