@@ -1,13 +1,16 @@
 package it.polito.uniteam.gui.calendar
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import it.polito.uniteam.UniTeamModel
 import it.polito.uniteam.classes.DummyDataProvider
+import it.polito.uniteam.classes.Status
 import it.polito.uniteam.classes.Task
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -15,7 +18,7 @@ import java.time.temporal.ChronoUnit
 import java.util.stream.Collectors
 import java.util.stream.Stream
 
-class Calendar(val model: UniTeamModel) : ViewModel() {
+class Calendar(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
     var memberProfile = model.loggedMember
         private set
 
@@ -30,13 +33,14 @@ class Calendar(val model: UniTeamModel) : ViewModel() {
         selectedShowDialog = showDialog.none
     }
 
-    fun checkDialogs(task: Task, date: LocalDate, isNewSchedule: Boolean = true) {
+    fun checkDialogs(task: Task, sourceDate:LocalDate? = null, targetDate: LocalDate, isNewSchedule: Boolean = true) {
         // check permissions
-        if (task.members.contains(memberProfile)) {
+        Log.i("diooo",task.schedules.keys.contains(Pair(memberProfile,targetDate)).toString())
+        if ((task.schedules.keys.contains(Pair(memberProfile,sourceDate)) &&!isNewSchedule) || isNewSchedule) {
             // if permissions, check if back in time
-            if(date.isBefore(LocalDate.now())) {
+            if(targetDate.isBefore(LocalDate.now())) {
                 selectedShowDialog = showDialog.schedule_in_past
-            } else if(date.isAfter(task.deadline)) {
+            } else if(targetDate.isAfter(task.deadline)) {
                 selectedShowDialog = showDialog.after_deadline
             } else if(isNewSchedule) {
                 selectedShowDialog = showDialog.schedule_task
@@ -79,22 +83,12 @@ class Calendar(val model: UniTeamModel) : ViewModel() {
         memberProfile = model.loggedMember
         // get task to assign and filter them based on the user
         tasksToAssign = DummyDataProvider.getTasksToAssign().toMutableStateList()
-        tasksToAssign = tasksToAssign.filter { it.members.contains(memberProfile) }.toMutableStateList()
+        tasksToAssign = tasksToAssign.filter { it.members.contains(memberProfile) && it.status != Status.COMPLETED }.toMutableStateList()
         val tasks = DummyDataProvider.getScheduledTasks()
         tasks.forEach { task ->
             allScheduledTasks.add(task)
             viewedScheduledTasks.add(task)
         }
-    }
-
-    fun sumTimes(time1: Pair<Int, Int>, time2: Pair<Int, Int>): Pair<Int, Int> {
-        val totalMinutes = time1.second + time2.second
-        val minutesOverflow = totalMinutes / 60
-        val minutes = totalMinutes % 60
-
-        val totalHours = time1.first + time2.first + minutesOverflow
-
-        return Pair(totalHours, minutes)
     }
 
     fun subtractTimes(time1: Pair<Int, Int>, time2: Pair<Int, Int>): Pair<Int, Int> {
@@ -119,13 +113,13 @@ class Calendar(val model: UniTeamModel) : ViewModel() {
             // if task already present, update it with the new schedule
             viewedTask = viewedTask.map {
                 if(it.id == task.id) {
-                    if (it.schedules.containsKey(scheduleDate)) {
-                        val prevHours = it.schedules.remove(scheduleDate)
+                    if (it.schedules.containsKey(Pair(memberProfile,scheduleDate))) {
+                        val prevHours = it.schedules.remove(Pair(memberProfile,scheduleDate))
                         if (prevHours != null) {
-                            it.schedules.put(scheduleDate, sumTimes(prevHours,hoursToSchedule))
+                            it.schedules.put(Pair(memberProfile!!,scheduleDate), model.sumTimes(prevHours,hoursToSchedule))
                         }
                     } else {
-                        it.schedules.put(scheduleDate, hoursToSchedule)
+                        it.schedules.put(Pair(memberProfile!!,scheduleDate), hoursToSchedule)
                     }
                     // get the updated instance for this task
                     updated_task = it.copy()
@@ -136,13 +130,13 @@ class Calendar(val model: UniTeamModel) : ViewModel() {
             }.toMutableList()
         } else {
             // if task not present, add it with the new schedule
-            if (task.schedules.containsKey(scheduleDate)) {
-                val prevHours = task.schedules.remove(scheduleDate)
+            if (task.schedules.containsKey(Pair(memberProfile,scheduleDate))) {
+                val prevHours = task.schedules.remove(Pair(memberProfile,scheduleDate))
                 if (prevHours != null) {
-                    task.schedules.put(scheduleDate, sumTimes(prevHours,hoursToSchedule))
+                    task.schedules.put(Pair(memberProfile!!,scheduleDate), model.sumTimes(prevHours,hoursToSchedule))
                 }
             } else {
-                task.schedules.put(scheduleDate, hoursToSchedule)
+                task.schedules.put(Pair(memberProfile!!,scheduleDate), hoursToSchedule)
             }
             // get the updated instance for this task
             updated_task = task.copy()
@@ -176,7 +170,7 @@ class Calendar(val model: UniTeamModel) : ViewModel() {
             // after also filter by number of schedules (if task after unscheduling has no more schedule remove it)
             viewedTask = viewedTask.map {
                 if(it.id == task.id) {
-                    it.schedules.remove(scheduleDate)
+                    it.schedules.remove(Pair(memberProfile,scheduleDate))
                     it
                 } else {
                     it
@@ -193,7 +187,7 @@ class Calendar(val model: UniTeamModel) : ViewModel() {
         taskToAssignList = taskToAssignList.map {
             if(it.id == task.id) {
                 // here we can remove 2 times since it works anyway idempotent
-                it.schedules.remove(scheduleDate)
+                it.schedules.remove(Pair(memberProfile,scheduleDate))
                 it
             } else {
                 it
@@ -203,6 +197,7 @@ class Calendar(val model: UniTeamModel) : ViewModel() {
         tasksToAssign.addAll(taskToAssignList)
     }
 
+    var calendarUiModel by mutableStateOf<CalendarUiModel>(getData(lastSelectedDate = today))
     val today: LocalDate
         get() {
             return LocalDate.now()

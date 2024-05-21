@@ -93,6 +93,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -115,7 +116,7 @@ import java.time.LocalDate
 import java.util.Locale
 
 
-class TaskList(val model: UniTeamModel) : ViewModel() {
+class TaskList(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
     var membersList = mutableStateOf<List<Member>>(listOf(
         Member().apply {
             fullName = "John Doe"
@@ -197,7 +198,7 @@ class TaskList(val model: UniTeamModel) : ViewModel() {
             deadline = LocalDate.of(2024, 5, 6) // 1 week from now
             creationDate = LocalDate.of(2024, 5, 5)
             estimatedTime = Pair(10,0)
-            spentTime = Pair(12,0)
+            spentTime = hashMapOf(membersList.value[2] to Pair(12,0))
             status = Status.TODO
             repetition = Repetition.NONE
             members = listOf(membersList.value[2], membersList.value[3])
@@ -210,7 +211,7 @@ class TaskList(val model: UniTeamModel) : ViewModel() {
             deadline = LocalDate.of(2024, 5, 6) // 1 week from now
             creationDate = LocalDate.of(2024, 4, 20)
             estimatedTime = Pair(8,0)
-            spentTime = Pair(10,0)
+            spentTime = hashMapOf(membersList.value[4] to Pair(10,0))
             status = Status.IN_PROGRESS
             repetition = Repetition.NONE
             members = listOf(membersList.value[4], membersList.value[5])
@@ -223,7 +224,7 @@ class TaskList(val model: UniTeamModel) : ViewModel() {
             deadline = LocalDate.of(2024, 5, 13) // 2 weeks from now
             creationDate = LocalDate.of(2024, 5, 6)
             estimatedTime = Pair(20,0)
-            spentTime = Pair(22,0)
+            spentTime = hashMapOf(membersList.value[5] to Pair(22,0))
             status = Status.TODO
             repetition = Repetition.NONE
             members = listOf(membersList.value[5], membersList.value[6])
@@ -236,7 +237,7 @@ class TaskList(val model: UniTeamModel) : ViewModel() {
             deadline = LocalDate.of(2024, 5, 20) // 3 weeks from now
             creationDate = LocalDate.of(2024, 4, 13)
             estimatedTime = Pair(1,0)
-            spentTime = Pair(3,0)
+            spentTime = hashMapOf(membersList.value[2] to Pair(3,0))
             status = Status.COMPLETED
             repetition = Repetition.MONTHLY
             members = membersList.value
@@ -1778,9 +1779,9 @@ fun sortTasks(selectedOption: String, selectedChip: String, vm: TaskList) {
         }
         "Spent hours" -> {
             if (selectedChip == "Second") {
-                vm.filteredTasksList.value = vm.filteredTasksList.value.sortedBy { if(it.spentTime != null) it.spentTime!!.first * 60 + it.estimatedTime.second else 0 }
+                vm.filteredTasksList.value = vm.filteredTasksList.value.sortedBy { if(it.spentTime.isNotEmpty()) it.spentTime.values.sumOf { it.first } * 60 + it.spentTime.values.sumOf { it.second } else 0}
             } else {
-                vm.filteredTasksList.value = vm.filteredTasksList.value.sortedByDescending { if(it.spentTime != null) it.spentTime!!.first * 60 + it.estimatedTime.second else 0 }
+                vm.filteredTasksList.value = vm.filteredTasksList.value.sortedByDescending { if(it.spentTime.isNotEmpty()) it.spentTime.values.sumOf { it.first } * 60 + it.spentTime.values.sumOf { it.second } else 0}
             }
         }
     }

@@ -133,7 +133,7 @@ fun NoPermissionDialog(vm: Calendar = viewModel(factory = Factory(LocalContext.c
             Text(text = "Permission Denied")
         },
         text = {
-            Text(text = "You cannot edit this task, since you are not a member of it.")
+            Text(text = "You cannot edit this task, since you did not schedule it.")
         },
         onDismissRequest = {},
         confirmButton = {
@@ -170,7 +170,7 @@ fun ScheduleBackInTimeDialog(vm: Calendar = viewModel(factory = Factory(LocalCon
                     val (task,oldDate,newDate) = vm.taskToSchedule!!
                     if (oldDate != null) {
                         // old data passed from the state, so move from 1 day to another
-                        val hoursToSchedule = task.schedules.get(oldDate)
+                        val hoursToSchedule = task.schedules.get(Pair(vm.memberProfile,oldDate))
                         // remove the old day scheduled and add the new one
                         vm.unScheduleTask(task, oldDate)
                         if (hoursToSchedule != null) {
@@ -227,7 +227,7 @@ fun ScheduleAfterDeadlineDialog(vm: Calendar = viewModel(factory = Factory(Local
                     val (task,oldDate,newDate) = vm.taskToSchedule!!
                     if (oldDate != null) {
                         // old data passed from the state, so move from 1 day to another
-                        val hoursToSchedule = task.schedules.get(oldDate)
+                        val hoursToSchedule = task.schedules.get(Pair(vm.memberProfile,oldDate))
                         // remove the old day scheduled and add the new one
                         vm.unScheduleTask(task, oldDate)
                         if (hoursToSchedule != null) {
@@ -282,8 +282,6 @@ fun TaskDetailDialog(vm: Calendar = viewModel(factory = Factory(LocalContext.cur
                 RowItem(title = "Category:", value = task.category ?: "")
                 RowItem(title = "Priority:", value = task.priority)
                 RowItem(title = "Deadline:", value = task.deadline.toString())
-                RowItem(title = "Estimated Time:", value = task.estimatedTime.first.toString() + "h " + task.estimatedTime.second.toString() + "m")
-                RowItem(title = "Spent Time:", value =  if(task.spentTime!= null) task.spentTime!!.first.toString() + "h " + task.spentTime!!.second.toString() + "m" else "")
                 RowItem(title = "Repeatable:", value = task.repetition)
                 RowMemberItem(title = "Members:", value = task.members)
                 RowItem(title = "Status:", value = if(task.status==Status.IN_PROGRESS) "IN PROGRESS" else task.status)

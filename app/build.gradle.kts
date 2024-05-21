@@ -63,6 +63,8 @@ dependencies {
     implementation ("androidx.camera:camera-extensions:${cameraxVersion}")
     implementation("io.coil-kt:coil-compose:2.6.0")
     implementation("com.mohamedrejeb.dnd:compose-dnd:0.2.0")
+    implementation("co.yml:ycharts:2.1.0")
+    implementation("com.patrykandpatrick.vico:compose-m3:2.0.0-alpha.19")
     implementation("com.maxkeppeler.sheets-compose-dialogs:core:1.2.0")
     implementation("com.maxkeppeler.sheets-compose-dialogs:calendar:1.2.0")
     implementation ("androidx.compose.ui:ui:1.5.1")
