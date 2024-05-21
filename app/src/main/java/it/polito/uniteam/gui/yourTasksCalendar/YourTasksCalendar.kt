@@ -84,7 +84,7 @@ fun YourTasksCalendarView(vm: YourTasksCalendarViewModel = viewModel(factory = F
                 Row(modifier = Modifier.fillMaxWidth().padding(10.dp, 0.dp, 0.dp, 10.dp)) {
                     Text("Your Tasks", style = MaterialTheme.typography.headlineLarge.copy(color = MaterialTheme.colorScheme.primary)//testo
                     )}
-                taskOrdered.forEachIndexed { index, task ->
+                taskOrdered.filter { it.date.isAfter(LocalDate.now().minusDays(1)) }.forEachIndexed { index, task ->
 
                     if (task.date.toString() != initialDate) {
                         Row(modifier = Modifier.fillMaxWidth()) {
@@ -102,7 +102,7 @@ fun YourTasksCalendarView(vm: YourTasksCalendarViewModel = viewModel(factory = F
                         OutlinedTextField(
                             label = {Text(
                                 text = task.team,
-                                style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)//testo
+                                style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onPrimary)//testo
                             )},
                             modifier = Modifier
                                 .fillMaxWidth()

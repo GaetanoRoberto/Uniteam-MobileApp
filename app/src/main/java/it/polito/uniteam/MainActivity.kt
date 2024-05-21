@@ -214,7 +214,7 @@ class MainActivity : ComponentActivity() {
                                 },*/
                             content = { paddingValue ->
                                 Column ( Modifier.padding(paddingValue)){
-                                    NavHost(navController = navController, startDestination = "OtherUserProfile") {
+                                    NavHost(navController = navController, startDestination = "YourTasksCalendar") {
                                         // Definisci le destinazioni per le tue schermate
                                         composable("Teams") { TaskListView(vm = viewModel(),navController) }
                                         composable("Tasks") { TaskScreen(vm = viewModel()) }
