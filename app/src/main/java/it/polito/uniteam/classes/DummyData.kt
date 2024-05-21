@@ -31,7 +31,7 @@ object DummyDataProvider {
         profileImage = Uri.EMPTY
         permissionrole = permissionRole.USER
         teamsInfo = hashMapOf(1 to MemberTeamInfo().apply {
-            role = categoryRole.NONE
+            role = categoryRole.DESIGNER
             weeklyAvailabilityTimes = 0
             weeklyAvailabilityHours = Pair(0, 0)
         })
@@ -49,7 +49,7 @@ object DummyDataProvider {
         profileImage = Uri.EMPTY
         permissionrole = permissionRole.USER
         teamsInfo = hashMapOf(1 to MemberTeamInfo().apply {
-            role = categoryRole.NONE
+            role = categoryRole.ADMINISTRATOR
             weeklyAvailabilityTimes = 0
             weeklyAvailabilityHours = Pair(0, 0)
         })
@@ -67,7 +67,7 @@ object DummyDataProvider {
         profileImage = Uri.EMPTY
         permissionrole = permissionRole.USER
         teamsInfo = hashMapOf(1 to MemberTeamInfo().apply {
-            role = categoryRole.NONE
+            role = categoryRole.EMPLOYEE
             weeklyAvailabilityTimes = 0
             weeklyAvailabilityHours = Pair(0, 0)
         })
@@ -85,7 +85,7 @@ object DummyDataProvider {
         profileImage = Uri.EMPTY
         permissionrole = permissionRole.USER
         teamsInfo = hashMapOf(1 to MemberTeamInfo().apply {
-            role = categoryRole.NONE
+            role = categoryRole.RESEARCHER
             weeklyAvailabilityTimes = 0
             weeklyAvailabilityHours = Pair(0, 0)
         })

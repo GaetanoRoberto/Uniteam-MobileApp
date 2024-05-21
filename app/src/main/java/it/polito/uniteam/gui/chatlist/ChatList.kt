@@ -116,7 +116,7 @@ fun UserItem(member: Member,vm : ChatListViewModel) {
         ) {
             Text(text = member.fullName, style = MaterialTheme.typography.bodyLarge)
             //ROLE IN DUMMY DATA DA CAMBIARE TODO
-            Text(text = member.permissionrole.toString(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+            Text(text = member.teamsInfo?.get(1)?.role.toString(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
         }
         Column (modifier = Modifier.weight(0.1f)){
             val recentMessageDate = vm.messages
