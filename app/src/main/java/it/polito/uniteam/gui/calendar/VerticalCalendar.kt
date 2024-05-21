@@ -391,6 +391,7 @@ fun VerticalDayEventScheduler(
                                             // data passed from the DraggableItem, so move from 1 day to another
                                             vm.checkDialogs(
                                                 state.data.first,
+                                                state.data.second,
                                                 currentDate.value.date,
                                                 isNewSchedule = false
                                             )
@@ -406,6 +407,7 @@ fun VerticalDayEventScheduler(
                                             // no data passed from the DraggableItem, so coming from the bottom
                                             vm.checkDialogs(
                                                 state.data.first,
+                                                null,
                                                 currentDate.value.date,
                                                 isNewSchedule = true
                                             )
@@ -447,7 +449,7 @@ fun VerticalDayEventScheduler(
                                     .forEach { task ->
                                         DraggableItem(
                                             state = dragAndDropState,
-                                            key = task.id + date.hashCode(), // Unique key for each draggable item
+                                            key = task.id + date.hashCode(),// + task.schedules.keys.filter { it.second==date.date }[0].first.hashCode(), // Unique key for each draggable item
                                             data = Pair(
                                                 task,
                                                 date.date
@@ -500,7 +502,7 @@ fun VerticalTasksToAssign(
                         onDrop = { state -> // Data passed from the draggable item
                             // Unschedule only if the data was passed, otherwise already unscheduled
                             if (state.data.second != null) {
-                                vm.checkDialogs(state.data.first, state.data.second!!)
+                                vm.checkDialogs(state.data.first, state.data.second!!, LocalDate.now())
                                 // Unschedule only if i have the permission to do it
                                 if (vm.selectedShowDialog != showDialog.no_permission) {
                                     vm.unScheduleTask(state.data.first, state.data.second!!)

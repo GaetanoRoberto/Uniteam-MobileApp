@@ -193,6 +193,7 @@ fun HorizontalDayEventScheduler(data: CalendarUiModel,
                                             // data passed from the DraggableItem, so move from 1 day to another
                                             vm.checkDialogs(
                                                 state.data.first,
+                                                state.data.second,
                                                 currentDate.value.date,
                                                 isNewSchedule = false
                                             )
@@ -208,6 +209,7 @@ fun HorizontalDayEventScheduler(data: CalendarUiModel,
                                             // no data passed from the DraggableItem, so coming from the bottom
                                             vm.checkDialogs(
                                                 state.data.first,
+                                                null,
                                                 currentDate.value.date,
                                                 isNewSchedule = true
                                             )
@@ -305,7 +307,7 @@ fun HorizontalTasksToAssign(
                     onDrop = { state -> // Data passed from the draggable item
                         // Unschedule only if the data was passed, otherwise already unscheduled
                         if (state.data.second != null) {
-                            vm.checkDialogs(state.data.first, state.data.second!!)
+                            vm.checkDialogs(state.data.first, state.data.second!!, LocalDate.now())
                             // Unschedule only if i have the permission to do it
                             if (vm.selectedShowDialog != showDialog.no_permission) {
                                 vm.unScheduleTask(state.data.first, state.data.second!!)

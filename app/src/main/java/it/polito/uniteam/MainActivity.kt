@@ -81,6 +81,7 @@ import it.polito.uniteam.gui.notifications.Notifications
 import it.polito.uniteam.gui.showtaskdetails.EditTaskView
 import it.polito.uniteam.gui.showtaskdetails.TaskDetailsView
 import it.polito.uniteam.gui.showtaskdetails.TaskScreen
+import it.polito.uniteam.gui.statistics.Statistics
 import it.polito.uniteam.gui.tasklist.TaskListView
 import it.polito.uniteam.gui.userprofile.ProfileSettings
 
@@ -217,7 +218,7 @@ class MainActivity : ComponentActivity() {
                                             // In your main activity or main screen composable
                                             NavHost(
                                                 navController = navController,
-                                                startDestination = "Teams"
+                                                startDestination = "Statistics"
                                             ) {
                                                 // Define destinations for your screens
                                                 composable("Teams") {
@@ -255,6 +256,13 @@ class MainActivity : ComponentActivity() {
                                                         ),
                                                         outputDirectory = getOutputDirectory(),
                                                         cameraExecutor = cameraExecutor
+                                                    )
+                                                }
+                                                composable("Statistics") {
+                                                    Statistics(
+                                                        vm = viewModel(
+                                                            factory = Factory(LocalContext.current)
+                                                        )
                                                     )
                                                 }
                                             }

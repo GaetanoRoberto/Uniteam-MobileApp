@@ -33,13 +33,14 @@ class Calendar(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) 
         selectedShowDialog = showDialog.none
     }
 
-    fun checkDialogs(task: Task, date: LocalDate, isNewSchedule: Boolean = true) {
+    fun checkDialogs(task: Task, sourceDate:LocalDate? = null, targetDate: LocalDate, isNewSchedule: Boolean = true) {
         // check permissions
-        if (task.schedules.keys.contains(Pair(memberProfile,date))) {
+        Log.i("diooo",task.schedules.keys.contains(Pair(memberProfile,targetDate)).toString())
+        if ((task.schedules.keys.contains(Pair(memberProfile,sourceDate)) &&!isNewSchedule) || isNewSchedule) {
             // if permissions, check if back in time
-            if(date.isBefore(LocalDate.now())) {
+            if(targetDate.isBefore(LocalDate.now())) {
                 selectedShowDialog = showDialog.schedule_in_past
-            } else if(date.isAfter(task.deadline)) {
+            } else if(targetDate.isAfter(task.deadline)) {
                 selectedShowDialog = showDialog.after_deadline
             } else if(isNewSchedule) {
                 selectedShowDialog = showDialog.schedule_task
