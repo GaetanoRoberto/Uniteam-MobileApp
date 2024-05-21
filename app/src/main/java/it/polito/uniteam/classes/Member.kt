@@ -14,7 +14,7 @@ data class Member (
     var permissionrole: permissionRole = permissionRole.USER,
     // key teamId value role inside it
     var teamsInfo: HashMap<Int,MemberTeamInfo>? = null,
-    var chats: List<Chat> = emptyList()
+    var chats: MutableList<Int> = mutableListOf()
 )
 
 data class MemberTeamInfo (

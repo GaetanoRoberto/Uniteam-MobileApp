@@ -22,7 +22,7 @@ class NotificationsViewModel(val model: UniTeamModel, val savedStateHandle: Save
             message = "",
             senderId = 1,
             creationDate = LocalDateTime.now(),
-            membersUnread = listOf(model.loggedMember!!),
+            membersUnread = listOf(2),
             status = messageStatus.UNREAD
         ),
         Message(
@@ -30,7 +30,7 @@ class NotificationsViewModel(val model: UniTeamModel, val savedStateHandle: Save
             message = "",
             senderId = 2,
             creationDate = LocalDateTime.now(),
-            membersUnread = listOf(model.loggedMember),
+            membersUnread = listOf(1,3),
             status = messageStatus.UNREAD
         ),
         Message(
@@ -38,7 +38,7 @@ class NotificationsViewModel(val model: UniTeamModel, val savedStateHandle: Save
             message = "",
             senderId = 3,
             creationDate = LocalDateTime.now(),
-            membersUnread = listOf(model.loggedMember),
+            membersUnread = listOf(1,2,4,5),
             status = messageStatus.UNREAD
         )
     ))

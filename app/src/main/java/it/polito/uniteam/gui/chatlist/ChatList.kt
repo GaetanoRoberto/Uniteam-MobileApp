@@ -112,12 +112,13 @@ fun UserItem(member: Member,vm : ChatListViewModel) {
         MemberIcon(modifierScale= Modifier.scale(1f), modifierPadding = Modifier.padding(4.dp, 0.dp, 15.dp, 0.dp),member = member )
         Spacer(modifier = Modifier.width(10.dp))
         Column(
-            modifier = Modifier.weight(0.7f)
+            modifier = Modifier.weight(0.5f)
         ) {
             Text(text = member.fullName, style = MaterialTheme.typography.bodyLarge)
+            //ROLE IN DUMMY DATA DA CAMBIARE TODO
             Text(text = member.permissionrole.toString(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
         }
-        Column (modifier = Modifier){
+        Column (modifier = Modifier.weight(0.1f)){
             val recentMessageDate = vm.messages
                 .filter { it.senderId == member.id }
                 .maxOfOrNull { it.creationDate }

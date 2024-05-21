@@ -11,8 +11,10 @@ import it.polito.uniteam.classes.Chat
 import it.polito.uniteam.classes.DummyDataProvider
 import it.polito.uniteam.classes.History
 import it.polito.uniteam.classes.Member
+import it.polito.uniteam.classes.Message
 import it.polito.uniteam.classes.Task
 import it.polito.uniteam.classes.Team
+import it.polito.uniteam.classes.messageStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.math.log
@@ -33,6 +35,33 @@ class UniTeamModel {
     var selectedTeam= _selectedTeam.value
     private var _selectedUser = mutableStateOf(DummyDataProvider.member2)// team selected to show its details
     var selectedUser= _selectedUser.value
+
+    // USER CHAT UNREAD
+    fun getUnreadMessagesUser(memberId: Int): Int {
+        // Trova il membro con l'ID specificato
+        val member = getMemberById(memberId).first
+
+        // Se il membro non esiste, ritorna 0
+        if (member == null) {
+            return 0
+        }
+        val chat = getUsersChat(member)
+
+        return chat?.messages?.filter { it.status == messageStatus.UNREAD }?.count() ?: 0
+    }
+    // TEAM CHAT UNREAD
+    fun isMessageUnreadByMember(memberId: Int, message: Message): Boolean {
+        return memberId in message.membersUnread
+    }
+    // Funzione per ottenere il numero di messaggi non letti da un membro
+    fun getUnreadMessagesCount(memberId: Int, chat: Chat): Int {
+        return chat.messages.count { isMessageUnreadByMember(memberId, it) }
+    }
+
+    fun getUnreadMessagesTeam(teamId: Int): Int? {
+        val team = getTeam(teamId)
+        return _loggedMember?.id?.let { team.chat?.let { it1 -> getUnreadMessagesCount(it, it1) } }
+    }
 
     fun selectTeam(id: Int){ // click on team to set the selected team to show
         val team = getTeam(id)
@@ -93,14 +122,14 @@ class UniTeamModel {
         _teams.forEach { team->
             ret.addAll(team.members)
         }
-        //return ret TODO( DESELECT FOR PRODUCTION )
+        return ret// TODO( DESELECT FOR PRODUCTION )
         //return only for testing
-        return(listOf(DummyDataProvider.member1,
+        /*return(listOf(DummyDataProvider.member1,
             DummyDataProvider.member2,
             DummyDataProvider.member3,
             DummyDataProvider.member4,
             DummyDataProvider.member5,
-            DummyDataProvider.member6) )
+            DummyDataProvider.member6) )*/
     }
 
     fun getAllHistories(): List<Pair<Team,List<History>>> {
@@ -221,9 +250,18 @@ class UniTeamModel {
         return chat!!
     }
 
-    fun getUsersChat(memberToChatWith: Member): Chat {
-        val chat = _loggedMember?.chats?.find { it.sender == _loggedMember && it.receiver == memberToChatWith }
-        return chat!!
+    fun getUsersChat(memberToChatWith: Member): Chat? {
+        _loggedMember?.chats?.forEach{chat ->
+            val c = getChat(chat)
+            if (c.receiver == memberToChatWith && c.sender == loggedMember) {
+                return c
+            }
+        }
+        return null
+    }
+    fun getChat(chatId: Int): Chat {
+        val allChats = DummyDataProvider.allChats
+        return allChats.filter { it.id == chatId }[0]
     }
 
     fun sumTimes(time1: Pair<Int, Int>, time2: Pair<Int, Int>): Pair<Int, Int> {

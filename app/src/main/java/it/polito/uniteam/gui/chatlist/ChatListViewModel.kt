@@ -23,7 +23,15 @@ class ChatListViewModel(val model: UniTeamModel, val savedStateHandle: SavedStat
         Message(6, 4, "Ciao s!", LocalDateTime.now(), status = messageStatus.UNREAD)
 
     )
-    //senderId 2 => Jane Smith (member2), senderId 5 => Alice Jonson (member5)
+    fun markMessageAsRead(memberId: Int, message: Message) {
+        if (memberId in message.membersUnread) {
+            message.membersUnread = message.membersUnread.toMutableList().apply {
+                remove(memberId)
+            }
+        }
+    }
+
+
     val chat = Chat(
         id = 123456,
         sender = model.loggedMember!!,
@@ -31,7 +39,5 @@ class ChatListViewModel(val model: UniTeamModel, val savedStateHandle: SavedStat
         messages = messages,
         // teamId = 2
     )
-    fun getUnreadMessagesCount(memberId: Int): Int {
-        return messages.count { it.senderId == memberId && it.status == messageStatus.UNREAD }
-    }
+    fun getUnreadMessagesCount(memberId: Int) = model.getUnreadMessagesUser(memberId)
 }
