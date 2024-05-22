@@ -48,6 +48,7 @@ import kotlinx.coroutines.withContext
 import kotlin.random.Random
 import com.patrykandpatrick.vico.core.common.shape.Shape
 import android.graphics.Typeface
+import android.util.Log
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.res.stringResource
@@ -69,29 +70,11 @@ import kotlinx.coroutines.withContext
 
 @Composable
 fun BarChart(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContext.current))) {
+    val chartColors = listOf(MaterialTheme.colorScheme.primary, Color(0xff018FF3))
     val modelProducer = remember { CartesianChartModelProducer.build() }
-    val data = mapOf(
-        "member1" to Pair(6f, 8f),
-        "member2" to Pair(6f, 4f),
-        "member3" to Pair(5f, 6f),
-        "member4" to Pair(7f, 3f),
-        "member5" to Pair(4f, 9f),
-        "member6" to Pair(8f, 2f),
-        "member7" to Pair(7f, 3f),
-        "member8" to Pair(4f, 9f),
-        "member9" to Pair(8f, 2f),
-        "member10" to Pair(5f, 7f),
-        "member11" to Pair(3f, 8f),
-        "member12" to Pair(6f, 5f),
-        "member13" to Pair(9f, 4f),
-        "member14" to Pair(2f, 6f),
-        "member15" to Pair(7f, 5f),
-        "member16" to Pair(3f, 7f),
-        "member17" to Pair(8f, 6f),
-        "member18" to Pair(4f, 8f)
-    )
+    val data = vm.getPlannedSpentHoursRatio()
     val labelListKey = ExtraStore.Key<List<String>>()
-    LaunchedEffect(Unit) {
+    LaunchedEffect(labelListKey,data) {
         withContext(Dispatchers.Default) {
             modelProducer.tryRunTransaction {
                 columnSeries {
@@ -141,7 +124,7 @@ fun BarChart(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContext.
             ),
             startAxis = rememberStartAxis(itemPlacer = remember { AxisItemPlacer.Vertical.step({ _ -> Math.ceil((maxY / 10).toDouble()).toFloat() }) }),
             bottomAxis = rememberBottomAxis(valueFormatter = CartesianValueFormatter { x, chartValues, _ -> chartValues.model.extraStore[labelListKey][x.toInt()] }),
-            legend = rememberLegend()
+            legend = rememberLegend(chartColors)
         ),
         modelProducer = modelProducer,
         modifier = Modifier.fillMaxHeight(0.9f),
@@ -152,7 +135,7 @@ fun BarChart(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContext.
 }
 
 @Composable
-private fun rememberLegend() =
+private fun rememberLegend(chartColors: List<Color>) =
     rememberHorizontalLegend<CartesianMeasureContext, CartesianDrawContext>(
         items =
         chartColors.mapIndexed { index, chartColor ->
@@ -164,7 +147,7 @@ private fun rememberLegend() =
                     textSize = 12.sp,
                     typeface = Typeface.MONOSPACE,
                 ),
-                labelText = if(index == 0) "Planned" else "Spent",
+                labelText = if(index == 0) "Planned Hours" else "Spent Hours",
             )
         },
         iconSize = 8.dp,
@@ -172,8 +155,6 @@ private fun rememberLegend() =
         spacing = 8.dp,
         padding = Dimensions.of(top = 8.dp),
     )
-
-private val chartColors = listOf(Color(0xff916cda), Color(0xffd877d8))
 
 @Composable
 internal fun rememberMarker(

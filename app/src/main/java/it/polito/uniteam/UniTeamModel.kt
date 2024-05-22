@@ -138,7 +138,6 @@ class UniTeamModel {
     }
 
     fun getTeam(teamId: Int): Team {
-        Log.i("diooo",_teams.toString())
         return _teams.filter { it.id == teamId }[0]
     }
     fun getAllTeams(): List<Team> {

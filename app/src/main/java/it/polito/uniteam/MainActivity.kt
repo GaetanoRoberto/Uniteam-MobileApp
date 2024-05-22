@@ -224,7 +224,7 @@ class MainActivity : ComponentActivity() {
                                             // In your main activity or main screen composable
                                             NavHost(
                                                 navController = navController,
-                                                startDestination = "ChatList"
+                                                startDestination = "Statistics"
                                             ) {
                                                 // Define destinations for your screens
                                                 composable("Teams") {

@@ -62,11 +62,13 @@ fun Statistics(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContex
                         BarChart(vm = vm)
                     }
                     chartType.OVERALL_SPENT_HOURS -> {
-                        Text(text = "Click on the Chart to see/hide details")
+                        if(vm.getOverallSpentHours()!=null)
+                            Text(text = "Click on the Chart to see/hide details")
                         OverallSpentHoursChart(vm = vm)
                     }
                     chartType.OVERALL_TEAM_KPI -> {
-                        Text(text = "Click on the Chart to see/hide details")
+                        if(vm.getOverallTeamKPI()!=null)
+                            Text(text = "Click on the Chart to see/hide details")
                         OverallTeamKPIChart(vm = vm)
                     }
                 }

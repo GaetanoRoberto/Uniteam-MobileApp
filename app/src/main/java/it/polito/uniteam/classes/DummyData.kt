@@ -228,7 +228,7 @@ object DummyDataProvider {
                 creationDate = LocalDate.now().minusDays(3)
                 deadline = LocalDate.now().plusDays(4)
                 estimatedTime = Pair(4, 0)
-                spentTime = hashMapOf(member1 to Pair(1, 0))
+                spentTime = hashMapOf(member1 to Pair(1, 35),member2 to Pair(3, 0))
                 status = Status.IN_PROGRESS
                 repetition = Repetition.WEEKLY
                 members = listOf(member1, member2)
@@ -341,7 +341,7 @@ object DummyDataProvider {
                 description = "Description for Team $i",
                 image = Uri.EMPTY,
                 creationDate = LocalDate.now(),
-                members = members.shuffled().take(5).toMutableList(),
+                members = mutableListOf(member1, member2),
                 tasks = tasks.toMutableList(),
                 teamHistory = getHistory(members[i],isTeamHistory = true),
                 chat = if (i == 0) groupChat1 else if (i==1) groupChat2 else null
