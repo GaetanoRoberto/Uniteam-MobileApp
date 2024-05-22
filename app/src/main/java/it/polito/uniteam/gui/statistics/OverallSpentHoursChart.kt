@@ -1,5 +1,6 @@
 package it.polito.uniteam.gui.statistics
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -12,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
@@ -37,12 +39,6 @@ fun OverallSpentHoursChart(vm: StatisticsViewModel = viewModel(factory = Factory
             slices = memberSpentHours.entries.mapIndexed { index, entry ->
                 PieChartData.Slice(entry.key, entry.value, colorPaletteList[index])
             },
-            /*listOf(
-                           PieChartData.Slice("HP", 15f, colorPaletteList[0]),
-                           PieChartData.Slice("Dell", 30f, colorPaletteList[1]),
-                           PieChartData.Slice("Lenovo", 40f, colorPaletteList[2]),
-                           PieChartData.Slice("Asus", 15f, colorPaletteList[3])
-                       ),*/
             plotType = PlotType.Donut
         )
         val donutChartConfig = PieChartConfig(
@@ -61,31 +57,14 @@ fun OverallSpentHoursChart(vm: StatisticsViewModel = viewModel(factory = Factory
         val legendsConfig = LegendsConfig(
             legendLabelList = memberSpentHours.entries.mapIndexed { index, entry ->
                 LegendLabel(colorPaletteList[index], entry.key)
-            },/*listOf(
-            LegendLabel(colorPaletteList[1],"Dell"),
-            LegendLabel(colorPaletteList[0],"HP"),
-            LegendLabel(colorPaletteList[2],"Lenovo"),
-            LegendLabel(colorPaletteList[3],"Asus"),
-            LegendLabel(colorPaletteList[1],"Dell"),
-            LegendLabel(colorPaletteList[0],"HP"),
-            LegendLabel(colorPaletteList[2],"Lenovo"),
-            LegendLabel(colorPaletteList[3],"Asus"),
-            LegendLabel(colorPaletteList[1],"Dell"),
-            LegendLabel(colorPaletteList[0],"HP"),
-            LegendLabel(colorPaletteList[2],"Lenovo"),
-            LegendLabel(colorPaletteList[3],"Asus"),
-            LegendLabel(colorPaletteList[1],"Dell"),
-            LegendLabel(colorPaletteList[0],"HP"),
-            LegendLabel(colorPaletteList[2],"Lenovo"),
-            LegendLabel(colorPaletteList[3],"Asus")
-        ),*/
+            },
             gridColumnCount = 2
         )
 
         Box(contentAlignment = Alignment.Center) {
             DonutPieChart(
                 modifier = Modifier
-                    .fillMaxHeight(0.7f),
+                    .fillMaxHeight(0.7f),//.scale(0.9f),
                 donutChartData,
                 donutChartConfig,
                 onSliceClick = {

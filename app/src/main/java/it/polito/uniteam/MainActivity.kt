@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.ChecklistRtl
 import androidx.compose.material.icons.filled.Diversity3
@@ -82,13 +81,13 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
-import it.polito.uniteam.classes.MemberIcon
 import it.polito.uniteam.gui.calendar.CalendarAppContainer
 import it.polito.uniteam.gui.chat.ChatScreen
 import it.polito.uniteam.gui.chatlist.ChatListScreen
 import it.polito.uniteam.gui.notifications.Notifications
 import it.polito.uniteam.gui.showtaskdetails.TaskScreen
 import it.polito.uniteam.gui.statistics.Statistics
+import it.polito.uniteam.gui.statistics.VerticalStatistics
 import it.polito.uniteam.gui.tasklist.TaskListView
 import it.polito.uniteam.gui.userprofile.ProfileSettings
 import it.polito.uniteam.gui.userprofile.UserProfileScreen

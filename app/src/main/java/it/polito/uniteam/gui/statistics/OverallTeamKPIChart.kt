@@ -17,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
@@ -67,7 +68,7 @@ fun OverallTeamKPIChart(vm: StatisticsViewModel = viewModel(factory = Factory(Lo
         Box(contentAlignment = Alignment.Center) {
             PieChart(
                 modifier = Modifier
-                    .fillMaxHeight(0.7f),
+                    .fillMaxHeight(0.7f),//.fillMaxHeight(0.9f).scale(0.6f),
                 pieChartData,
                 pieChartConfig,
                 onSliceClick = {
