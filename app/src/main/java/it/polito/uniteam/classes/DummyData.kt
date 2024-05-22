@@ -237,7 +237,7 @@ object DummyDataProvider {
                 deadline = LocalDate.now().plusDays(4)
                 estimatedTime = Pair(4, 0)
                 spentTime = hashMapOf(member1 to Pair(1, 35),member2 to Pair(3, 0))
-                status = Status.IN_PROGRESS
+                status = Status.COMPLETED
                 repetition = Repetition.WEEKLY
                 members = listOf(member1, member2)
                 schedules = hashMapOf(Pair(member1,getDate(DayOfWeek.WEDNESDAY)) to Pair(4, 0))

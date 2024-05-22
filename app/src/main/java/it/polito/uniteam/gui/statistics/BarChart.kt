@@ -2,7 +2,6 @@ package it.polito.uniteam.gui.statistics
 
 import android.annotation.SuppressLint
 import android.text.Layout
-import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -42,18 +41,11 @@ import com.patrykandpatrick.vico.core.common.copyColor
 import com.patrykandpatrick.vico.core.common.shader.DynamicShader
 import com.patrykandpatrick.vico.core.common.shape.Corner
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
-import kotlin.random.Random
 import com.patrykandpatrick.vico.core.common.shape.Shape
 import android.graphics.Typeface
 import android.util.Log
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.padding
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.sp
-import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisTickComponent
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottomAxis
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStartAxis
 import com.patrykandpatrick.vico.compose.common.component.fixed
@@ -64,9 +56,7 @@ import com.patrykandpatrick.vico.core.cartesian.CartesianDrawContext
 import com.patrykandpatrick.vico.core.cartesian.axis.AxisItemPlacer
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianValueFormatter
 import com.patrykandpatrick.vico.core.common.component.TextComponent
-import com.patrykandpatrick.vico.core.common.data.ExtraStore
 import it.polito.uniteam.Factory
-import kotlinx.coroutines.withContext
 
 @Composable
 fun BarChart(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContext.current))) {
@@ -74,8 +64,9 @@ fun BarChart(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContext.
     val modelProducer = remember { CartesianChartModelProducer.build() }
     val data = vm.getPlannedSpentHoursRatio()
     val maxY = data.values.flatMap { listOf(it.first, it.second) }.max()
-    val labelListKey = ExtraStore.Key<List<String>>()
-    LaunchedEffect(labelListKey,data) {
+    val xAxisFormatter = CartesianValueFormatter { x, _, _ -> data.keys.elementAt(x.toInt()).toString() }
+
+    LaunchedEffect(Unit) {
         withContext(Dispatchers.Default) {
             modelProducer.tryRunTransaction {
                 columnSeries {
@@ -90,14 +81,10 @@ fun BarChart(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContext.
                         }
                     )
                 }
-                updateExtras {
-                    it[labelListKey] = data.keys.toList()
-                }
-                //lineSeries { series(List(Defaults.ENTRY_COUNT) { Random.nextFloat() * Defaults.MAX_Y }) }
             }
         }
     }
-    val lineColor = Color.White
+
     CartesianChartHost(
         chart =
         rememberCartesianChart(
@@ -117,13 +104,13 @@ fun BarChart(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContext.
                 lines =
                 listOf(
                     rememberLineSpec(
-                        shader = DynamicShader.color(lineColor),
+                        shader = DynamicShader.color(MaterialTheme.colorScheme.onPrimary),
                         pointConnector = DefaultPointConnector(cubicStrength = 0f),
                     ),
                 ),
             ),
             startAxis = rememberStartAxis(itemPlacer = remember { AxisItemPlacer.Vertical.step({ _ -> (maxY / 10) }) }),
-            bottomAxis = rememberBottomAxis(valueFormatter = CartesianValueFormatter { x, chartValues, _ -> chartValues.model.extraStore[labelListKey][x.toInt()] }),
+            bottomAxis = rememberBottomAxis(valueFormatter = xAxisFormatter),
             legend = rememberLegend(chartColors)
         ),
         modelProducer = modelProducer,

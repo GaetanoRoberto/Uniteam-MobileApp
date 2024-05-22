@@ -427,8 +427,7 @@ class MainActivity : ComponentActivity() {
                                                             cameraExecutor = cameraExecutor
                                                         )
                                                     }
-
-                                                    composable("Statistics") {
+                                                    composable("Statistics/{teamId}", arguments = listOf(navArgument("teamId") { type = NavType.StringType })) {
                                                         Statistics(
                                                             vm = viewModel(
                                                                 factory = Factory(LocalContext.current)

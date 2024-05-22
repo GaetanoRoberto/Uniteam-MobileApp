@@ -27,9 +27,11 @@ class StatisticsViewModel(val model: UniTeamModel, val savedStateHandle: SavedSt
     inline fun <reified T : Number> pairToNumber(pair: Pair<T,T>) : Float {
         return pair.first.toFloat() + pair.second.toFloat() / 60f
     }
-    var teamTasks = mutableStateOf(model.getTeam(1).tasks.toList())
+
+    val teamId: String = checkNotNull(savedStateHandle["teamId"])
+    var teamTasks = mutableStateOf(model.getTeam(teamId.toInt()).tasks.toList())
         private set
-    var teamMembers = mutableStateOf(model.getTeam(1).members.toList())
+    var teamMembers = mutableStateOf(model.getTeam(teamId.toInt()).members.toList())
         private set
 
     fun getPlannedSpentHoursRatio(): Map<String, Pair<Float, Float>> {

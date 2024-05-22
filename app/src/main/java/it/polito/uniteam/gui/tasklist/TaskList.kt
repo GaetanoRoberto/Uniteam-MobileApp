@@ -904,7 +904,7 @@ fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Coroutin
                                 style = MaterialTheme.typography.titleMedium
                             )
                         },
-                        onClick = { /* Handle statistics */ },
+                        onClick = { navController.navigate("Statistics/1") },
                         leadingIcon = {
                             Icon(
                                 painter = painterResource(id = R.drawable.statistics),
