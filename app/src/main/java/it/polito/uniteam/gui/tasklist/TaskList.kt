@@ -1,6 +1,7 @@
 package it.polito.uniteam.gui.tasklist
 
 import android.content.Context
+import android.content.Intent
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import androidx.compose.animation.AnimatedVisibility
@@ -79,11 +80,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
@@ -97,6 +100,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.lightspark.composeqr.QrCodeView
 import it.polito.uniteam.Factory
 import it.polito.uniteam.NavControllerManager
 import it.polito.uniteam.R
@@ -835,6 +839,7 @@ fun TaskListView(vm: TaskList = viewModel(factory = Factory(LocalContext.current
 @Composable
 fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: CoroutineScope, context: Context, view: View, selectedOption: String, selectedChip: String) {
     val navController = NavControllerManager.getNavController()
+
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -872,7 +877,7 @@ fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Coroutin
                                 style = MaterialTheme.typography.titleMedium
                             )
                         },
-                        onClick = { /* Handle change! */ },
+                        onClick = { vm.expandedDropdown = false; navController.navigate("ChangeAvailability/1") { launchSingleTop = true } },
                         leadingIcon = {
                             Icon(
                                 painter = painterResource(id = R.drawable.availability),
@@ -888,7 +893,7 @@ fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Coroutin
                                 style = MaterialTheme.typography.titleMedium
                             )
                         },
-                        onClick = { /* Handle add! */ },
+                        onClick = { vm.expandedDropdown = false; navController.navigate("Invitation") { launchSingleTop = true } },
                         leadingIcon = {
                             Icon(
                                 painter = painterResource(id = R.drawable.addmember),
@@ -1202,6 +1207,7 @@ fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Coroutin
 @Composable
 fun HorizontalTaskListView(vm: TaskList, drawerState: DrawerState, scope: CoroutineScope, context: Context, view: View, selectedOption: String, selectedChip: String) {
     val navController = NavControllerManager.getNavController()
+
     Row(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -1233,6 +1239,7 @@ fun HorizontalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Corout
                         )
                     }
                     DropdownMenu(
+                        containerColor = MaterialTheme.colorScheme.secondary,
                         expanded = vm.expandedDropdown,
                         onDismissRequest = { vm.expandedDropdown = false }
                     ) {
@@ -1243,7 +1250,7 @@ fun HorizontalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Corout
                                     style = MaterialTheme.typography.titleMedium
                                 )
                             },
-                            onClick = { /* Handle change! */ },
+                            onClick = { vm.expandedDropdown = false; navController.navigate("ChangeAvailability/1") { launchSingleTop = true } },
                             leadingIcon = {
                                 Icon(
                                     painter = painterResource(id = R.drawable.availability),
@@ -1259,7 +1266,7 @@ fun HorizontalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Corout
                                     style = MaterialTheme.typography.titleMedium
                                 )
                             },
-                            onClick = { /* Handle add! */ },
+                            onClick = { vm.expandedDropdown = false; navController.navigate("Invitation") { launchSingleTop = true } },
                             leadingIcon = {
                                 Icon(
                                     painter = painterResource(id = R.drawable.addmember),

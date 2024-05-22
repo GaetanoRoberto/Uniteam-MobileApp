@@ -31,9 +31,9 @@ object DummyDataProvider {
         profileImage = Uri.EMPTY
         permissionrole = permissionRole.USER
         teamsInfo = hashMapOf(1 to MemberTeamInfo().apply {
-            role = categoryRole.DESIGNER
-            weeklyAvailabilityTimes = 0
-            weeklyAvailabilityHours = Pair(0, 0)
+            role = CategoryRole.PROGRAMMER
+            weeklyAvailabilityTimes = 5
+            weeklyAvailabilityHours = Pair(3, 0)
         })
         chats = mutableListOf()
     }
@@ -49,7 +49,7 @@ object DummyDataProvider {
         profileImage = Uri.EMPTY
         permissionrole = permissionRole.USER
         teamsInfo = hashMapOf(1 to MemberTeamInfo().apply {
-            role = categoryRole.ADMINISTRATOR
+            role = CategoryRole.NONE
             weeklyAvailabilityTimes = 0
             weeklyAvailabilityHours = Pair(0, 0)
         })
@@ -67,7 +67,7 @@ object DummyDataProvider {
         profileImage = Uri.EMPTY
         permissionrole = permissionRole.USER
         teamsInfo = hashMapOf(1 to MemberTeamInfo().apply {
-            role = categoryRole.EMPLOYEE
+            role = CategoryRole.NONE
             weeklyAvailabilityTimes = 0
             weeklyAvailabilityHours = Pair(0, 0)
         })
@@ -85,7 +85,7 @@ object DummyDataProvider {
         profileImage = Uri.EMPTY
         permissionrole = permissionRole.USER
         teamsInfo = hashMapOf(1 to MemberTeamInfo().apply {
-            role = categoryRole.RESEARCHER
+            role = CategoryRole.NONE
             weeklyAvailabilityTimes = 0
             weeklyAvailabilityHours = Pair(0, 0)
         })
@@ -103,7 +103,7 @@ object DummyDataProvider {
         profileImage = Uri.EMPTY
         permissionrole = permissionRole.USER
         teamsInfo = hashMapOf(1 to MemberTeamInfo().apply {
-            role = categoryRole.NONE
+            role = CategoryRole.NONE
             weeklyAvailabilityTimes = 0
             weeklyAvailabilityHours = Pair(0, 0)
         })
@@ -121,7 +121,7 @@ object DummyDataProvider {
         profileImage = Uri.EMPTY
         permissionrole = permissionRole.USER
         teamsInfo = hashMapOf(1 to MemberTeamInfo().apply {
-            role = categoryRole.NONE
+            role = CategoryRole.NONE
             weeklyAvailabilityTimes = 0
             weeklyAvailabilityHours = Pair(0, 0)
         })

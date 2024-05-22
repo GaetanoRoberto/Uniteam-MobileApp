@@ -510,6 +510,7 @@ fun EditRowItem(
     if (errorText.isNotBlank())
         Text(errorText, color = MaterialTheme.colorScheme.error)
 
+    Spacer(modifier = Modifier.padding(5.dp))
 }
 
 

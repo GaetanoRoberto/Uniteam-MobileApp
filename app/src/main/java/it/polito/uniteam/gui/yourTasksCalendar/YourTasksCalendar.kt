@@ -35,8 +35,8 @@ import it.polito.uniteam.gui.TeamDetails.TeamDetailsViewModel
 import java.time.LocalDate
 
 class YourTasksCalendarViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHandle): ViewModel() {
-    val tasks = model.getAllTasks().filter { it.members.contains(model.loggedMember) }
-    val loggedMember = model.loggedMember
+    val tasks = model.getAllTasks().filter { it.members.contains(model.loggedMember.value) }
+    val loggedMember = model.loggedMember.value
     fun getAllTeams() = model.getAllTeams()
 }
 @Preview

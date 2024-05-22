@@ -18,10 +18,10 @@ data class Member (
 )
 
 data class MemberTeamInfo (
-    var role: categoryRole = categoryRole.NONE,
+    var role: CategoryRole = CategoryRole.NONE,
     var weeklyAvailabilityTimes: Int = 0,
     var weeklyAvailabilityHours: Pair<Int,Int> = Pair(0,0)
-    )
+)
 enum class permissionRole {
     ADMIN, USER
 }

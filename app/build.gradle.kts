@@ -71,6 +71,7 @@ dependencies {
     implementation ("androidx.compose.material:material:1.5.1")
     implementation ("androidx.compose.material:material-icons-core:1.5.1")
     implementation ("androidx.compose.material:material-icons-extended:1.5.1")
+    implementation("com.lightspark:compose-qr-code:1.0.1")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

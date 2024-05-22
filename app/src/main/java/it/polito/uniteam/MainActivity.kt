@@ -1,5 +1,6 @@
 package it.polito.uniteam
 
+//import it.polito.uniteam.gui.chat.ChatScreen
 import android.Manifest
 import android.content.pm.PackageManager
 import android.content.res.Configuration
@@ -7,35 +8,20 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.viewModels
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.core.content.ContextCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
-import it.polito.uniteam.gui.userprofile.UserProfileScreen
-import it.polito.uniteam.ui.theme.UniTeamTheme
-import java.io.File
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ChecklistRtl
 import androidx.compose.material.icons.filled.Diversity3
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ManageAccounts
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.outlined.ChecklistRtl
@@ -44,21 +30,20 @@ import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemColors
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -66,30 +51,37 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
-import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import it.polito.uniteam.gui.TeamDetails.TeamViewScreen
-import it.polito.uniteam.gui.calendar.Calendar
+import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
+import it.polito.uniteam.gui.availability.Availability
+import it.polito.uniteam.gui.availability.Join
 import it.polito.uniteam.gui.calendar.CalendarAppContainer
 import it.polito.uniteam.gui.chat.ChatScreen
 import it.polito.uniteam.gui.chatlist.ChatListScreen
-//import it.polito.uniteam.gui.chat.ChatScreen
+import it.polito.uniteam.gui.invitation.Invitation
 import it.polito.uniteam.gui.notifications.Notifications
-import it.polito.uniteam.gui.showtaskdetails.EditTaskView
-import it.polito.uniteam.gui.showtaskdetails.TaskDetailsView
 import it.polito.uniteam.gui.showtaskdetails.TaskScreen
 import it.polito.uniteam.gui.statistics.Statistics
 import it.polito.uniteam.gui.tasklist.TaskListView
-import it.polito.uniteam.gui.userprofile.OtherProfileSettings
 import it.polito.uniteam.gui.userprofile.ProfileSettings
-import it.polito.uniteam.gui.yourTasksCalendar.YourTasksCalendarViewScreen
+import it.polito.uniteam.gui.userprofile.UserProfileScreen
+import it.polito.uniteam.ui.theme.UniTeamTheme
+import java.io.File
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 class MainActivity : ComponentActivity() {
 
@@ -155,6 +147,7 @@ class MainActivity : ComponentActivity() {
                     val navController = NavControllerManager.getNavController()
                     val navBackStackEntry by navController.currentBackStackEntryAsState()
                     val currentDestination = navBackStackEntry?.destination?.route
+
                     Surface(
                         modifier = Modifier
                             .fillMaxSize()
@@ -224,10 +217,17 @@ class MainActivity : ComponentActivity() {
                                             // In your main activity or main screen composable
                                             NavHost(
                                                 navController = navController,
-                                                startDestination = "ChatList"
+                                                startDestination = "Teams"
                                             ) {
                                                 // Define destinations for your screens
                                                 composable("Teams") {
+                                                    TaskListView(
+                                                        vm = viewModel(
+                                                            factory = Factory(LocalContext.current)
+                                                        )
+                                                    )
+                                                }
+                                                composable("Team/{teamId}", arguments = listOf(navArgument("teamId") { type = NavType.StringType })) {
                                                     TaskListView(
                                                         vm = viewModel(
                                                             factory = Factory(LocalContext.current)
@@ -278,7 +278,41 @@ class MainActivity : ComponentActivity() {
                                                         cameraExecutor = cameraExecutor
                                                     )
                                                 }
-
+                                                composable("Invitation") {
+                                                    Invitation(teamId = "1", teamName = "Team#1")
+                                                }
+                                                composable("ChangeAvailability/{teamId}", arguments = listOf(navArgument("teamId") { type = NavType.StringType })) {
+                                                    Availability(
+                                                        vm = viewModel(
+                                                            factory = Factory(LocalContext.current)
+                                                        )
+                                                    )
+                                                }
+                                                composable("JoinTeam") {
+                                                    Join(
+                                                        vm = viewModel(
+                                                            factory = Factory(LocalContext.current)
+                                                        )
+                                                    )
+                                                }
+                                                composable("join/1", deepLinks = listOf(navDeepLink {uriPattern = "https://uniTeam/join/1" })) { backStackEntry ->
+                                                    val teamId = backStackEntry.arguments?.getString("teamId")
+                                                    ProfileSettings(
+                                                        vm = viewModel(
+                                                            factory = Factory(LocalContext.current)
+                                                        ),
+                                                        outputDirectory = getOutputDirectory(),
+                                                        cameraExecutor = cameraExecutor
+                                                    )
+                                                }
+                                                composable("join/2", deepLinks = listOf(navDeepLink {uriPattern = "https://uniTeam/join/2" })) { backStackEntry ->
+                                                    val teamId = backStackEntry.arguments?.getString("teamId")
+                                                    Notifications(
+                                                        vm = viewModel(
+                                                            factory = Factory(LocalContext.current)
+                                                        )
+                                                    )
+                                                }
                                                 composable("Statistics") {
                                                     Statistics(
                                                         vm = viewModel(
@@ -428,7 +462,7 @@ fun MyTopAppBar(
         },
         colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primary),
         navigationIcon = {
-            if (navController.currentBackStackEntry?.destination?.route != "Teams") {
+            if (navController.currentBackStackEntry?.destination?.route != "Teams" && navController.currentBackStackEntry?.destination?.route != "JoinTeam") {
                 IconButton(
                     onClick = {//navController.previousBackStackEntry?.savedStateHandle?.set("back", true)
                         if (!navController.popBackStack()) {//inutile fare if diverso da teams perchè fa la pop lo stessoghb
@@ -447,7 +481,7 @@ fun MyTopAppBar(
                     colors = IconButtonDefaults.iconButtonColors(MaterialTheme.colorScheme.secondary)
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.ArrowBack,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
                         tint = MaterialTheme.colorScheme.onSecondary
                     )

@@ -24,7 +24,7 @@ class ChatViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHan
     )
     val chat = Chat(
         id = 123456,
-        sender = model.loggedMember!!,
+        sender = model.loggedMember.value,
         receiver = model.getMemberById(2).first,
         messages = messages,
        // teamId = 2
@@ -38,7 +38,7 @@ class ChatViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHan
 
 
     fun getTeam(teamId: Int): Team = model.getTeam(teamId)
-    fun getLoggedMember() = model.loggedMember
+    fun getLoggedMember() = model.loggedMember.value
     fun getMemberById(senderId: Int): Member? = model.getMemberById(senderId).first
 
     /*var teamName = "Team 1 Cambia Nome"

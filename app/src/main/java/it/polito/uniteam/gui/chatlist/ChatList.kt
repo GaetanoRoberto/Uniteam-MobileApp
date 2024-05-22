@@ -91,7 +91,7 @@ fun UserList(vm : ChatListViewModel) {
         color = Color.White
     )*/
     LazyColumn {
-        items( vm.getMembers().filter { member -> member != vm.loggedMember  }) { user ->
+        items( vm.getMembers().filter { member -> member != vm.loggedMember.value  }) { user ->
             UserItem(member = user,vm = vm)
         }
     }
