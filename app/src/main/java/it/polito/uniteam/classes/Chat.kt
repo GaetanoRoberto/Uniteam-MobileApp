@@ -10,5 +10,5 @@ data class Chat (
     // null if personal chat
     val teamId: Int? = null,
     //var messages: List<Message> = emptyList()
-    var messages : List<Message> = mutableStateListOf()
+    var messages : MutableList<Message> = mutableStateListOf()
 )

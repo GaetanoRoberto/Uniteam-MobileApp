@@ -1,5 +1,6 @@
 package it.polito.uniteam.gui.chat
 
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -8,30 +9,21 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import it.polito.uniteam.UniTeamModel
 import it.polito.uniteam.classes.Chat
+import it.polito.uniteam.classes.DummyDataProvider
 import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.Message
 import it.polito.uniteam.classes.Team
+import it.polito.uniteam.classes.messageStatus
 
 
 class ChatViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
 
-    val messages = mutableStateListOf<Message>(
-        Message(1, 1, "Ciao!"),
-        Message(2, 3, "Ciao a!"),
-        Message(3, 2, "Ciao Lucaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa!"),
-        Message(4, 4, "Ciao bg!"),
-        Message(5, 2, "Ciao Alice!")
-    )
-    val chat = Chat(
-        id = 123456,
-        sender = model.loggedMember!!,
-        receiver = model.getMemberById(2).first,
-        messages = messages,
-       // teamId = 2
-    )
+    val chat = DummyDataProvider.directChat1
+    /*var messages = mutableStateListOf<Message>().apply { addAll(chat.messages) }
+        private set
+*/
+    val emptyChat = Chat()
 
-
-    // ERRORE QUANDO FACCIO getTeam in ChatHeader 1 TODO
     var teamName by mutableStateOf(chat.teamId?.let { model.getTeam(it).name })
         private set
 
@@ -45,9 +37,29 @@ class ChatViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHan
         private set*/
 
     fun addMessage(message: Message) {
-        //chat.messages += Message(chat.messages.size + 1, chat.sender.id, message)
-        messages.add(message)
+        //messages.add(message)
+        chat.messages.add(message)
     }
+
+    fun markTeamMessageAsRead(memberId: Int, message: Message) {
+        if (memberId in message.membersUnread) {
+            message.membersUnread = message.membersUnread.toMutableList().apply {
+                remove(memberId)
+            }
+        }
+    }
+    fun markUserMessageAsRead(memberId: Int, message: Message) {
+        if (message.status == messageStatus.UNREAD/* && message.senderId == memberId*/) {
+            message.status = messageStatus.READ
+        }
+    }
+    /*
+    fun addMessage(message:Message) {
+        val member = getMemberById(message.senderId)
+        val chat = model.getUsersChat(member!!)
+        chat?.messages?.add(message)
+    }*/
+
 
 }
 
