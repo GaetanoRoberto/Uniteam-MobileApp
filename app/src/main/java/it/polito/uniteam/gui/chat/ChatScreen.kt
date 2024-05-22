@@ -48,6 +48,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -60,8 +61,11 @@ import it.polito.uniteam.classes.Chat
 import it.polito.uniteam.classes.MemberIcon
 import it.polito.uniteam.classes.Message
 import it.polito.uniteam.classes.TeamIcon
+import it.polito.uniteam.isVertical
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.concurrent.ExecutorService
 
 @Composable
@@ -81,7 +85,7 @@ fun ChatBody(vm: ChatViewModel){
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height((screenHeightDp * 0.57).dp)
+            .height(if (isVertical()) (screenHeightDp * 0.60).dp else (screenHeightDp * 0.45).dp)
             .background(
                 MaterialTheme.colorScheme.secondary, RoundedCornerShape(
                     topStart = 30.dp, topEnd = 30.dp
@@ -90,22 +94,43 @@ fun ChatBody(vm: ChatViewModel){
         //.padding(top = 5.dp)
 
     ) {
-        key(vm.messages.size) {
+        key(vm.chat.messages.size) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState(initial = Int.MAX_VALUE))
                     //.border(BorderStroke(1.dp, MaterialTheme.colorScheme.onPrimary))
             ) {
-                vm.messages.forEach { message ->
-                    if (vm.chat.teamId != null)
-                        ChatRowTeam(message = message, vm)
-                    else
-                        //ChatRowTeam(message = message, vm)
-                        ChatRowDirect(message = message, vm)
+                if (vm.chat.messages.size == 0)
+                    EmptyChat()
+                else{
+                    vm.chat.messages.forEach { message ->
+                        if (vm.chat.teamId != null)
+                            ChatRowTeam(message = message, vm)
+                        else
+                            ChatRowDirect(message = message, vm)
+                    }
                 }
+
             }
         }
+    }
+}
+@Composable
+fun EmptyChat(){
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp),
+        contentAlignment = Center
+    ) {
+        Text(
+            text = "No messages yet",
+            style = TextStyle(
+                color = MaterialTheme.colorScheme.onPrimary,
+                fontSize = 20.sp
+            )
+        )
     }
 }
 @Composable
@@ -114,8 +139,9 @@ fun ChatRowDirect(
     vm: ChatViewModel
 ) {
     val loggedMember = vm.getLoggedMember()
-    val isSender = message.senderId == loggedMember?.id
+    val isSender = message.senderId == loggedMember.id
     val alignment = if (isSender) Alignment.End else Alignment.Start
+    vm.markUserMessageAsRead(loggedMember!!.id, message)
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -141,7 +167,8 @@ fun ChatRowDirect(
                 }
             }
             Text(
-                text = message.creationDate.format(DateTimeFormatter.ofPattern("dd MMM Y HH:mm")), style = TextStyle(
+                text = formatMessageDate(message.creationDate),//.format(DateTimeFormatter.ofPattern("dd MMM Y HH:mm")),
+                style = TextStyle(
                 color = MaterialTheme.colorScheme.onPrimary,
                 fontSize = 12.sp
             ),
@@ -161,7 +188,7 @@ fun ChatRowTeam(
     val isSender = message.senderId == loggedMember?.id
 
     val alignment = if (isSender) Alignment.End else Alignment.Start
-
+    vm.markTeamMessageAsRead(loggedMember!!.id, message)
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = alignment
@@ -200,7 +227,7 @@ fun ChatRowTeam(
             }
         }//Fine row
         Text(
-            text = message.creationDate.format(DateTimeFormatter.ofPattern("dd MMM Y HH:mm")),
+            text = formatMessageDate(message.creationDate),//.format(DateTimeFormatter.ofPattern("dd MMM Y HH:mm")),
             style = TextStyle(
                 color = MaterialTheme.colorScheme.onPrimary,
                 fontSize = 12.sp
@@ -219,7 +246,7 @@ fun ChatHeader(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height((LocalConfiguration.current.screenHeightDp * 0.08).dp)
+            //.height((LocalConfiguration.current.screenHeightDp * 0.08).dp)
             .padding(16.dp),
         horizontalArrangement = Arrangement.Start
     ) {
@@ -231,6 +258,8 @@ fun ChatHeader(
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text =  text ?: "Unknown",
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
             style = TextStyle(
                 color = Color.White,
                 fontWeight = FontWeight.Bold,
@@ -250,7 +279,7 @@ fun SendMessage(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-        //.align(Alignment.BottomCenter)
+            //.align(Alignment.BottomCenter)
             //.padding(bottom = 2.dp)
             .background(MaterialTheme.colorScheme.secondary),
         verticalAlignment = Alignment.CenterVertically
@@ -260,7 +289,7 @@ fun SendMessage(
             value = messageText,
             onValueChange = { messageText = it },
             modifier = Modifier
-                .height((LocalConfiguration.current.screenHeightDp * 0.15).dp)
+                .height(if (isVertical()) (LocalConfiguration.current.screenHeightDp * 0.15).dp else (LocalConfiguration.current.screenHeightDp * 0.3).dp )
                 .weight(1f),
             trailingIcon = {
                 IconButton(
@@ -268,7 +297,7 @@ fun SendMessage(
                         if (messageText.isNotBlank()) {
                             vm.addMessage(
                                 Message(
-                                    id = vm.messages.size + 1,
+                                    id = vm.chat.messages.size + 1,
                                     senderId = loggedMember!!.id,
                                     message = messageText,
                                     creationDate = LocalDateTime.now()
@@ -288,7 +317,19 @@ fun SendMessage(
         )
     }
 }
+fun formatMessageDate(dateTime: LocalDateTime): String {
+    val today = LocalDate.now()
+    val messageDate = dateTime.toLocalDate()
 
+    return when {
+        // Se il messaggio è stato inviato oggi, mostra solo l'orario
+        ChronoUnit.DAYS.between(messageDate, today) == 0L -> dateTime.format(DateTimeFormatter.ofPattern("HH:mm"))
+        // Se il messaggio è stato inviato ieri, mostra "Yesterday"
+        ChronoUnit.DAYS.between(messageDate, today) == 1L -> "Yesterday"
+        // Altrimenti, mostra la data completa
+        else -> dateTime.format(DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm"))
+    }
+}
 
 
 

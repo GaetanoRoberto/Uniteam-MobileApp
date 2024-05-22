@@ -18,7 +18,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Chat
@@ -43,11 +42,16 @@ import androidx.compose.ui.text.style.TextAlign
 
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.media3.extractor.MpegAudioUtil.Header
+import it.polito.uniteam.NavControllerManager
 
 import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.MemberIcon
+import it.polito.uniteam.classes.Team
+import it.polito.uniteam.classes.TeamIcon
 import it.polito.uniteam.classes.messageStatus
+import it.polito.uniteam.isVertical
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -80,24 +84,104 @@ fun ListHeader(vm : ChatListViewModel ) {
 fun UserList(vm : ChatListViewModel) {
     //TODO: implement sorting
     //order by last message
-    /*val members = vm.getMembers().sortedByDescending { member ->
+    val members = vm.getMembers().sortedByDescending { member ->
         //member.messages.maxOfOrNull { it.creationDate } ?: LocalDateTime.MIN
         vm.messages.filter { it.senderId == member.id }.maxOfOrNull { it.creationDate } ?: LocalDateTime.MIN
-    }*/
+    }
 
-   /* Text( // PER CONTROLLARE ORDINE
+   /*Text( // PER CONTROLLARE ORDINE
         text = "Members: ${vm.getMembers().joinToString(", ") { it.id.toString() }}",
         style = MaterialTheme.typography.bodyMedium,
         color = Color.White
     )*/
+    TeamRow(team = vm.team, vm = vm)
     LazyColumn {
-        items( vm.getMembers().filter { member -> member != vm.loggedMember  }) { user ->
+        items( vm.getMembers().filter { member -> member != vm.loggedMember.value  }) { user ->
             UserItem(member = user,vm = vm)
         }
     }
 }
+
+@Composable
+fun TeamRow(team: Team,vm: ChatListViewModel) {
+    val navController = NavControllerManager.getNavController()
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(2.dp)// LEVA SE VUOI UNIRE LE RIGHE
+            .background(MaterialTheme.colorScheme.onSecondaryContainer)
+            .clickable { /*TODO*/ }
+            .padding(16.dp)
+        //.height((LocalConfiguration.current.screenHeightDp * 0.2).dp)
+        ,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        TeamIcon(modifierScale= Modifier.scale(1f), modifierPadding = Modifier.padding(4.dp, 0.dp, 15.dp, 0.dp),team = team )
+        Spacer(modifier = Modifier.width(10.dp))
+        Column(
+            modifier = Modifier
+                .weight(0.40f)
+                .padding(end = 5.dp)
+        ) {
+            Text(text = team.name, style = MaterialTheme.typography.bodyLarge)
+        }
+        Column (modifier = Modifier.weight(0.20f)){
+            val recentMessageDate = vm.messages
+                .filter { it.senderId == team.chat?.sender?.id }
+                .maxOfOrNull { it.creationDate }
+
+            recentMessageDate?.let {
+                Text(
+                    textAlign = TextAlign.Center,
+                    text = formatMessageDate(it),
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.align(CenterHorizontally), // Center text horizontally
+                    color = MaterialTheme.colorScheme.onPrimaryContainer// Color.Gray
+                )
+            }
+        }
+        Box(
+            modifier = Modifier
+                .weight(if (isVertical()) 0.3f else 0.2f)
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Chat,
+                contentDescription = "Chat",
+                modifier = Modifier
+                    //.fillMaxSize()
+                    .align(Alignment.Center)
+                    .size(50.dp)
+                    .clickable { navController.navigate("Chat"){
+                        launchSingleTop = true
+                    }
+                    },
+            )
+            val unreadCount = vm.getUnreadMessagesTeam(team.chat?.sender?.id ?: 0)//vm.chat.messages.filter { it.status == messageStatus.UNREAD && it.senderId == member.id}.size
+            if (unreadCount != null && unreadCount > 0 ) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(2.dp)
+                        .size(18.dp)
+                        .background(MaterialTheme.colorScheme.primary, CircleShape)
+                        .zIndex(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = unreadCount.toString(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+            }
+        }
+
+
+    }
+}
 @Composable
 fun UserItem(member: Member,vm : ChatListViewModel) {
+    val navController = NavControllerManager.getNavController()
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -112,13 +196,15 @@ fun UserItem(member: Member,vm : ChatListViewModel) {
         MemberIcon(modifierScale= Modifier.scale(1f), modifierPadding = Modifier.padding(4.dp, 0.dp, 15.dp, 0.dp),member = member )
         Spacer(modifier = Modifier.width(10.dp))
         Column(
-            modifier = Modifier.weight(0.5f)
+            modifier = Modifier
+                .weight(0.40f)
+                .padding(end = 5.dp)
         ) {
             Text(text = member.fullName, style = MaterialTheme.typography.bodyLarge)
             //ROLE IN DUMMY DATA DA CAMBIARE TODO
             Text(text = member.teamsInfo?.get(1)?.role.toString(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
         }
-        Column (modifier = Modifier.weight(0.1f)){
+        Column (modifier = Modifier.weight(0.20f)){
             val recentMessageDate = vm.messages
                 .filter { it.senderId == member.id }
                 .maxOfOrNull { it.creationDate }
@@ -128,30 +214,36 @@ fun UserItem(member: Member,vm : ChatListViewModel) {
                     textAlign = TextAlign.Center,
                     text = formatMessageDate(it),
                     style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.align(CenterHorizontally), // Center text horizontally
                     color = MaterialTheme.colorScheme.onPrimaryContainer// Color.Gray
                 )
             }
         }
         Box(
             modifier = Modifier
-                .weight(0.3f)
-                .size(50.dp)
-                .clickable { /*TODO onChatClick()*/ }
+                .weight(if (isVertical()) 0.3f else 0.2f)
         ) {
             Icon(
                 imageVector = Icons.Filled.Chat,
                 contentDescription = "Chat",
                 modifier = Modifier
-                    .fillMaxSize()
+                    //.fillMaxSize()
+                    .align(Alignment.Center)
+                    .size(50.dp)
+                    .clickable { navController.navigate("Chat"){
+                        launchSingleTop = true
+                    }
+                },
             )
             val unreadCount = vm.getUnreadMessagesCount(member.id)//vm.chat.messages.filter { it.status == messageStatus.UNREAD && it.senderId == member.id}.size
             if (unreadCount > 0) {
                 Box(
                     modifier = Modifier
-                        .align(Alignment.TopEnd)
+                        .align(Alignment.BottomEnd)
                         .padding(2.dp)
                         .size(18.dp)
-                        .background(MaterialTheme.colorScheme.primary, CircleShape),
+                        .background(MaterialTheme.colorScheme.primary, CircleShape)
+                        .zIndex(1f),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -171,9 +263,9 @@ fun formatMessageDate(dateTime: LocalDateTime): String {
     val messageDate = dateTime.toLocalDate()
 
     return when {
+        ChronoUnit.MINUTES.between(dateTime, LocalDateTime.now()) <= 5 -> "Now"
         ChronoUnit.DAYS.between(messageDate, today) == 0L -> "Today"
         ChronoUnit.DAYS.between(messageDate, today) == 1L -> "Yesterday"
-        //ChronoUnit.MINUTES.between(messageDate, today) == 1L -> "Now"
         else -> dateTime.format(DateTimeFormatter.ofPattern("dd MMM yyyy"))
     }
 }

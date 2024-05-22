@@ -9,7 +9,7 @@ data class Message (
     val message: String = "",
     val creationDate: LocalDateTime = LocalDateTime.now(),
     var membersUnread: List<Int> = mutableListOf(),
-    val status: messageStatus = messageStatus.UNREAD
+    var status: messageStatus = messageStatus.UNREAD
     )
 
 enum class messageStatus {

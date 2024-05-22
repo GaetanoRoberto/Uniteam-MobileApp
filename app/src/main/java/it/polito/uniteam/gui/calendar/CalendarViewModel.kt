@@ -19,7 +19,7 @@ import java.util.stream.Collectors
 import java.util.stream.Stream
 
 class Calendar(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
-    var memberProfile = model.loggedMember
+    var memberProfile = model.loggedMember.value
         private set
 
     var selectedShowDialog by mutableStateOf(showDialog.none)
@@ -80,7 +80,7 @@ class Calendar(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) 
 
     init {
         // get logged in user
-        memberProfile = model.loggedMember
+        memberProfile = model.loggedMember.value
         // get task to assign and filter them based on the user
         tasksToAssign = DummyDataProvider.getTasksToAssign().toMutableStateList()
         tasksToAssign = tasksToAssign.filter { it.members.contains(memberProfile) && it.status != Status.COMPLETED }.toMutableStateList()

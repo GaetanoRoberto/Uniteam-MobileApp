@@ -11,6 +11,7 @@ import it.polito.uniteam.classes.Chat
 import it.polito.uniteam.classes.DummyDataProvider
 import it.polito.uniteam.classes.History
 import it.polito.uniteam.classes.Member
+import it.polito.uniteam.classes.MemberTeamInfo
 import it.polito.uniteam.classes.Message
 import it.polito.uniteam.classes.Task
 import it.polito.uniteam.classes.Team
@@ -21,15 +22,24 @@ import kotlin.math.log
 
 
 class UniTeamModel {
-    // Calendar View Model
-    private var _loggedMember by mutableStateOf<Member?>(DummyDataProvider.member1)
-    val loggedMember = _loggedMember
+
+    private val _loggedMember = MutableStateFlow<Member>(DummyDataProvider.member1)
+    val loggedMember: StateFlow<Member> = _loggedMember
     fun setLoggedMember(member: Member) {
-        _loggedMember = member
+        _loggedMember.value = member
     }
 
-    private var _teams = mutableStateListOf<Team>()
-    val teams = _teams
+    // To update the teamsInfo of the loggedMember
+    fun updateTeamsInfo(newTeamsInfo: HashMap<Int, MemberTeamInfo>) {
+        _loggedMember.let {
+            val updatedMember = it.value.copy(teamsInfo = newTeamsInfo)
+            Log.i("updateTeamsInfo", updatedMember.toString())
+            setLoggedMember(updatedMember)
+        }
+    }
+
+    private val _teams = MutableStateFlow<MutableList<Team>>(mutableListOf<Team>())
+    val teams: StateFlow<MutableList<Team>> = _teams
 
     private var _selectedTeam = mutableStateOf(Team(name= "default", description = "default" ))// team selected to show its details
     var selectedTeam= _selectedTeam.value
@@ -60,7 +70,7 @@ class UniTeamModel {
 
     fun getUnreadMessagesTeam(teamId: Int): Int? {
         val team = getTeam(teamId)
-        return _loggedMember?.id?.let { team.chat?.let { it1 -> getUnreadMessagesCount(it, it1) } }
+        return _loggedMember.value?.id.let { team.chat?.let { it1 -> getUnreadMessagesCount(it!!, it1) } }
     }
 
     fun selectTeam(id: Int){ // click on team to set the selected team to show
@@ -78,10 +88,10 @@ class UniTeamModel {
     fun newTeam(){
         var newId: Int
 
-        if(_teams.size <1 ){
+        if(_teams.value.size <1 ){
             newId = 0
         }else{
-            newId = _teams.map { it.id }.max() +1
+            newId = _teams.value.map { it.id }.max() +1
         }
         _selectedTeam = mutableStateOf(Team(id = newId, name= "", description = ""))
         selectedTeam= _selectedTeam.value
@@ -105,13 +115,13 @@ class UniTeamModel {
 
     init {
         // get dummy data
-        _teams = DummyDataProvider.getTeams().toMutableStateList()
+        _teams.value = DummyDataProvider.getTeams().toMutableStateList()
     }
 
     fun getAllTasks() :List<Task>{
         val ret = mutableListOf<Task>()
-        _teams.forEach { team->
-            val tasks = team.tasks.filter { it.members.contains(_loggedMember) }
+        _teams.value.forEach { team->
+            val tasks = team.tasks.filter { it.members.contains(_loggedMember.value) }
             ret.addAll(tasks)
         }
         return ret
@@ -119,7 +129,7 @@ class UniTeamModel {
 
     fun getAllMembers() :List<Member>{
         val ret = mutableListOf<Member>()
-        _teams.forEach { team->
+        _teams.value.forEach { team->
             ret.addAll(team.members)
         }
         return ret// TODO( DESELECT FOR PRODUCTION )
@@ -134,22 +144,23 @@ class UniTeamModel {
 
     fun getAllHistories(): List<Pair<Team,List<History>>> {
         // TODO here no history of the single tasks so they will not be visible
-        return _teams.map { Pair(it,it.teamHistory) }
+        return _teams.value.map { Pair(it,it.teamHistory) }
     }
 
     fun getTeam(teamId: Int): Team {
-        return _teams.filter { it.id == teamId }[0]
+        Log.i("diooo",_teams.toString())
+        return _teams.value.filter { it.id == teamId }[0]
     }
     fun getAllTeams(): List<Team> {
-        return _teams
+        return _teams.value
     }
 
     fun addTeam(team: Team) {
-        _teams.add(team)
+        _teams.value.add(team)
     }
 
     fun editTeam(teamId: Int, team: Team) {
-        _teams.replaceAll {
+        _teams.value.replaceAll {
             if(it.id == teamId) {
                 team
             } else {
@@ -159,12 +170,12 @@ class UniTeamModel {
     }
 
     fun deleteTeam(teamId: Int) {
-        _teams = _teams.filter { it.id != teamId }
+        _teams.value = _teams.value.filter { it.id != teamId }
             .toMutableStateList()
     }
 
     fun addTeamTask(teamId: Int, task: Task) {
-        _teams.replaceAll {
+        _teams.value.replaceAll {
             if (it.id == teamId) {
                 it.tasks.add(task)
                 it
@@ -175,7 +186,7 @@ class UniTeamModel {
     }
 
     fun editTeamTask(teamId: Int, task: Task) {
-        _teams.replaceAll {
+        _teams.value.replaceAll {
             if (it.id == teamId) {
                 it.tasks.replaceAll { innerTask ->
                     if (innerTask.id == task.id) {
@@ -192,7 +203,7 @@ class UniTeamModel {
     }
 
     fun deleteTeamTask(teamId: Int, taskId: Int) {
-        _teams.replaceAll {
+        _teams.value.replaceAll {
             if (it.id == teamId) {
                 it.tasks = it.tasks.filter { it.id != taskId }
                     .toMutableStateList()
@@ -204,7 +215,7 @@ class UniTeamModel {
     }
 
     fun addTeamMember(teamId: Int, member: Member) {
-        _teams.replaceAll {
+        _teams.value.replaceAll {
             if (it.id == teamId) {
                 it.members.add(member)
                 it
@@ -217,7 +228,7 @@ class UniTeamModel {
     fun getMemberById(memberId: Int): Pair<Member?,List<Team>> {
         var member: Member? = null;
         val commonTeam = mutableListOf<Team>()
-        _teams.forEach {team ->
+        _teams.value.forEach {team ->
             var isCommon = false
             team.members.forEach {
                 if(it.id == memberId) {
@@ -233,7 +244,7 @@ class UniTeamModel {
     }
 
     fun deleteTeamMember(teamId: Int, memberId: Int) {
-        _teams.replaceAll {
+        _teams.value.replaceAll {
             if (it.id == teamId) {
                 it.members = it.members.filter { it.id != memberId }
                     .toMutableStateList()
@@ -245,14 +256,14 @@ class UniTeamModel {
     }
 
     fun getTeamChat(teamId: Int): Chat {
-        val chat = _teams.find { it.id == teamId }?.chat
+        val chat = _teams.value.find { it.id == teamId }?.chat
         return chat!!
     }
 
     fun getUsersChat(memberToChatWith: Member): Chat? {
-        _loggedMember?.chats?.forEach{chat ->
+        _loggedMember.value.chats.forEach{chat ->
             val c = getChat(chat)
-            if (c.receiver == memberToChatWith && c.sender == loggedMember) {
+            if (c.receiver == memberToChatWith && c.sender == loggedMember.value) {
                 return c
             }
         }

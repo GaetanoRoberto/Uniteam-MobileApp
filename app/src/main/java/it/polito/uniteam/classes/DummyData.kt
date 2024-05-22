@@ -31,9 +31,9 @@ object DummyDataProvider {
         profileImage = Uri.EMPTY
         permissionrole = permissionRole.USER
         teamsInfo = hashMapOf(1 to MemberTeamInfo().apply {
-            role = categoryRole.DESIGNER
-            weeklyAvailabilityTimes = 0
-            weeklyAvailabilityHours = Pair(0, 0)
+            role = CategoryRole.PROGRAMMER
+            weeklyAvailabilityTimes = 5
+            weeklyAvailabilityHours = Pair(3, 0)
         })
         chats = mutableListOf()
     }
@@ -49,7 +49,7 @@ object DummyDataProvider {
         profileImage = Uri.EMPTY
         permissionrole = permissionRole.USER
         teamsInfo = hashMapOf(1 to MemberTeamInfo().apply {
-            role = categoryRole.ADMINISTRATOR
+            role = CategoryRole.NONE
             weeklyAvailabilityTimes = 0
             weeklyAvailabilityHours = Pair(0, 0)
         })
@@ -67,7 +67,7 @@ object DummyDataProvider {
         profileImage = Uri.EMPTY
         permissionrole = permissionRole.USER
         teamsInfo = hashMapOf(1 to MemberTeamInfo().apply {
-            role = categoryRole.EMPLOYEE
+            role = CategoryRole.NONE
             weeklyAvailabilityTimes = 0
             weeklyAvailabilityHours = Pair(0, 0)
         })
@@ -85,7 +85,7 @@ object DummyDataProvider {
         profileImage = Uri.EMPTY
         permissionrole = permissionRole.USER
         teamsInfo = hashMapOf(1 to MemberTeamInfo().apply {
-            role = categoryRole.RESEARCHER
+            role = CategoryRole.NONE
             weeklyAvailabilityTimes = 0
             weeklyAvailabilityHours = Pair(0, 0)
         })
@@ -103,7 +103,7 @@ object DummyDataProvider {
         profileImage = Uri.EMPTY
         permissionrole = permissionRole.USER
         teamsInfo = hashMapOf(1 to MemberTeamInfo().apply {
-            role = categoryRole.NONE
+            role = CategoryRole.NONE
             weeklyAvailabilityTimes = 0
             weeklyAvailabilityHours = Pair(0, 0)
         })
@@ -121,23 +121,28 @@ object DummyDataProvider {
         profileImage = Uri.EMPTY
         permissionrole = permissionRole.USER
         teamsInfo = hashMapOf(1 to MemberTeamInfo().apply {
-            role = categoryRole.NONE
+            role = CategoryRole.NONE
             weeklyAvailabilityTimes = 0
             weeklyAvailabilityHours = Pair(0, 0)
         })
         chats = mutableListOf()
     }
     // Messages for direct chats
-    val directMessages1 = mutableStateListOf(
-        Message(id = 1, senderId = 1, message = "Hello!", creationDate = LocalDateTime.now().minusDays(1), status = messageStatus.READ),
+    var directMessages1 = mutableStateListOf(
+        Message(id = 1, senderId = 1, message = "Hello!", creationDate = LocalDateTime.now().minusDays(1), status = messageStatus.UNREAD),
         Message(id = 2, senderId = 2, message = "Hi!", creationDate = LocalDateTime.now().minusDays(1)),
         Message(id = 3, senderId = 1, message = "How are you?", creationDate = LocalDateTime.now().minusHours(5)),
-        Message(id = 4, senderId = 2, message = "I'm good, thanks!", creationDate = LocalDateTime.now().minusHours(4)),
-        Message(id = 5, senderId = 1, message = "Great to hear!", creationDate = LocalDateTime.now().minusHours(3)),
-        Message(id = 6, senderId = 2, message = "What about you?", creationDate = LocalDateTime.now().minusHours(2))
+        Message(id = 4, senderId = 2, message = "I'm good, thanks!", creationDate = LocalDateTime.now().minusMinutes(1)),
+        Message(id = 5, senderId = 1, message = "Great to hear!", creationDate = LocalDateTime.now()),
+        Message(id = 6, senderId = 2, message = "What about you?", creationDate = LocalDateTime.now().minusHours(2)),
+        Message(id = 31, senderId = 2, message = "What about you?", creationDate = LocalDateTime.now().minusHours(2)),
+        Message(id = 32, senderId = 2, message = "What about you?", creationDate = LocalDateTime.now().minusHours(2)),
+        Message(id = 33, senderId = 2, message = "What about you?", creationDate = LocalDateTime.now().minusHours(2)),
+        Message(id = 34, senderId = 2, message = "What about you?", creationDate = LocalDateTime.now().minusHours(2)),
+        Message(id = 35, senderId = 1, message = "What about you?", creationDate = LocalDateTime.now()),
     )
 
-    val directMessages2 = mutableStateListOf(
+    var directMessages2 = mutableStateListOf(
         Message(id = 7, senderId = 3, message = "Hey there!", creationDate = LocalDateTime.now().minusDays(2)),
         Message(id = 8, senderId = 4, message = "Hello!", creationDate = LocalDateTime.now().minusDays(2)),
         Message(id = 9, senderId = 3, message = "What's up?", creationDate = LocalDateTime.now().minusDays(1)),
@@ -146,7 +151,7 @@ object DummyDataProvider {
         Message(id = 12, senderId = 4, message = "Cool.", creationDate = LocalDateTime.now().minusHours(4))
     )
 
-    val directMessages3 = mutableStateListOf(
+    var directMessages3 = mutableStateListOf(
         Message(id = 13, senderId = 5, message = "Hi!", creationDate = LocalDateTime.now().minusDays(3)),
         Message(id = 14, senderId = 1, message = "Hey!", creationDate = LocalDateTime.now().minusDays(3)),
         Message(id = 15, senderId = 5, message = "Long time no see.", creationDate = LocalDateTime.now().minusDays(2)),
@@ -156,7 +161,7 @@ object DummyDataProvider {
     )
 
     // Messages for group chats
-    val groupMessages1 = mutableStateListOf(
+    var groupMessages1 = mutableStateListOf(
         Message(id = 19, senderId = 1, message = "Welcome to the team!", creationDate = LocalDateTime.now().minusDays(4), membersUnread = listOf(2,3,4,5)),
         Message(id = 20, senderId = 2, message = "Thank you!", creationDate = LocalDateTime.now().minusDays(4), membersUnread = listOf(2,3,4,5,1)),
         Message(id = 21, senderId = 3, message = "Glad to be here.", creationDate = LocalDateTime.now().minusDays(3), membersUnread = listOf(2,3,4,1,5)),
@@ -165,7 +170,7 @@ object DummyDataProvider {
         Message(id = 24, senderId = 1, message = "Let's get started.", creationDate = LocalDateTime.now().minusDays(1))
     )
 
-    val groupMessages2 = mutableStateListOf(
+    var groupMessages2 = mutableStateListOf(
         Message(id = 25, senderId = 3, message = "Team meeting at 10AM.", creationDate = LocalDateTime.now().minusDays(5), membersUnread = listOf(2,3,4,1,5)),
         Message(id = 26, senderId = 2, message = "Got it.", creationDate = LocalDateTime.now().minusDays(5)),
         Message(id = 27, senderId = 1, message = "See you there.", creationDate = LocalDateTime.now().minusDays(4)),
@@ -175,17 +180,20 @@ object DummyDataProvider {
     )
 
     // Chats
-    val directChat1 = Chat(id = 1, sender = member1, receiver = member2, messages = directMessages1)
-    val directChat2 = Chat(id = 2, sender = member3, receiver = member4, messages = directMessages2)
-    val directChat3 = Chat(id = 3, sender = member5, receiver = member1, messages = directMessages3)
+    var directChat1 = Chat(id = 1, sender = member1, receiver = member2, messages = directMessages1)
+    var directChat2 = Chat(id = 2, sender = member3, receiver = member4, messages = directMessages2)
+    var directChat3 = Chat(id = 3, sender = member5, receiver = member1, messages = directMessages3)
 
-    val groupChat1 = Chat(id = 4, sender = member1, teamId = 1, messages = groupMessages1)
-    val groupChat2 = Chat(id = 5, sender = member3, teamId = 2, messages = groupMessages2)
+    var groupChat1 = Chat(id = 4, sender = member1, teamId = 1, messages = groupMessages1)
+    var groupChat2 = Chat(id = 5, sender = member3, teamId = 2, messages = groupMessages2)
     val allChats = listOf(directChat1, directChat2, directChat3, groupChat1, groupChat2 )
-        fun getMembers(): List<Member> {
+
+
+    fun getMembers(): List<Member> {
         member1.chats.add(1)
         member3.chats.add(2)
         member5.chats.add(3)
+
         return listOf(member1, member2, member3, member4, member5, member6)
     }
 /*
