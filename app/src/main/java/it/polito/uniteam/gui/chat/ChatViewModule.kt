@@ -30,7 +30,7 @@ class ChatViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHan
 
 
     fun getTeam(teamId: Int): Team = model.getTeam(teamId)
-    fun getLoggedMember() = model.loggedMember
+    fun getLoggedMember() = model.loggedMember.value
     fun getMemberById(senderId: Int): Member? = model.getMemberById(senderId).first
 
     /*var teamName = "Team 1 Cambia Nome"

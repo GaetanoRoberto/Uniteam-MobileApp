@@ -139,7 +139,7 @@ fun ChatRowDirect(
     vm: ChatViewModel
 ) {
     val loggedMember = vm.getLoggedMember()
-    val isSender = message.senderId == loggedMember?.id
+    val isSender = message.senderId == loggedMember.id
     val alignment = if (isSender) Alignment.End else Alignment.Start
     vm.markUserMessageAsRead(loggedMember!!.id, message)
 

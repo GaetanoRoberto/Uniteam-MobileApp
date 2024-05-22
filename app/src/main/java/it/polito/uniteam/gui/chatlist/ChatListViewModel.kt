@@ -30,7 +30,7 @@ class ChatListViewModel(val model: UniTeamModel, val savedStateHandle: SavedStat
 /*
     val chat = Chat(
         id = 123456,
-        sender = model.loggedMember!!,
+        sender = model.loggedMember.value,
         receiver = model.getMemberById(2).first,
         messages = messages,
         // teamId = 2

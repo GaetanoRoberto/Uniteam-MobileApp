@@ -16,7 +16,6 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -55,7 +54,7 @@ enum class Category{
     NONE,RESEARCH, WRITING, PRESENTATION, STUDY, MEETING, PROGRAMMING, DESIGN, EXPERIMENTATION, WORK, ADMINISTRATION
 }
 
-enum class categoryRole {
+enum class CategoryRole {
     NONE, RESEARCHER, WRITER, PRESENTER, ORGANIZER, PROGRAMMER, DESIGNER, EXPERIMENTER, EMPLOYEE, ADMINISTRATOR
 }
 

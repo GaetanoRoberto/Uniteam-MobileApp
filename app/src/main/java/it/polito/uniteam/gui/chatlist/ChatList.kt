@@ -18,7 +18,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Chat
@@ -97,7 +96,7 @@ fun UserList(vm : ChatListViewModel) {
     )*/
     TeamRow(team = vm.team, vm = vm)
     LazyColumn {
-        items( members.filter { member -> member != vm.loggedMember  }) { user ->
+        items( vm.getMembers().filter { member -> member != vm.loggedMember.value  }) { user ->
             UserItem(member = user,vm = vm)
         }
     }
