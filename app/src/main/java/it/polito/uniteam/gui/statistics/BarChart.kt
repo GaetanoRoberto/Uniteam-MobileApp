@@ -73,6 +73,7 @@ fun BarChart(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContext.
     val chartColors = listOf(MaterialTheme.colorScheme.primary, Color(0xff018FF3))
     val modelProducer = remember { CartesianChartModelProducer.build() }
     val data = vm.getPlannedSpentHoursRatio()
+    val maxY = data.values.flatMap { listOf(it.first, it.second) }.max()
     val labelListKey = ExtraStore.Key<List<String>>()
     LaunchedEffect(labelListKey,data) {
         withContext(Dispatchers.Default) {
@@ -96,7 +97,6 @@ fun BarChart(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContext.
             }
         }
     }
-    val maxY = 11
     val lineColor = Color.White
     CartesianChartHost(
         chart =
@@ -122,7 +122,7 @@ fun BarChart(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContext.
                     ),
                 ),
             ),
-            startAxis = rememberStartAxis(itemPlacer = remember { AxisItemPlacer.Vertical.step({ _ -> Math.ceil((maxY / 10).toDouble()).toFloat() }) }),
+            startAxis = rememberStartAxis(itemPlacer = remember { AxisItemPlacer.Vertical.step({ _ -> (maxY / 10) }) }),
             bottomAxis = rememberBottomAxis(valueFormatter = CartesianValueFormatter { x, chartValues, _ -> chartValues.model.extraStore[labelListKey][x.toInt()] }),
             legend = rememberLegend(chartColors)
         ),
