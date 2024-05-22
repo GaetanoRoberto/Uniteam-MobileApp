@@ -44,6 +44,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.patrykandpatrick.vico.core.common.shape.Shape
 import android.graphics.Typeface
+import android.text.SpannableStringBuilder
 import android.util.Log
 import androidx.compose.foundation.layout.fillMaxHeight
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottomAxis
@@ -55,8 +56,12 @@ import com.patrykandpatrick.vico.compose.common.vicoTheme
 import com.patrykandpatrick.vico.core.cartesian.CartesianDrawContext
 import com.patrykandpatrick.vico.core.cartesian.axis.AxisItemPlacer
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianValueFormatter
+import com.patrykandpatrick.vico.core.cartesian.marker.CartesianMarkerValueFormatter
+import com.patrykandpatrick.vico.core.cartesian.marker.ColumnCartesianLayerMarkerTarget
 import com.patrykandpatrick.vico.core.common.component.TextComponent
+import com.patrykandpatrick.vico.core.common.data.ExtraStore
 import it.polito.uniteam.Factory
+import kotlin.math.roundToInt
 
 @Composable
 fun BarChart(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContext.current))) {
@@ -64,6 +69,15 @@ fun BarChart(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContext.
     val modelProducer = remember { CartesianChartModelProducer.build() }
     val data = vm.getPlannedSpentHoursRatio()
     val maxY = data.values.flatMap { listOf(it.first, it.second) }.max()
+    val yAxisFormatter = CartesianValueFormatter { x, _, _ ->
+        val integerPart = x.toInt()
+        val decimalPart = x - integerPart
+        val minutes = (decimalPart * 60).toInt()
+        if(integerPart!=0)
+            "${integerPart}h ${minutes}m"
+        else
+            "${minutes}m"
+    }
     val xAxisFormatter = CartesianValueFormatter { x, _, _ -> data.keys.elementAt(x.toInt()).toString() }
 
     LaunchedEffect(Unit) {
@@ -109,7 +123,7 @@ fun BarChart(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContext.
                     ),
                 ),
             ),
-            startAxis = rememberStartAxis(itemPlacer = remember { AxisItemPlacer.Vertical.step({ _ -> (maxY / 10) }) }),
+            startAxis = rememberStartAxis(valueFormatter = yAxisFormatter, itemPlacer = remember { AxisItemPlacer.Vertical.step({ _ -> (maxY / 10) }) }),
             bottomAxis = rememberBottomAxis(valueFormatter = xAxisFormatter),
             legend = rememberLegend(chartColors)
         ),
@@ -180,9 +194,22 @@ internal fun rememberMarker(
             padding = Dimensions.of(10.dp),
         )
     val guideline = rememberAxisGuidelineComponent()
+    val markerFormatter = CartesianMarkerValueFormatter { _, targets ->
+        val target = targets.first() as ColumnCartesianLayerMarkerTarget
+        target.columns.map { column ->
+            val integerPart = column.entry.y.toInt()
+            val decimalPart = column.entry.y - integerPart
+            val minutes = (decimalPart * 60).toInt()
+            if(integerPart!=0)
+                "${integerPart}h ${minutes}m"
+            else
+                "${minutes}m"
+        }[0]
+    }
     return remember(label, labelPosition, indicator, showIndicator, guideline) {
         @SuppressLint("RestrictedApi")
         object : DefaultCartesianMarker(
+            valueFormatter = markerFormatter,
             label = label,
             labelPosition = labelPosition,
             indicator = if (showIndicator) indicator else null,
