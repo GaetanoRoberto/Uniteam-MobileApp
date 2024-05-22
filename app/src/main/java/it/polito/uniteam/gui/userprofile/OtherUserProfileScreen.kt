@@ -98,8 +98,8 @@ import java.util.concurrent.ExecutorService
 
 class OtherUserProfileScreen (val model: UniTeamModel, val savedStateHandle: SavedStateHandle): ViewModel() {
     val member = model.selectedUser
-    val teamsInCommon = model.teams.filter{
-        it.members.contains(member) && it.members.contains(model.loggedMember)
+    val teamsInCommon = model.teams.value.filter{
+        it.members.contains(member) && it.members.contains(model.loggedMember.value)
     }
 }
 

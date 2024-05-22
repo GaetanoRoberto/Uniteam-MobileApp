@@ -38,6 +38,7 @@ import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -81,13 +82,10 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
-import it.polito.uniteam.gui.availability.Availability
-import it.polito.uniteam.gui.availability.Join
 import it.polito.uniteam.classes.MemberIcon
 import it.polito.uniteam.gui.calendar.CalendarAppContainer
 import it.polito.uniteam.gui.chat.ChatScreen
 import it.polito.uniteam.gui.chatlist.ChatListScreen
-import it.polito.uniteam.gui.invitation.Invitation
 import it.polito.uniteam.gui.notifications.Notifications
 import it.polito.uniteam.gui.showtaskdetails.TaskScreen
 import it.polito.uniteam.gui.statistics.Statistics
@@ -342,7 +340,7 @@ class MainActivity : ComponentActivity() {
                                                             )
                                                         )
                                                     }
-                                                    composable("Invitation") {
+                                                    /*composable("Invitation") {
                                                         Invitation(teamId = "1", teamName = "Team#1")
                                                     }
                                                     composable("ChangeAvailability/{teamId}", arguments = listOf(navArgument("teamId") { type = NavType.StringType })) {
@@ -358,7 +356,7 @@ class MainActivity : ComponentActivity() {
                                                                 factory = Factory(LocalContext.current)
                                                             )
                                                         )
-                                                    }
+                                                    }*/
                                                     composable("join/1", deepLinks = listOf(navDeepLink {uriPattern = "https://uniTeam/join/1" })) { backStackEntry ->
                                                         val teamId = backStackEntry.arguments?.getString("teamId")
                                                         ProfileSettings(

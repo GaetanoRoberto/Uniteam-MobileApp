@@ -407,7 +407,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
     }
 
     var localId by mutableIntStateOf(0)
-    val member = model.loggedMember!!
+    val member = model.loggedMember.value
     val dummyMembers = DummyDataProvider.getMembers()
 
     var comments = mutableStateListOf(
