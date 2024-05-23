@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.ChecklistRtl
 import androidx.compose.material.icons.filled.Diversity3
@@ -90,6 +89,7 @@ import it.polito.uniteam.gui.chatlist.ChatListScreen
 import it.polito.uniteam.gui.notifications.Notifications
 import it.polito.uniteam.gui.showtaskdetails.TaskScreen
 import it.polito.uniteam.gui.statistics.Statistics
+import it.polito.uniteam.gui.statistics.VerticalStatistics
 import it.polito.uniteam.gui.tasklist.TaskListView
 import it.polito.uniteam.gui.userprofile.OtherProfileSettings
 import it.polito.uniteam.gui.userprofile.ProfileSettings
@@ -433,8 +433,7 @@ class MainActivity : ComponentActivity() {
                                                             cameraExecutor = cameraExecutor
                                                         )
                                                     }
-
-                                                    composable("Statistics") {
+                                                    composable("Statistics/{teamId}", arguments = listOf(navArgument("teamId") { type = NavType.StringType })) {
                                                         Statistics(
                                                             vm = viewModel(
                                                                 factory = Factory(LocalContext.current)

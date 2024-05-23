@@ -29,7 +29,6 @@ object DummyDataProvider {
         description = "Software Engineer"
         kpi = "Excellent"
         profileImage = Uri.EMPTY
-        permissionrole = permissionRole.USER
         teamsInfo = hashMapOf(1 to MemberTeamInfo().apply {
             role = CategoryRole.PROGRAMMER
             weeklyAvailabilityTimes = 5
@@ -47,7 +46,6 @@ object DummyDataProvider {
         description = "UX Designer"
         kpi = "Good"
         profileImage = Uri.EMPTY
-        permissionrole = permissionRole.USER
         teamsInfo = hashMapOf(1 to MemberTeamInfo().apply {
             role = CategoryRole.NONE
             weeklyAvailabilityTimes = 0
@@ -65,7 +63,6 @@ object DummyDataProvider {
         description = "Product Manager"
         kpi = "Average"
         profileImage = Uri.EMPTY
-        permissionrole = permissionRole.USER
         teamsInfo = hashMapOf(1 to MemberTeamInfo().apply {
             role = CategoryRole.NONE
             weeklyAvailabilityTimes = 0
@@ -83,7 +80,6 @@ object DummyDataProvider {
         description = "Data Scientist"
         kpi = "Excellent"
         profileImage = Uri.EMPTY
-        permissionrole = permissionRole.USER
         teamsInfo = hashMapOf(1 to MemberTeamInfo().apply {
             role = CategoryRole.NONE
             weeklyAvailabilityTimes = 0
@@ -101,7 +97,6 @@ object DummyDataProvider {
         description = "Graphic Designer"
         kpi = "Good"
         profileImage = Uri.EMPTY
-        permissionrole = permissionRole.USER
         teamsInfo = hashMapOf(1 to MemberTeamInfo().apply {
             role = CategoryRole.NONE
             weeklyAvailabilityTimes = 0
@@ -119,7 +114,6 @@ object DummyDataProvider {
         description = "Software Developer"
         kpi = "Average"
         profileImage = Uri.EMPTY
-        permissionrole = permissionRole.USER
         teamsInfo = hashMapOf(1 to MemberTeamInfo().apply {
             role = CategoryRole.NONE
             weeklyAvailabilityTimes = 0
@@ -236,8 +230,8 @@ object DummyDataProvider {
                 creationDate = LocalDate.now().minusDays(3)
                 deadline = LocalDate.now().plusDays(4)
                 estimatedTime = Pair(4, 0)
-                spentTime = hashMapOf(member1 to Pair(1, 0))
-                status = Status.IN_PROGRESS
+                spentTime = hashMapOf(member1 to Pair(1, 35),member2 to Pair(3, 0))
+                status = Status.COMPLETED
                 repetition = Repetition.WEEKLY
                 members = listOf(member1, member2)
                 schedules = hashMapOf(Pair(member1,getDate(DayOfWeek.WEDNESDAY)) to Pair(4, 0))
@@ -349,7 +343,7 @@ object DummyDataProvider {
                 description = "Description for Team $i",
                 image = Uri.EMPTY,
                 creationDate = LocalDate.now(),
-                members = members.shuffled().take(5).toMutableList(),
+                members = mutableListOf(member1, member2),
                 tasks = tasks.toMutableList(),
                 teamHistory = getHistory(members[i],isTeamHistory = true),
                 chat = if (i == 0) groupChat1 else if (i==1) groupChat2 else null

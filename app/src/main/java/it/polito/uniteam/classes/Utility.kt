@@ -35,7 +35,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.intl.LocaleList
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.toUpperCase
+import java.util.Locale
 
 
 enum class Repetition{
@@ -85,11 +88,11 @@ fun MemberIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: 
             val initials = member.fullName.trim().split(' ');
             var initialsValue = initials
                 .mapNotNull { it.firstOrNull()?.toString() }
-                .first();
+                .first().uppercase();
             if (initials.size >= 2) {
                 initialsValue += initials
                     .mapNotNull { it.firstOrNull()?.toString() }
-                    .last()
+                    .last().uppercase()
             }
             Box(
                 modifier = Modifier
@@ -133,11 +136,11 @@ fun TeamIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: Mo
             val initials = team.name.trim().split(' ');
             var initialsValue = initials
                 .mapNotNull { it.firstOrNull()?.toString() }
-                .first();
+                .first().uppercase();
             if (initials.size >= 2) {
                 initialsValue += initials
                     .mapNotNull { it.firstOrNull()?.toString() }
-                    .last()
+                    .last().uppercase()
             }
             Box(
                 modifier = Modifier

@@ -13,35 +13,15 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 class NotificationsViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
-    var teamsHistories by mutableStateOf(model.getAllHistories())
+    fun getAllHistories() = model.getAllHistories()
+    fun getAllTeamMessages() = model.getAllTeamMessagesCount()
+    fun getAllMembersMessages() = model.getAllMembersMessagesCount()
+    var teamsHistories by mutableStateOf(getAllHistories())
         private set
 
-    var teamsMessages by mutableStateOf(listOf(
-        Message(
-            id = 1,
-            message = "",
-            senderId = 1,
-            creationDate = LocalDateTime.now(),
-            membersUnread = listOf(2),
-            status = messageStatus.UNREAD
-        ),
-        Message(
-            id = 2,
-            message = "",
-            senderId = 2,
-            creationDate = LocalDateTime.now(),
-            membersUnread = listOf(1,3),
-            status = messageStatus.UNREAD
-        ),
-        Message(
-            id = 3,
-            message = "",
-            senderId = 3,
-            creationDate = LocalDateTime.now(),
-            membersUnread = listOf(1,2,4,5),
-            status = messageStatus.UNREAD
-        )
-    ))
+    var teamsMessages by mutableStateOf(getAllTeamMessages())
+        private set
+    var membersMessages by mutableStateOf(getAllMembersMessages())
         private set
 
     var tabState by mutableIntStateOf(0)

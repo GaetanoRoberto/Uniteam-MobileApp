@@ -18,7 +18,6 @@ import it.polito.uniteam.classes.Team
 import it.polito.uniteam.classes.messageStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlin.math.log
 
 
@@ -143,9 +142,42 @@ class UniTeamModel {
             DummyDataProvider.member6) )*/
     }
 
+    fun getAllDistinctMembers(): List<Member> {
+        val members = mutableListOf<Member>()
+        _teams.value.forEach {
+            members.addAll(it.members.toList())
+        }
+        return members.toSet().toList()
+    }
     fun getAllHistories(): List<Pair<Team,List<History>>> {
         // TODO here no history of the single tasks so they will not be visible
         return _teams.value.map { Pair(it,it.teamHistory) }
+    }
+
+    fun getAllTeamMessagesCount(): List<Pair<Team,Int>> {
+        val teams = mutableListOf<Pair<Team,Int>>()
+        _teams.value.filter { it.chat!=null }.forEach {
+            val count = getUnreadMessagesTeam(it.id)
+            if (count!= null && count > 0) {
+                teams.add(Pair(it,count))
+            }
+        }
+        return teams
+    }
+
+    fun getAllMembersMessagesCount(): List<Pair<Member,Int>> {
+        val members = getAllDistinctMembers()
+        val messages = mutableListOf<Pair<Member,Int>>()
+        members.forEach { member ->
+            val chat = getUsersChat(member)
+            if(chat!=null) {
+                val count = getUnreadMessagesCount(member.id,chat)
+                if (count > 0) {
+                    messages.add(Pair(member, count))
+                }
+            }
+        }
+        return messages
     }
 
     fun getTeam(teamId: Int): Team {

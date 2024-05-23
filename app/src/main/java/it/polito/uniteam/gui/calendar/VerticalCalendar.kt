@@ -1,6 +1,5 @@
 package it.polito.uniteam.gui.calendar
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -241,14 +240,16 @@ fun VerticalHeader(
 
 //OGGETTO TASK
 @Composable
-fun EventItem(vm: Calendar = viewModel(factory = Factory(LocalContext.current)), task: Task, date: LocalDate? = null, isScheduled: Boolean) {
+fun EventItem(vm: Calendar = viewModel(factory = Factory(LocalContext.current)), task: Task, scheduleEntry: Map.Entry<Pair<Member, LocalDate>, Pair<Int, Int>>? = null, date: LocalDate? = null, isScheduled: Boolean) {
     var isOverSchedule = false
     // if scheduled assign memberTime otherwise not scheduled so no member/date provided
-    var memberTime: Map<Pair<Member, LocalDate>, Pair<Int, Int>>? = null;
-    val time: Pair<Int,Int>;
+    var memberTime: Map.Entry<Pair<Member, LocalDate>, Pair<Int, Int>>? = null;
+    var time: Pair<Int,Int> = Pair(0,0);
     if (isScheduled) {
-        memberTime = task.schedules.filter { it.key.second == date }
-        time = memberTime.values.first()
+        memberTime = scheduleEntry
+        if (memberTime != null) {
+            time = memberTime.value
+        }
     } else {
         val totalMinutes1 = task.estimatedTime.first * 60 + task.estimatedTime.second
         val totalMinutes2 = task.schedules.values.sumOf { it.first } * 60 + task.schedules.values.sumOf { it.second }
@@ -315,7 +316,7 @@ fun EventItem(vm: Calendar = viewModel(factory = Factory(LocalContext.current)),
                 MemberIcon(
                     modifierScale = Modifier.scale(0.6f),
                     modifierPadding = Modifier.padding(0.dp, 0.dp, 8.dp, 8.dp),
-                    member = memberTime.keys.first().first
+                    member = memberTime.key.first
                 )
             } else {
                 // are not scheduled, so taskstoassign use the logged member
@@ -445,11 +446,12 @@ fun VerticalDayEventScheduler(
                             horizontalArrangement = Arrangement.Start
                         ) {
                             item(1) {
-                                vm.viewedScheduledTasks.filter { it.schedules.any { it.key.second == date.date } }
-                                    .forEach { task ->
+                                vm.viewedScheduledTasks.filter { it.schedules.any { it.key.second == date.date } }.forEach { task ->
+                                    task.schedules.filter { it.key.second == date.date }.forEach { it ->
+                                        val memberId = it.key.first.id
                                         DraggableItem(
                                             state = dragAndDropState,
-                                            key = task.id + date.hashCode(),// + task.schedules.keys.filter { it.second==date.date }[0].first.hashCode(), // Unique key for each draggable item
+                                            key = task.id + memberId + date.hashCode(),// + task.schedules.keys.filter { it.second==date.date }[0].first.hashCode(), // Unique key for each draggable item
                                             data = Pair(
                                                 task,
                                                 date.date
@@ -458,11 +460,13 @@ fun VerticalDayEventScheduler(
                                         ) {
                                             EventItem(
                                                 task = task,
+                                                scheduleEntry = it,
                                                 date = date.date,
                                                 isScheduled = true
                                             )
                                         }
                                     }
+                                }
                             }
                         }
                     }

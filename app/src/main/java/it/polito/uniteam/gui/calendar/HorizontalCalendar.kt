@@ -247,11 +247,12 @@ fun HorizontalDayEventScheduler(data: CalendarUiModel,
                             horizontalArrangement = Arrangement.Start
                         ) {
                             item(1) {
-                                vm.viewedScheduledTasks.filter { it.schedules.any { it.key.second == date.date } }
-                                    .forEach { task ->
+                                vm.viewedScheduledTasks.filter { it.schedules.any { it.key.second == date.date } }.forEach { task ->
+                                    task.schedules.filter { it.key.second == date.date }.forEach { it ->
+                                        val memberId = it.key.first.id
                                         DraggableItem(
                                             state = dragAndDropState,
-                                            key = task.id + date.hashCode(), // Unique key for each draggable item
+                                            key = task.id + memberId + date.hashCode(),// + task.schedules.keys.filter { it.second==date.date }[0].first.hashCode(), // Unique key for each draggable item
                                             data = Pair(
                                                 task,
                                                 date.date
@@ -260,11 +261,13 @@ fun HorizontalDayEventScheduler(data: CalendarUiModel,
                                         ) {
                                             EventItem(
                                                 task = task,
+                                                scheduleEntry = it,
                                                 date = date.date,
                                                 isScheduled = true
                                             )
                                         }
                                     }
+                                }
                             }
                         }
                     }

@@ -2,7 +2,6 @@ package it.polito.uniteam.gui.statistics
 
 import android.annotation.SuppressLint
 import android.text.Layout
-import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -42,17 +41,12 @@ import com.patrykandpatrick.vico.core.common.copyColor
 import com.patrykandpatrick.vico.core.common.shader.DynamicShader
 import com.patrykandpatrick.vico.core.common.shape.Corner
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
-import kotlin.random.Random
 import com.patrykandpatrick.vico.core.common.shape.Shape
 import android.graphics.Typeface
+import android.text.SpannableStringBuilder
+import android.util.Log
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.padding
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.sp
-import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisTickComponent
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottomAxis
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStartAxis
 import com.patrykandpatrick.vico.compose.common.component.fixed
@@ -62,35 +56,30 @@ import com.patrykandpatrick.vico.compose.common.vicoTheme
 import com.patrykandpatrick.vico.core.cartesian.CartesianDrawContext
 import com.patrykandpatrick.vico.core.cartesian.axis.AxisItemPlacer
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianValueFormatter
+import com.patrykandpatrick.vico.core.cartesian.marker.CartesianMarkerValueFormatter
+import com.patrykandpatrick.vico.core.cartesian.marker.ColumnCartesianLayerMarkerTarget
 import com.patrykandpatrick.vico.core.common.component.TextComponent
 import com.patrykandpatrick.vico.core.common.data.ExtraStore
 import it.polito.uniteam.Factory
-import kotlinx.coroutines.withContext
+import kotlin.math.roundToInt
 
 @Composable
 fun BarChart(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContext.current))) {
+    val chartColors = listOf(MaterialTheme.colorScheme.primary, Color(0xff018FF3))
     val modelProducer = remember { CartesianChartModelProducer.build() }
-    val data = mapOf(
-        "member1" to Pair(6f, 8f),
-        "member2" to Pair(6f, 4f),
-        "member3" to Pair(5f, 6f),
-        "member4" to Pair(7f, 3f),
-        "member5" to Pair(4f, 9f),
-        "member6" to Pair(8f, 2f),
-        "member7" to Pair(7f, 3f),
-        "member8" to Pair(4f, 9f),
-        "member9" to Pair(8f, 2f),
-        "member10" to Pair(5f, 7f),
-        "member11" to Pair(3f, 8f),
-        "member12" to Pair(6f, 5f),
-        "member13" to Pair(9f, 4f),
-        "member14" to Pair(2f, 6f),
-        "member15" to Pair(7f, 5f),
-        "member16" to Pair(3f, 7f),
-        "member17" to Pair(8f, 6f),
-        "member18" to Pair(4f, 8f)
-    )
-    val labelListKey = ExtraStore.Key<List<String>>()
+    val data = vm.getPlannedSpentHoursRatio()
+    val maxY = data.values.flatMap { listOf(it.first, it.second) }.max()
+    val yAxisFormatter = CartesianValueFormatter { x, _, _ ->
+        val integerPart = x.toInt()
+        val decimalPart = x - integerPart
+        val minutes = (decimalPart * 60).toInt()
+        if(integerPart!=0)
+            "${integerPart}h ${minutes}m"
+        else
+            "${minutes}m"
+    }
+    val xAxisFormatter = CartesianValueFormatter { x, _, _ -> data.keys.elementAt(x.toInt()).toString() }
+
     LaunchedEffect(Unit) {
         withContext(Dispatchers.Default) {
             modelProducer.tryRunTransaction {
@@ -106,15 +95,10 @@ fun BarChart(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContext.
                         }
                     )
                 }
-                updateExtras {
-                    it[labelListKey] = data.keys.toList()
-                }
-                //lineSeries { series(List(Defaults.ENTRY_COUNT) { Random.nextFloat() * Defaults.MAX_Y }) }
             }
         }
     }
-    val maxY = 11
-    val lineColor = Color.White
+
     CartesianChartHost(
         chart =
         rememberCartesianChart(
@@ -134,14 +118,14 @@ fun BarChart(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContext.
                 lines =
                 listOf(
                     rememberLineSpec(
-                        shader = DynamicShader.color(lineColor),
+                        shader = DynamicShader.color(MaterialTheme.colorScheme.onPrimary),
                         pointConnector = DefaultPointConnector(cubicStrength = 0f),
                     ),
                 ),
             ),
-            startAxis = rememberStartAxis(itemPlacer = remember { AxisItemPlacer.Vertical.step({ _ -> Math.ceil((maxY / 10).toDouble()).toFloat() }) }),
-            bottomAxis = rememberBottomAxis(valueFormatter = CartesianValueFormatter { x, chartValues, _ -> chartValues.model.extraStore[labelListKey][x.toInt()] }),
-            legend = rememberLegend()
+            startAxis = rememberStartAxis(valueFormatter = yAxisFormatter, itemPlacer = remember { AxisItemPlacer.Vertical.step({ _ -> (maxY / 10) }) }),
+            bottomAxis = rememberBottomAxis(valueFormatter = xAxisFormatter),
+            legend = rememberLegend(chartColors)
         ),
         modelProducer = modelProducer,
         modifier = Modifier.fillMaxHeight(0.9f),
@@ -152,7 +136,7 @@ fun BarChart(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContext.
 }
 
 @Composable
-private fun rememberLegend() =
+private fun rememberLegend(chartColors: List<Color>) =
     rememberHorizontalLegend<CartesianMeasureContext, CartesianDrawContext>(
         items =
         chartColors.mapIndexed { index, chartColor ->
@@ -164,7 +148,7 @@ private fun rememberLegend() =
                     textSize = 12.sp,
                     typeface = Typeface.MONOSPACE,
                 ),
-                labelText = if(index == 0) "Planned" else "Spent",
+                labelText = if(index == 0) "Planned Hours" else "Spent Hours",
             )
         },
         iconSize = 8.dp,
@@ -172,8 +156,6 @@ private fun rememberLegend() =
         spacing = 8.dp,
         padding = Dimensions.of(top = 8.dp),
     )
-
-private val chartColors = listOf(Color(0xff916cda), Color(0xffd877d8))
 
 @Composable
 internal fun rememberMarker(
@@ -212,9 +194,22 @@ internal fun rememberMarker(
             padding = Dimensions.of(10.dp),
         )
     val guideline = rememberAxisGuidelineComponent()
+    val markerFormatter = CartesianMarkerValueFormatter { _, targets ->
+        val target = targets.first() as ColumnCartesianLayerMarkerTarget
+        target.columns.map { column ->
+            val integerPart = column.entry.y.toInt()
+            val decimalPart = column.entry.y - integerPart
+            val minutes = (decimalPart * 60).toInt()
+            if(integerPart!=0)
+                "${integerPart}h ${minutes}m"
+            else
+                "${minutes}m"
+        }[0]
+    }
     return remember(label, labelPosition, indicator, showIndicator, guideline) {
         @SuppressLint("RestrictedApi")
         object : DefaultCartesianMarker(
+            valueFormatter = markerFormatter,
             label = label,
             labelPosition = labelPosition,
             indicator = if (showIndicator) indicator else null,

@@ -1,7 +1,10 @@
 package it.polito.uniteam.gui.statistics
 
 import android.graphics.Typeface
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -15,11 +18,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import co.yml.charts.common.components.Legends
+import co.yml.charts.common.extensions.formatToSinglePrecision
 import co.yml.charts.common.model.LegendLabel
 import co.yml.charts.common.model.LegendsConfig
 import co.yml.charts.common.model.PlotType
@@ -30,68 +36,69 @@ import it.polito.uniteam.Factory
 
 @Composable
 fun OverallTeamKPIChart(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContext.current))) {
-    val colorPaletteList =
-        listOf(Color(0xFF5F0A87), Color(0xFF20BF55), Color(0xFFEC9F05), Color(0xFFF53844))
-    val pieChartData = PieChartData(
-        slices = listOf(
-            PieChartData.Slice("SciFi", 65f, Color(0xFF333333)),
-            PieChartData.Slice("Comedy", 35f, Color(0xFF666a86)),
-            PieChartData.Slice("Drama", 10f, Color(0xFF95B8D1)),
-            PieChartData.Slice("Romance", 40f, Color(0xFFF53844))
-        ),
-        plotType = PlotType.Pie
-    )
-    val pieChartConfig = PieChartConfig(
-        chartPadding = 15,
-        backgroundColor = MaterialTheme.colorScheme.background,
-        showSliceLabels = false,
-        labelVisible = true,
-        labelColor = Color.White,
-        //percentVisible = true,
-        //percentageFontSize = 42.sp,
-        strokeWidth = 120f,
-        //isSumVisible = true,
-        //percentColor = Color.Black,
-        activeSliceAlpha = .9f,
-        isAnimationEnable = true
-    )
-    val legendsConfig = LegendsConfig(
-        legendLabelList = listOf(
-            LegendLabel(colorPaletteList[1], "Dell"),
-            LegendLabel(colorPaletteList[0], "HP"),
-            LegendLabel(colorPaletteList[2], "Lenovo"),
-            LegendLabel(colorPaletteList[3], "Asus"),
-            LegendLabel(colorPaletteList[1], "Dell"),
-            LegendLabel(colorPaletteList[0], "HP"),
-            LegendLabel(colorPaletteList[2], "Lenovo"),
-            LegendLabel(colorPaletteList[3], "Asus"),
-            LegendLabel(colorPaletteList[1], "Dell"),
-            LegendLabel(colorPaletteList[0], "HP"),
-            LegendLabel(colorPaletteList[2], "Lenovo"),
-            LegendLabel(colorPaletteList[3], "Asus"),
-            LegendLabel(colorPaletteList[1], "Dell"),
-            LegendLabel(colorPaletteList[0], "HP"),
-            LegendLabel(colorPaletteList[2], "Lenovo"),
-            LegendLabel(colorPaletteList[3], "Asus")
-        ),
-        gridColumnCount = 2
-    )
-
-    Box(contentAlignment = Alignment.Center) {
-        PieChart(
-            modifier = Modifier
-                .fillMaxHeight(0.7f),
-            pieChartData,
-            pieChartConfig,
-            onSliceClick = {
-                if(vm.selectedChartValue == "${it.label}: ${it.value} %") {
-                    vm.selectedChartValue = ""
-                } else {
-                    vm.selectedChartValue = "${it.label}: ${it.value} %"
-                }
-            }
+    val memberTeamKpi = vm.getOverallTeamKPI()
+    if (memberTeamKpi != null) {
+        val colorPaletteList = vm.colorPaletteTeamKpi
+        val pieChartData = PieChartData(
+            slices = memberTeamKpi.entries.mapIndexed { index, entry ->
+                PieChartData.Slice(entry.key, entry.value, colorPaletteList[index])
+            },
+            plotType = PlotType.Pie
         )
-        Text(text = vm.selectedChartValue, style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onPrimary)
+        val pieChartConfig = PieChartConfig(
+            chartPadding = 15,
+            backgroundColor = MaterialTheme.colorScheme.background,
+            showSliceLabels = false,
+            labelVisible = true,
+            labelColor = Color.White,
+            //percentVisible = true,
+            //percentageFontSize = 42.sp,
+            strokeWidth = 120f,
+            //isSumVisible = true,
+            //percentColor = Color.Black,
+            activeSliceAlpha = .9f,
+            isAnimationEnable = true
+        )
+        val legendsConfig = LegendsConfig(
+            legendLabelList = memberTeamKpi.entries.mapIndexed { index, entry ->
+                LegendLabel(colorPaletteList[index], entry.key)
+            },
+            gridColumnCount = 2
+        )
+
+        Box(contentAlignment = Alignment.Center) {
+            PieChart(
+                modifier = Modifier
+                    .fillMaxHeight(0.7f).aspectRatio(1f),
+                pieChartData,
+                pieChartConfig,
+                onSliceClick = {
+                    if (vm.selectedChartValue == "${it.label}: ${it.value.formatToSinglePrecision()} %") {
+                        vm.selectedChartValue = ""
+                    } else {
+                        vm.selectedChartValue =
+                            "${it.label}: ${it.value.formatToSinglePrecision()} %"
+                    }
+                }
+            )
+            Text(
+                text = vm.selectedChartValue,
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onPrimary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+        Legends(legendsConfig = legendsConfig)
+    } else {
+        Row(modifier = Modifier.fillMaxSize(),horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = "No KPI Stats Yet.",
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onPrimary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
     }
-    Legends(legendsConfig = legendsConfig)
 }
