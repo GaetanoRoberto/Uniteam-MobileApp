@@ -4,6 +4,7 @@ import android.graphics.Typeface
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -68,7 +69,7 @@ fun OverallTeamKPIChart(vm: StatisticsViewModel = viewModel(factory = Factory(Lo
         Box(contentAlignment = Alignment.Center) {
             PieChart(
                 modifier = Modifier
-                    .fillMaxHeight(0.7f),//.fillMaxHeight(0.9f).scale(0.6f),
+                    .fillMaxHeight(0.7f).aspectRatio(1f),
                 pieChartData,
                 pieChartConfig,
                 onSliceClick = {

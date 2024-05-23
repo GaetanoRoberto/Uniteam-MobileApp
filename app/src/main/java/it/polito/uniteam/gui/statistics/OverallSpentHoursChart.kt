@@ -27,6 +27,7 @@ import co.yml.charts.ui.piechart.charts.DonutPieChart
 import co.yml.charts.ui.piechart.models.PieChartConfig
 import co.yml.charts.ui.piechart.models.PieChartData
 import it.polito.uniteam.Factory
+import it.polito.uniteam.isVertical
 import kotlin.random.Random
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -42,7 +43,7 @@ fun OverallSpentHoursChart(vm: StatisticsViewModel = viewModel(factory = Factory
             plotType = PlotType.Donut
         )
         val donutChartConfig = PieChartConfig(
-            chartPadding = 15,
+            chartPadding = if(isVertical()) 15 else 30,
             backgroundColor = MaterialTheme.colorScheme.background,
             //labelVisible = true,
             labelColor = Color.White,
@@ -64,7 +65,7 @@ fun OverallSpentHoursChart(vm: StatisticsViewModel = viewModel(factory = Factory
         Box(contentAlignment = Alignment.Center) {
             DonutPieChart(
                 modifier = Modifier
-                    .fillMaxHeight(0.7f),//.scale(0.9f),
+                    .fillMaxHeight(0.7f),
                 donutChartData,
                 donutChartConfig,
                 onSliceClick = {
