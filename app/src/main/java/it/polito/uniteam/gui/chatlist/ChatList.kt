@@ -193,7 +193,7 @@ fun UserItem(member: Member,vm : ChatListViewModel) {
         ,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        MemberIcon(modifierScale= Modifier.scale(1f), modifierPadding = Modifier.padding(4.dp, 0.dp, 15.dp, 0.dp),member = member )
+        MemberIcon(modifierScale= Modifier.scale(1f), modifierPadding = Modifier.padding(4.dp, 0.dp, 15.dp, 0.dp),member = member, selectUser = vm.selectUser )
         Spacer(modifier = Modifier.width(10.dp))
         Column(
             modifier = Modifier

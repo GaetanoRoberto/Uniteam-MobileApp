@@ -119,6 +119,7 @@ import java.util.Locale
 class TaskList(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
     var membersList = mutableStateOf<List<Member>>(listOf(
         Member().apply {
+            id = 1
             fullName = "John Doe"
             username = "johndoe"
             email = "johndoe@example.com"
@@ -127,6 +128,7 @@ class TaskList(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) 
             kpi = "85"
         },
         Member().apply {
+            id = 2
             fullName = "Jane Smith"
             username = "janesmith"
             email = "janesmith@example.com"
@@ -135,6 +137,7 @@ class TaskList(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) 
             kpi = "90"
         },
         Member().apply {
+            id = 3
             fullName = "Alice Johnson"
             username = "alicejohnson"
             email = "alicejohnson@example.com"
@@ -143,6 +146,7 @@ class TaskList(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) 
             kpi = "88"
         },
         Member().apply {
+            id = 4
             fullName = "Bob Williams"
             username = "bobwilliams"
             email = "bobwilliams@example.com"
@@ -151,6 +155,7 @@ class TaskList(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) 
             kpi = "92"
         },
         Member().apply {
+            id = 5
             fullName = "Charlie Brown"
             username = "charliebrown"
             email = "charliebrown@example.com"
@@ -159,6 +164,7 @@ class TaskList(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) 
             kpi = "89"
         },
         Member().apply {
+            id = 6
             fullName = "David Davis"
             username = "daviddavis"
             email = "daviddavis@example.com"
@@ -167,6 +173,7 @@ class TaskList(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) 
             kpi = "91"
         },
         Member().apply {
+            id = 7
             fullName = "Eve Evans"
             username = "eveevans"
             email = "eveevans@example.com"
@@ -261,6 +268,7 @@ class TaskList(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) 
 
     var lastSearchQuery = mutableStateOf<String>("")
 
+    val selectUser: (Int) -> Unit = { id -> model.selectUser(id) }
 }
 
 
@@ -950,7 +958,7 @@ fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Coroutin
             else
                 vm.membersList.value
             for (member in membersToShow) {
-                MemberIcon(Modifier.scale(1f), Modifier.padding(0.dp, 5.dp, 30.dp, 0.dp), member)
+                MemberIcon(Modifier.scale(1f), Modifier.padding(0.dp, 5.dp, 30.dp, 0.dp), member, vm.selectUser)
             }
             if (vm.membersList.value.size > 4) {
                 TextButton(
@@ -986,7 +994,7 @@ fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Coroutin
                 modifier = Modifier.weight(1f)
             )
             FilledTonalButton(
-                onClick = {navController.navigate("Tasks"){
+                onClick = {navController.navigate("AllTasks"){
                     /*popUpTo(navController.graph.findStartDestination().id) {
                         saveState = true
                     }*/
@@ -1140,7 +1148,7 @@ fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Coroutin
                                     Text(" nobody assigned", style = MaterialTheme.typography.labelMedium)
                                 } else {
                                     for (member in membersToShow) {
-                                        MemberIcon(Modifier.scale(0.7f), Modifier.padding(5.dp, 0.dp, 10.dp, 0.dp), member)
+                                        MemberIcon(Modifier.scale(0.7f), Modifier.padding(5.dp, 0.dp, 10.dp, 0.dp), member, vm.selectUser)
                                     }
                                 }
                                 if (task.members.size > 5) {
@@ -1322,7 +1330,7 @@ fun HorizontalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Corout
                 else
                     vm.membersList.value
                 for (member in membersToShow) {
-                    MemberIcon(Modifier.scale(1f), Modifier.padding(0.dp, 5.dp, 30.dp, 0.dp), member)
+                    MemberIcon(Modifier.scale(1f), Modifier.padding(0.dp, 5.dp, 30.dp, 0.dp), member, vm.selectUser)
                 }
                 if (vm.membersList.value.size > 5) {
                     TextButton(
@@ -1526,7 +1534,7 @@ fun HorizontalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Corout
                                         Text(" nobody assigned", style = MaterialTheme.typography.labelMedium)
                                     } else {
                                         for (member in membersToShow) {
-                                            MemberIcon(Modifier.scale(0.7f), Modifier.padding(5.dp, 0.dp, 10.dp, 0.dp), member)
+                                            MemberIcon(Modifier.scale(0.7f), Modifier.padding(5.dp, 0.dp, 10.dp, 0.dp), member, vm.selectUser)
                                         }
                                     }
                                     if (task.members.size > 5) {

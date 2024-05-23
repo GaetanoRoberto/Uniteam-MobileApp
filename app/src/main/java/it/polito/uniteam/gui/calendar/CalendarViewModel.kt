@@ -237,6 +237,8 @@ class Calendar(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) 
         isToday = date.isEqual(today),
         date = date,
     )
+    val selectUser: (Int) -> Unit = { id -> model.selectUser(id) }
+
 
 }
 

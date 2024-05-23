@@ -283,7 +283,7 @@ fun TaskDetailDialog(vm: Calendar = viewModel(factory = Factory(LocalContext.cur
                 RowItem(title = "Priority:", value = task.priority)
                 RowItem(title = "Deadline:", value = task.deadline.toString())
                 RowItem(title = "Repeatable:", value = task.repetition)
-                RowMemberItem(title = "Members:", value = task.members)
+                RowMemberItem(title = "Members:", value = task.members, selectUser = vm.selectUser)
                 RowItem(title = "Status:", value = if(task.status==Status.IN_PROGRESS) "IN PROGRESS" else task.status)
             }
         },

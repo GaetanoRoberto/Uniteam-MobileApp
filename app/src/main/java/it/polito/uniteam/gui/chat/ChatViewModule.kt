@@ -59,6 +59,7 @@ class ChatViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHan
         val chat = model.getUsersChat(member!!)
         chat?.messages?.add(message)
     }*/
+    val selectUser: (Int) -> Unit = { id -> model.selectUser(id) }
 
 
 }

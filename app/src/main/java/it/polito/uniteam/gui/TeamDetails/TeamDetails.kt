@@ -270,6 +270,9 @@ class TeamDetailsViewModel(val model: UniTeamModel): ViewModel() {
         showConfirmationDialog = !showConfirmationDialog
     }
 
+    val selectUser: (Int) -> Unit = { id -> model.selectUser(id) }
+
+
 
 
 
@@ -670,7 +673,7 @@ fun TeamDetailsView(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
 
         RowItem(title = "Name:", value = vm.selectedTeam.value.name)
         RowItem(title = "Description:", value = vm.selectedTeam.value.description.toString())
-        RowMemberItem(title = "Members:", value = vm.selectedTeam.value.members)
+        RowMemberItem(selectUser = vm.selectUser, title = "Members:", value = vm.selectedTeam.value.members)
         RowItem(title = "Creation Date:", value = vm.selectedTeam.value.creationDate.toString())
 
     }
@@ -901,7 +904,7 @@ fun TeamMembersDropdownMenuBox(
                             .padding(0.dp, 0.dp, 5.dp, 0.dp)
                     ) {
                         currentMembers.forEachIndexed { index, member ->
-                            MemberIcon(member = member, modifierScale = Modifier.scale(0.65f), modifierPadding = Modifier.padding(start = if (index == 0) 12.dp else 0.dp))
+                            MemberIcon(member = member, modifierScale = Modifier.scale(0.65f), modifierPadding = Modifier.padding(start = if (index == 0) 12.dp else 0.dp), selectUser = vm.selectUser)
                             Text(
                                 text = member.username.toString() + if (index < currentMembers.size - 1) {
                                     ", "

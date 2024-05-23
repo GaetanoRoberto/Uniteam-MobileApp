@@ -39,6 +39,7 @@ import androidx.compose.ui.text.intl.LocaleList
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.toUpperCase
 import java.util.Locale
+import it.polito.uniteam.NavControllerManager
 
 
 enum class Repetition{
@@ -73,15 +74,18 @@ fun String.isRepetition(): Boolean{
 
 
 @Composable
-fun MemberIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: Modifier = Modifier.padding(0.dp, 0.dp, 20.dp, 0.dp), member: Member) {
-    Box(modifier = modifierScale.clickable(onClick = { })) {
+fun MemberIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: Modifier = Modifier.padding(0.dp, 0.dp, 20.dp, 0.dp), member: Member,  selectUser: (id: Int) -> Unit ) {
+    val navController = NavControllerManager.getNavController()
+
+    Box(modifier = modifierScale) {
         if (member.profileImage != Uri.EMPTY) {
             Image(
                 painter = rememberAsyncImagePainter(member.profileImage),
                 contentDescription = null,
                 modifier = Modifier
                     .size(22.dp)
-                    .clip(CircleShape),
+                    .clip(CircleShape)
+                    .clickable(onClick = {selectUser(member.id); navController.navigate("OtherUserProfile") }),
                 contentScale = ContentScale.Crop
             )
         } else {
@@ -104,6 +108,7 @@ fun MemberIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: 
                             radius = this.size.maxDimension
                         )
                     }
+                    .clickable(onClick = {selectUser(member.id); navController.navigate("OtherUserProfile") })
             ) {
                 Text(
                     text = initialsValue,
@@ -122,7 +127,7 @@ fun MemberIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: 
 }
 @Composable
 fun TeamIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: Modifier = Modifier.padding(0.dp, 0.dp, 20.dp, 0.dp), team: Team) {
-    Box(modifier = modifierScale.clickable(onClick = { /* Handle the click event here */ })) {
+    Box(modifier = modifierScale) {
         if (team.image != Uri.EMPTY) {
             Image(
                 painter = rememberAsyncImagePainter(team.image),

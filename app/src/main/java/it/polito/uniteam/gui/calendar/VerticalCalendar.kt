@@ -316,14 +316,17 @@ fun EventItem(vm: Calendar = viewModel(factory = Factory(LocalContext.current)),
                 MemberIcon(
                     modifierScale = Modifier.scale(0.6f),
                     modifierPadding = Modifier.padding(0.dp, 0.dp, 8.dp, 8.dp),
-                    member = memberTime.key.first
+                    member = memberTime.keys.first().first,
+                    selectUser= vm.selectUser
                 )
             } else {
                 // are not scheduled, so taskstoassign use the logged member
                 MemberIcon(
                     modifierScale = Modifier.scale(0.6f),
                     modifierPadding = Modifier.padding(0.dp, 0.dp, 8.dp, 8.dp),
-                    member = vm.memberProfile!!
+                    member = vm.memberProfile!!,
+                    selectUser= vm.selectUser
+
                 )
             }
         }
