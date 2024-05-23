@@ -29,7 +29,6 @@ object DummyDataProvider {
         description = "Software Engineer"
         kpi = "Excellent"
         profileImage = Uri.EMPTY
-        permissionrole = permissionRole.USER
         teamsInfo = hashMapOf(1 to MemberTeamInfo().apply {
             role = CategoryRole.PROGRAMMER
             weeklyAvailabilityTimes = 5
@@ -47,7 +46,6 @@ object DummyDataProvider {
         description = "UX Designer"
         kpi = "Good"
         profileImage = Uri.EMPTY
-        permissionrole = permissionRole.USER
         teamsInfo = hashMapOf(1 to MemberTeamInfo().apply {
             role = CategoryRole.NONE
             weeklyAvailabilityTimes = 0
@@ -65,7 +63,6 @@ object DummyDataProvider {
         description = "Product Manager"
         kpi = "Average"
         profileImage = Uri.EMPTY
-        permissionrole = permissionRole.USER
         teamsInfo = hashMapOf(1 to MemberTeamInfo().apply {
             role = CategoryRole.NONE
             weeklyAvailabilityTimes = 0
@@ -83,7 +80,6 @@ object DummyDataProvider {
         description = "Data Scientist"
         kpi = "Excellent"
         profileImage = Uri.EMPTY
-        permissionrole = permissionRole.USER
         teamsInfo = hashMapOf(1 to MemberTeamInfo().apply {
             role = CategoryRole.NONE
             weeklyAvailabilityTimes = 0
@@ -101,7 +97,6 @@ object DummyDataProvider {
         description = "Graphic Designer"
         kpi = "Good"
         profileImage = Uri.EMPTY
-        permissionrole = permissionRole.USER
         teamsInfo = hashMapOf(1 to MemberTeamInfo().apply {
             role = CategoryRole.NONE
             weeklyAvailabilityTimes = 0
@@ -119,7 +114,6 @@ object DummyDataProvider {
         description = "Software Developer"
         kpi = "Average"
         profileImage = Uri.EMPTY
-        permissionrole = permissionRole.USER
         teamsInfo = hashMapOf(1 to MemberTeamInfo().apply {
             role = CategoryRole.NONE
             weeklyAvailabilityTimes = 0

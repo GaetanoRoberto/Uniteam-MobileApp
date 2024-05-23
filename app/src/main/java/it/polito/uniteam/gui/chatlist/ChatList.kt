@@ -162,7 +162,7 @@ fun TeamRow(team: Team,vm: ChatListViewModel) {
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .padding(2.dp)
-                        .size(18.dp)
+                        .defaultMinSize(18.dp,18.dp)
                         .background(MaterialTheme.colorScheme.primary, CircleShape)
                         .zIndex(1f),
                     contentAlignment = Alignment.Center

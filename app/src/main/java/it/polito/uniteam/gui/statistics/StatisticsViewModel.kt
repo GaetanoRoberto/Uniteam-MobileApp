@@ -14,6 +14,7 @@ import kotlin.math.roundToInt
 import kotlin.random.Random
 
 class StatisticsViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
+    fun getTeam(teamId: Int) = model.getTeam(teamId)
     var selectedChart by mutableStateOf(chartType.PLANNED_SPENT_HOURS_RATIO)
         private set
 
@@ -29,9 +30,9 @@ class StatisticsViewModel(val model: UniTeamModel, val savedStateHandle: SavedSt
     }
 
     val teamId: String = checkNotNull(savedStateHandle["teamId"])
-    var teamTasks = mutableStateOf(model.getTeam(teamId.toInt()).tasks.toList())
+    var teamTasks = mutableStateOf(getTeam(teamId.toInt()).tasks.toList())
         private set
-    var teamMembers = mutableStateOf(model.getTeam(teamId.toInt()).members.toList())
+    var teamMembers = mutableStateOf(getTeam(teamId.toInt()).members.toList())
         private set
 
     fun getPlannedSpentHoursRatio(): Map<String, Pair<Float, Float>> {

@@ -83,22 +83,24 @@ fun Notifications(vm: NotificationsViewModel = viewModel(factory = Factory(Local
 @Composable
 fun MessagesSection(vm: NotificationsViewModel = viewModel(factory = Factory(LocalContext.current))) {
     LazyColumn {
-        item(vm.teamsMessages) {
-            vm.teamsMessages.forEachIndexed { index, message ->
-                if (index % 2 == 0)
-                    MessageItem(teamMemberName = vm.teamsHistories[index].first.name, nOfMessages = 35)
-                else
-                    MessageItem(teamMemberName = vm.teamsHistories[index].first.name + " - " + vm.teamsHistories[index].first.members.get(0).fullName, nOfMessages = 1)
+        item(vm.teamsMessages.size + vm.membersMessages.size) {
+            vm.teamsMessages.forEach { (team,count) ->
+                MessageItem(teamMemberName = team.name, teamMemberId = team.id, nOfMessages = count)
+            }
+            vm.membersMessages.forEach { (member,count)->
+                MessageItem(teamMemberName = member.username, teamMemberId = member.id, nOfMessages = count)
             }
         }
     }
 }
 
 @Composable
-fun MessageItem(teamMemberName: String, nOfMessages: Int) {
+fun MessageItem(teamMemberName: String, teamMemberId:Int, nOfMessages: Int) {
+    val navController = NavControllerManager.getNavController()
+    // TODO "Chat/${teamMemberId}" when Id Available
     Row(
         modifier = Modifier
-            .clickable { Log.i("diooo", "reg") }
+            .clickable { navController.navigate("Chat") }
             .fillMaxWidth()
             .border(0.5.dp, MaterialTheme.colorScheme.onPrimary)
             .padding(10.dp),
@@ -114,8 +116,7 @@ fun MessageItem(teamMemberName: String, nOfMessages: Int) {
             Box(
                 modifier = Modifier
                     .size(40.dp)
-                    .background(MaterialTheme.colorScheme.primary, shape = CircleShape)
-                    .border(1.dp, MaterialTheme.colorScheme.onPrimary, CircleShape),
+                    .background(MaterialTheme.colorScheme.primary, shape = CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -130,19 +131,20 @@ fun MessageItem(teamMemberName: String, nOfMessages: Int) {
 @Composable
 fun ActivitiesSection(vm: NotificationsViewModel = viewModel(factory = Factory(LocalContext.current))) {
     LazyColumn {
-        items(vm.teamsHistories) { TeamHistory ->
-            TeamHistory.second.forEach { history ->
-                ActivityItem(teamName = TeamHistory.first.name, Activity = history.comment)
+        items(vm.teamsHistories) { (team,histories) ->
+            histories.forEach { history ->
+                ActivityItem(teamName = team.name, teamId = team.id, Activity = history.comment)
             }
         }
     }
 }
 
 @Composable
-fun ActivityItem(teamName: String, Activity: String) {
+fun ActivityItem(teamName: String, teamId:Int, Activity: String) {
+    val navController = NavControllerManager.getNavController()
     Row(
         modifier = Modifier
-            .clickable { Log.i("diooo", "reg") }
+            .clickable { navController.navigate("Team/${teamId}") }
             .fillMaxWidth()
             .border(0.5.dp, MaterialTheme.colorScheme.onPrimary)
             .padding(10.dp)
