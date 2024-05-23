@@ -2,6 +2,7 @@ package it.polito.uniteam.classes
 
 import android.net.Uri
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -70,7 +71,7 @@ fun String.isRepetition(): Boolean{
 
 @Composable
 fun MemberIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: Modifier = Modifier.padding(0.dp, 0.dp, 20.dp, 0.dp), member: Member) {
-    Box(modifier = modifierScale) {
+    Box(modifier = modifierScale.clickable(onClick = { })) {
         if (member.profileImage != Uri.EMPTY) {
             Image(
                 painter = rememberAsyncImagePainter(member.profileImage),
@@ -118,7 +119,7 @@ fun MemberIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: 
 }
 @Composable
 fun TeamIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: Modifier = Modifier.padding(0.dp, 0.dp, 20.dp, 0.dp), team: Team) {
-    Box(modifier = modifierScale) {
+    Box(modifier = modifierScale.clickable(onClick = { /* Handle the click event here */ })) {
         if (team.image != Uri.EMPTY) {
             Image(
                 painter = rememberAsyncImagePainter(team.image),

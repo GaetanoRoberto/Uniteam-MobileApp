@@ -83,6 +83,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import it.polito.uniteam.classes.MemberIcon
+import it.polito.uniteam.gui.TeamDetails.TeamViewScreen
 import it.polito.uniteam.gui.calendar.CalendarAppContainer
 import it.polito.uniteam.gui.chat.ChatScreen
 import it.polito.uniteam.gui.chatlist.ChatListScreen
@@ -90,8 +91,10 @@ import it.polito.uniteam.gui.notifications.Notifications
 import it.polito.uniteam.gui.showtaskdetails.TaskScreen
 import it.polito.uniteam.gui.statistics.Statistics
 import it.polito.uniteam.gui.tasklist.TaskListView
+import it.polito.uniteam.gui.userprofile.OtherProfileSettings
 import it.polito.uniteam.gui.userprofile.ProfileSettings
 import it.polito.uniteam.gui.userprofile.UserProfileScreen
+import it.polito.uniteam.gui.yourTasksCalendar.YourTasksCalendarViewScreen
 import it.polito.uniteam.ui.theme.UniTeamTheme
 import java.io.File
 import java.util.concurrent.ExecutorService
@@ -206,9 +209,12 @@ class MainActivity : ComponentActivity() {
                                                     },
                                                     selected = item.title == navBackStackEntry?.destination?.route,
                                                     onClick = {
-                                                      navController.navigate(item.title){
-                                                              launchSingleTop = true
-                                                      }
+
+                                                            navController.navigate(item.title){
+                                                                launchSingleTop = true
+                                                            }
+
+
                                                         selectedItemIndex = index
                                                         coroutineScope.launch {
                                                             drawerState.close()
@@ -383,7 +389,7 @@ class MainActivity : ComponentActivity() {
                                                             )
                                                         )
                                                     }
-                                                    composable("Tasks") {
+                                                    composable("AllTasks") {
                                                         TaskScreen(
                                                             vm = viewModel(
                                                                 factory = Factory(LocalContext.current)
@@ -430,6 +436,29 @@ class MainActivity : ComponentActivity() {
 
                                                     composable("Statistics") {
                                                         Statistics(
+                                                            vm = viewModel(
+                                                                factory = Factory(LocalContext.current)
+                                                            )
+                                                        )
+                                                    }
+                                                    composable("TeamDetails") {
+                                                        TeamViewScreen(
+                                                            vm = viewModel(
+                                                                factory = Factory(LocalContext.current)
+                                                            ),
+                                                            outputDirectory = getOutputDirectory(),
+                                                            cameraExecutor = cameraExecutor
+                                                        )
+                                                    }
+                                                    composable("Tasks") {
+                                                        YourTasksCalendarViewScreen(
+                                                            vm = viewModel(
+                                                                factory = Factory(LocalContext.current)
+                                                            )
+                                                        )
+                                                    }
+                                                    composable("OtherUserProfile") {
+                                                        OtherProfileSettings(
                                                             vm = viewModel(
                                                                 factory = Factory(LocalContext.current)
                                                             )
