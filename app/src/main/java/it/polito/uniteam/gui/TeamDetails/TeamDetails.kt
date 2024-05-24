@@ -87,6 +87,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.CreationExtras
@@ -125,7 +126,7 @@ import java.io.File
 import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
 
-class TeamDetailsViewModel(val model: UniTeamModel): ViewModel() {
+class TeamDetailsViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHandle): ViewModel() {
     // from model
     var selectedTeam = mutableStateOf( model.selectedTeam)
     // internal
