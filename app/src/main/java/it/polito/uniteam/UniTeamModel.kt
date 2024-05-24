@@ -23,6 +23,72 @@ import kotlin.math.log
 
 class UniTeamModel {
 
+    var membersList = mutableListOf<Member>(
+        Member().apply {
+            id = 1
+            fullName = "John Doe"
+            username = "johndoe"
+            email = "johndoe@example.com"
+            location = "New York"
+            description = "Software Developer"
+            kpi = "85"
+        },
+        Member().apply {
+            id = 2
+            fullName = "Jane Smith"
+            username = "janesmith"
+            email = "janesmith@example.com"
+            location = "Los Angeles"
+            description = "Product Manager"
+            kpi = "90"
+        },
+        Member().apply {
+            id = 3
+            fullName = "Alice Johnson"
+            username = "alicejohnson"
+            email = "alicejohnson@example.com"
+            location = "Chicago"
+            description = "Data Analyst"
+            kpi = "88"
+        },
+        Member().apply {
+            id = 4
+            fullName = "Bob Williams"
+            username = "bobwilliams"
+            email = "bobwilliams@example.com"
+            location = "San Francisco"
+            description = "UX Designer"
+            kpi = "92"
+        },
+        Member().apply {
+            id = 5
+            fullName = "Charlie Brown"
+            username = "charliebrown"
+            email = "charliebrown@example.com"
+            location = "Seattle"
+            description = "Project Manager"
+            kpi = "89"
+        },
+        Member().apply {
+            id = 6
+            fullName = "David Davis"
+            username = "daviddavis"
+            email = "daviddavis@example.com"
+            location = "Austin"
+            description = "QA Engineer"
+            kpi = "91"
+        },
+        Member().apply {
+            id = 7
+            fullName = "Eve Evans"
+            username = "eveevans"
+            email = "eveevans@example.com"
+            location = "Boston"
+            description = "DevOps Engineer"
+            kpi = "93"
+        }
+    )
+
     private val _loggedMember = MutableStateFlow<Member>(DummyDataProvider.member1)
     val loggedMember: StateFlow<Member> = _loggedMember
     fun setLoggedMember(member: Member) {
@@ -38,7 +104,10 @@ class UniTeamModel {
         }
     }
 
-    private val _teams = MutableStateFlow<MutableList<Team>>(mutableListOf<Team>())
+    private val _teams = MutableStateFlow<MutableList<Team>>(mutableListOf<Team>(
+        Team(id= 0, name = "Team1", description = "Description",
+            members = membersList)
+    ))
     val teams: StateFlow<MutableList<Team>> = _teams
 
     private var _selectedTeam = mutableStateOf(Team(name= "default", description = "default" ))// team selected to show its details
