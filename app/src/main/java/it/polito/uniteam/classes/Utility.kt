@@ -74,7 +74,7 @@ fun String.isRepetition(): Boolean{
 
 
 @Composable
-fun MemberIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: Modifier = Modifier.padding(0.dp, 0.dp, 20.dp, 0.dp), member: Member,  selectUser: (id: Int) -> Unit ) {
+fun MemberIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: Modifier = Modifier.padding(0.dp, 0.dp, 20.dp, 0.dp), member: Member ) {
     val navController = NavControllerManager.getNavController()
 
     Box(modifier = modifierScale) {
@@ -85,7 +85,7 @@ fun MemberIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: 
                 modifier = Modifier
                     .size(22.dp)
                     .clip(CircleShape)
-                    .clickable(onClick = {selectUser(member.id); navController.navigate("OtherUserProfile") }),
+                    .clickable(onClick = { navController.navigate("OtherUserProfile/${member.id}") }),
                 contentScale = ContentScale.Crop
             )
         } else {
@@ -108,7 +108,7 @@ fun MemberIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: 
                             radius = this.size.maxDimension
                         )
                     }
-                    .clickable(onClick = {selectUser(member.id); navController.navigate("OtherUserProfile") })
+                    .clickable(onClick = { navController.navigate("OtherUserProfile/${member.id}") })
             ) {
                 Text(
                     text = initialsValue,

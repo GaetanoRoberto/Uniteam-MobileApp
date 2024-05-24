@@ -268,7 +268,6 @@ class TaskList(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) 
 
     var lastSearchQuery = mutableStateOf<String>("")
 
-    val selectUser: (Int) -> Unit = { id -> model.selectUser(id) }
 }
 
 
@@ -958,7 +957,7 @@ fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Coroutin
             else
                 vm.membersList.value
             for (member in membersToShow) {
-                MemberIcon(Modifier.scale(1f), Modifier.padding(0.dp, 5.dp, 30.dp, 0.dp), member, vm.selectUser)
+                MemberIcon(Modifier.scale(1f), Modifier.padding(0.dp, 5.dp, 30.dp, 0.dp), member)
             }
             if (vm.membersList.value.size > 4) {
                 TextButton(
@@ -1148,7 +1147,7 @@ fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Coroutin
                                     Text(" nobody assigned", style = MaterialTheme.typography.labelMedium)
                                 } else {
                                     for (member in membersToShow) {
-                                        MemberIcon(Modifier.scale(0.7f), Modifier.padding(5.dp, 0.dp, 10.dp, 0.dp), member, vm.selectUser)
+                                        MemberIcon(Modifier.scale(0.7f), Modifier.padding(5.dp, 0.dp, 10.dp, 0.dp), member)
                                     }
                                 }
                                 if (task.members.size > 5) {
@@ -1330,7 +1329,7 @@ fun HorizontalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Corout
                 else
                     vm.membersList.value
                 for (member in membersToShow) {
-                    MemberIcon(Modifier.scale(1f), Modifier.padding(0.dp, 5.dp, 30.dp, 0.dp), member, vm.selectUser)
+                    MemberIcon(Modifier.scale(1f), Modifier.padding(0.dp, 5.dp, 30.dp, 0.dp), member)
                 }
                 if (vm.membersList.value.size > 5) {
                     TextButton(
@@ -1534,7 +1533,7 @@ fun HorizontalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Corout
                                         Text(" nobody assigned", style = MaterialTheme.typography.labelMedium)
                                     } else {
                                         for (member in membersToShow) {
-                                            MemberIcon(Modifier.scale(0.7f), Modifier.padding(5.dp, 0.dp, 10.dp, 0.dp), member, vm.selectUser)
+                                            MemberIcon(Modifier.scale(0.7f), Modifier.padding(5.dp, 0.dp, 10.dp, 0.dp), member)
                                         }
                                     }
                                     if (task.members.size > 5) {

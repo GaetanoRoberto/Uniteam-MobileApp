@@ -97,19 +97,23 @@ import java.util.concurrent.ExecutorService
 
 
 class OtherUserProfileScreen (val model: UniTeamModel, val savedStateHandle: SavedStateHandle): ViewModel() {
-    val member = model.selectedUser
-    val teamsInCommon = model.teams.value.filter{
-        it.members.contains(member) && it.members.contains(model.loggedMember.value)
-    }
+
+    val getMemberById: (Int) -> Member = { id -> model.getMemberById(id).first!! }
+    val teams = model.teams.value
+    val loggedMember = model.loggedMember.value
 }
 
 
 
 
 
-@Preview
 @Composable
-fun OtherUserProfile(vm: OtherUserProfileScreen = viewModel(factory = Factory(LocalContext.current.applicationContext))) {
+fun OtherUserProfile(memberId: String,vm: OtherUserProfileScreen = viewModel(factory = Factory(LocalContext.current.applicationContext))) {
+
+    val member = vm.getMemberById(memberId.toInt())
+    val teamsInCommon = vm.teams.filter{
+        it.members.contains(member) && it.members.contains(vm.loggedMember)
+    }
     BoxWithConstraints {
         if (this.maxHeight > this.maxWidth) {
             Column(
@@ -118,11 +122,11 @@ fun OtherUserProfile(vm: OtherUserProfileScreen = viewModel(factory = Factory(Lo
                     .verticalScroll(rememberScrollState())
             ) {
                 val rowItems = listOf(
-                    Triple(Icons.Default.Person, "name", vm.member.fullName ),
-                    Triple(Icons.Default.Face, "nickname",vm.member.username ),
-                    Triple(Icons.Default.Email, "email", vm.member.email),
-                    Triple(Icons.Default.LocationOn, "location", vm.member.location),
-                    Triple(Icons.Default.Star, "KPI", vm.member.kpi)
+                    Triple(Icons.Default.Person, "name", member.fullName ),
+                    Triple(Icons.Default.Face, "nickname",member.username ),
+                    Triple(Icons.Default.Email, "email", member.email),
+                    Triple(Icons.Default.LocationOn, "location", member.location),
+                    Triple(Icons.Default.Star, "KPI", member.kpi)
                 )
                 val line_modifier = Modifier
                     .fillMaxWidth(0.8f)
@@ -139,9 +143,9 @@ fun OtherUserProfile(vm: OtherUserProfileScreen = viewModel(factory = Factory(Lo
 
 
                 RowItem(icon = Icons.Default.JoinInner, description = "Teams", value = "Teams in common:" )
-                    vm.teamsInCommon.forEach{
+                    teamsInCommon.forEach{
                         Row(modifier = Modifier.fillMaxWidth(0.8f)) {
-                            RowTeamItem(team = it, role = vm.member.teamsInfo?.get(it.id)?.role.toString(), member= vm.member)                        }
+                            RowTeamItem(team = it, role = member.teamsInfo?.get(it.id)?.role.toString(), member= member)                        }
 
                     }/*
                 Row(modifier = Modifier.fillMaxWidth()) {
@@ -164,11 +168,11 @@ fun OtherUserProfile(vm: OtherUserProfileScreen = viewModel(factory = Factory(Lo
                 verticalArrangement = Arrangement.Center
             ) {
                 val rowItems = listOf(
-                    Triple(Icons.Default.Person, "name", vm.member.fullName ),
-                    Triple(Icons.Default.Face, "nickname",vm.member.username ),
-                    Triple(Icons.Default.Email, "email", vm.member.email),
-                    Triple(Icons.Default.LocationOn, "location", vm.member.location),
-                    Triple(Icons.Default.Star, "KPI", vm.member.kpi)
+                    Triple(Icons.Default.Person, "name", member.fullName ),
+                    Triple(Icons.Default.Face, "nickname", member.username ),
+                    Triple(Icons.Default.Email, "email", member.email),
+                    Triple(Icons.Default.LocationOn, "location", member.location),
+                    Triple(Icons.Default.Star, "KPI", member.kpi)
                 )
                 val line_modifier = Modifier
                     .fillMaxWidth(0.8f)
@@ -184,10 +188,10 @@ fun OtherUserProfile(vm: OtherUserProfileScreen = viewModel(factory = Factory(Lo
                 }
 
                     RowItem(icon = Icons.Default.JoinInner, description = "Teams", value = "Teams in common:")
-                    vm.teamsInCommon.forEach{
+                    teamsInCommon.forEach{
                         Row(modifier = Modifier
                             .fillMaxWidth(0.8f)
-                            .padding(0.dp, 0.dp, 0.dp, 0.dp)) {RowTeamItem(team = it, role = vm.member.teamsInfo?.get(it.id)?.role.toString(), member= vm.member)}
+                            .padding(0.dp, 0.dp, 0.dp, 0.dp)) {RowTeamItem(team = it, role = member.teamsInfo?.get(it.id)?.role.toString(), member= member)}
 
 
 
@@ -249,18 +253,18 @@ fun RowTeamItem(modifier: Modifier = Modifier, team: Team, role: String, member:
     Spacer(modifier = Modifier.padding(5.dp))
 }
 
-@Preview
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OtherProfileSettings(vm: OtherUserProfileScreen = viewModel(factory = Factory(LocalContext.current.applicationContext))) {
+fun OtherProfileSettings(memberId: String, vm: OtherUserProfileScreen = viewModel(factory = Factory(LocalContext.current.applicationContext))) {
 
+    val member = vm.getMemberById(memberId.toInt())
 
     BoxWithConstraints {
 
             Box(modifier = Modifier.fillMaxSize()) {
                 // Image at the top
                 Image(
-                    painter = rememberAsyncImagePainter(vm.member.profileImage),
+                    painter = rememberAsyncImagePainter(member.profileImage),
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -285,10 +289,10 @@ fun OtherProfileSettings(vm: OtherUserProfileScreen = viewModel(factory = Factor
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.Center
                             ) {
-                                DefaultImageForTeam(vm)
+                                DefaultImageForTeam(memberId, vm)
                             }
                             Spacer(modifier = Modifier.height(30.dp))
-                            OtherUserProfile()
+                            OtherUserProfile(memberId)
 
                         }
                     } else {
@@ -303,10 +307,10 @@ fun OtherProfileSettings(vm: OtherUserProfileScreen = viewModel(factory = Factor
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Center
                             ) {
-                                DefaultImageForTeam(vm)
+                                DefaultImageForTeam(memberId, vm)
                             }
                             Spacer(modifier = Modifier.height(30.dp))
-                            OtherUserProfile()
+                            OtherUserProfile(memberId)
 
                         }
                     }
@@ -317,12 +321,12 @@ fun OtherProfileSettings(vm: OtherUserProfileScreen = viewModel(factory = Factor
 
 
 
-@Preview
 @Composable
-fun DefaultImageForTeam(vm: OtherUserProfileScreen = viewModel(factory = Factory(LocalContext.current.applicationContext))) {
-    val name = vm.member.fullName
+fun DefaultImageForTeam(memberId: String,vm: OtherUserProfileScreen = viewModel(factory = Factory(LocalContext.current.applicationContext))) {
+    val member = vm.getMemberById(memberId.toInt())
+    val name = member.fullName
     println(name)
-    if (name.isNotBlank() || vm.member.profileImage != Uri.EMPTY) {
+    if (name.isNotBlank() || member.profileImage != Uri.EMPTY) {
 
         Card(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
             Row(
@@ -334,9 +338,9 @@ fun DefaultImageForTeam(vm: OtherUserProfileScreen = viewModel(factory = Factory
 
                 // Box per contenere l'icona della fotocamera
                 Box(modifier = Modifier.size(200.dp), contentAlignment = Alignment.Center) {
-                    if (vm.member.profileImage != Uri.EMPTY) {
+                    if (member.profileImage != Uri.EMPTY) {
                         Image(
-                            painter = rememberAsyncImagePainter(vm.member.profileImage),
+                            painter = rememberAsyncImagePainter(member.profileImage),
                             contentDescription = null,
                             modifier = Modifier
                                 .size(160.dp)

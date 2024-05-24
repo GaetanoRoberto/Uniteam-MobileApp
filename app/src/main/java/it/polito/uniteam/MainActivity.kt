@@ -456,11 +456,13 @@ class MainActivity : ComponentActivity() {
                                                             )
                                                         )
                                                     }
-                                                    composable("OtherUserProfile") {
+                                                    composable("OtherUserProfile/{memberId}", arguments = listOf(navArgument("memberId") { type = NavType.StringType })) {
+                                                        backstackEntry ->
                                                         OtherProfileSettings(
                                                             vm = viewModel(
                                                                 factory = Factory(LocalContext.current)
-                                                            )
+                                                            ),
+                                                            memberId = backstackEntry.arguments?.getString("memberId")!!
                                                         )
                                                     }
                                                 }

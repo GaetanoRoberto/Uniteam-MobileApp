@@ -196,7 +196,7 @@ fun ChatRowTeam(
         Row(modifier = Modifier.padding(all = 8.dp)) {
             if (!isSender){
                 if (member != null) {
-                    MemberIcon(modifierScale= Modifier.scale(0.9f), modifierPadding = Modifier.padding(4.dp, 12.dp, 15.dp, 0.dp),member = member, selectUser = vm.selectUser)
+                    MemberIcon(modifierScale= Modifier.scale(0.9f), modifierPadding = Modifier.padding(4.dp, 12.dp, 15.dp, 0.dp),member = member)
                 }
             }
             Column {
@@ -252,7 +252,7 @@ fun ChatHeader(
         horizontalArrangement = Arrangement.Start
     ) {
         if (vm.chat.teamId == null) {
-            vm.chat.receiver?.let { MemberIcon(member = it, selectUser = vm.selectUser) }
+            vm.chat.receiver?.let { MemberIcon(member = it) }
         } else {
             TeamIcon(team = vm.getTeam(vm.chat.teamId))
         }

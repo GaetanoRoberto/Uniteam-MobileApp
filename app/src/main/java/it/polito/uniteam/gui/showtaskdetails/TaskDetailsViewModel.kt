@@ -487,6 +487,5 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
         files = mutableStateListOf()
         history = mutableStateListOf()
     }
-    val selectUser: (Int) -> Unit = { id -> model.selectUser(id) }
 
 }

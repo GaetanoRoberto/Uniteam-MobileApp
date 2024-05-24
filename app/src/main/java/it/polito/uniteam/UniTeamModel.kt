@@ -43,8 +43,7 @@ class UniTeamModel {
 
     private var _selectedTeam = mutableStateOf(Team(name= "default", description = "default" ))// team selected to show its details
     var selectedTeam= _selectedTeam.value
-    private var _selectedUser = mutableStateOf(DummyDataProvider.member2)// team selected to show its details
-    var selectedUser= _selectedUser.value
+
 
     // USER CHAT UNREAD
     fun getUnreadMessagesUser(memberId: Int): Int {
@@ -81,9 +80,7 @@ class UniTeamModel {
 
     }
 
-    fun selectUser(id:Int){
-        _selectedUser.value = getMemberById(id).first!!
-    }
+
 
     fun newTeam(){
         var newId: Int

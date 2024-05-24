@@ -37,6 +37,5 @@ class ChatListViewModel(val model: UniTeamModel, val savedStateHandle: SavedStat
     )*/
     fun getUnreadMessagesCount(memberId: Int) = model.getUnreadMessagesUser(memberId)
     fun getUnreadMessagesTeam(teamId: Int) = model.getUnreadMessagesTeam(teamId)
-    val selectUser: (Int) -> Unit = { id -> model.selectUser(id) }
 
 }

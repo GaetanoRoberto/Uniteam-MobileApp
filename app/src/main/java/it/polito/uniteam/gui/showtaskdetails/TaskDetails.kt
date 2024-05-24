@@ -178,7 +178,7 @@ fun TaskDetailsView(vm: taskDetails = viewModel(factory = Factory(LocalContext.c
             value = vm.spentTime.values.sumOf { it.first }.toString() + "h " + vm.spentTime.values.sumOf { it.second }.toString() + "m"
         )
         RowItem(title = "Repeatable:", value = vm.repeatable)
-        RowMemberItem(selectUser = vm.selectUser, title = "Members:", value = vm.members)
+        RowMemberItem( title = "Members:", value = vm.members)
         RowItem(
             title = "Status:",
             value = if (vm.status == Status.IN_PROGRESS.toString()) "IN PROGRESS" else vm.status
@@ -447,7 +447,7 @@ fun RowItem(modifier: Modifier = Modifier, title: String, value: Any) {
 
 
 @Composable
-fun RowMemberItem(selectUser: (Int) -> Unit, modifier: Modifier = Modifier, title: String, value: List<Member>) {
+fun RowMemberItem( modifier: Modifier = Modifier, title: String, value: List<Member>) {
     Row(
         modifier = Modifier.fillMaxWidth(0.8f),
         verticalAlignment = Alignment.CenterVertically
@@ -464,7 +464,7 @@ fun RowMemberItem(selectUser: (Int) -> Unit, modifier: Modifier = Modifier, titl
         modifier = modifier.horizontalScroll(rememberScrollState()),
     ) {
         for ((i, member) in value.withIndex()) {
-            MemberIcon(member = member, modifierScale = Modifier.scale(0.65f), modifierPadding = Modifier.padding(start = if (i == 0) 16.dp else 0.dp), selectUser = selectUser)
+            MemberIcon(member = member, modifierScale = Modifier.scale(0.65f), modifierPadding = Modifier.padding(start = if (i == 0) 16.dp else 0.dp))
             Text(
                 member.username.toString() + if (i < value.size - 1) {
                     ", "
@@ -566,7 +566,7 @@ fun MembersDropdownMenuBox(
                             .padding(0.dp, 0.dp, 5.dp, 0.dp)
                     ) {
                         currentMembers.forEachIndexed { index, member ->
-                            MemberIcon(member = member, modifierScale = Modifier.scale(0.65f), modifierPadding = Modifier.padding(start = if (index == 0) 12.dp else 0.dp), selectUser = vm.selectUser)
+                            MemberIcon(member = member, modifierScale = Modifier.scale(0.65f), modifierPadding = Modifier.padding(start = if (index == 0) 12.dp else 0.dp))
                             Text(
                                 text = member.username.toString() + if (index < currentMembers.size - 1) {
                                     ", "
