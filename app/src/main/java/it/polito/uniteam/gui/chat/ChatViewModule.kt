@@ -1,5 +1,6 @@
 package it.polito.uniteam.gui.chat
 
+import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -14,11 +15,16 @@ import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.Message
 import it.polito.uniteam.classes.Team
 import it.polito.uniteam.classes.messageStatus
+import kotlinx.coroutines.flow.MutableStateFlow
+import java.time.LocalDateTime
 
 
 class ChatViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
 
-    val chat = DummyDataProvider.directChat1
+    private val chatId: String = checkNotNull(savedStateHandle["chatId"])
+
+    val chat = model.getChat(chatId.toInt())//DummyDataProvider.directChat1
+
     /*var messages = mutableStateListOf<Message>().apply { addAll(chat.messages) }
         private set
 */
@@ -39,15 +45,43 @@ class ChatViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHan
     fun addMessage(message: Message) {
         //messages.add(message)
         chat.messages.add(message)
+        chat.messages[chat.messages.size - 1].status = messageStatus.UNREAD
+    }
+    fun addTeamMessage(senderId: Int, messageText: String, teamId: Int) {
+        val team = getTeam(teamId)
+        val membersUnread = team.members.map { it.id }
+
+        val newMessage = Message(
+            id = chat.messages.size + 1, // Assicurati di gestire gli ID dei messaggi in modo appropriato
+            senderId = senderId,
+            message = messageText,
+            creationDate = LocalDateTime.now(),
+            membersUnread = membersUnread.toMutableList()
+        )
+
+        chat.messages.add(newMessage)
     }
 
     fun markTeamMessageAsRead(memberId: Int, message: Message) {
-        if (memberId in message.membersUnread) {
-            message.membersUnread = message.membersUnread.toMutableList().apply {
-                remove(memberId)
+        // Trova il messaggio nella lista dei messaggi della chat
+        /*val mes = chat.messages.find { it.id == message.id } ?: return
+
+        // Se il membro è presente nella lista membersUnread del messaggio trovato, rimuovilo
+        if (memberId in mes.membersUnread) {
+            mes.membersUnread.remove(memberId)
+        }*/
+        chat.messages.forEach {
+            if (it.id == message.id) {
+                it.membersUnread.remove(memberId)
             }
         }
+        Log.d("ChatViewModel" ,"${message.membersUnread}" ,     )
+        chat.messages.find { it.id == message.id }?.membersUnread?.remove(memberId)
+        Log.d("ChatViewModel ", "${message.membersUnread}" , )
+
     }
+
+
     fun markUserMessageAsRead(memberId: Int, message: Message) {
         if (message.status == messageStatus.UNREAD/* && message.senderId == memberId*/) {
             message.status = messageStatus.READ

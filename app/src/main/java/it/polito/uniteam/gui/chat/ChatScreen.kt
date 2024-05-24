@@ -185,10 +185,10 @@ fun ChatRowTeam(
 ) {
     val member = vm.getMemberById(message.senderId)
     val loggedMember = vm.getLoggedMember()
-    val isSender = message.senderId == loggedMember?.id
+    val isSender = message.senderId == loggedMember.id
 
     val alignment = if (isSender) Alignment.End else Alignment.Start
-    vm.markTeamMessageAsRead(loggedMember!!.id, message)
+    vm.markTeamMessageAsRead(loggedMember.id, message)
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = alignment
@@ -210,7 +210,7 @@ fun ChatRowTeam(
                 Box(
                     modifier = Modifier
                         .background(
-                            if (message.senderId == loggedMember?.id) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer,
+                            if (message.senderId == loggedMember.id) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer,
                             RoundedCornerShape(30.dp)
                         ),
                     contentAlignment = Center
@@ -296,14 +296,25 @@ fun SendMessage(
                 IconButton(
                     onClick = {
                         if (messageText.isNotBlank()) {
-                            vm.addMessage(
+                            if(vm.chat.teamId != null)
+                                vm.addTeamMessage(loggedMember!!.id, messageText, vm.chat.teamId)
+                            else
+                                vm.addMessage(
+                                    Message(
+                                        id = vm.chat.messages.size + 1,
+                                        senderId = loggedMember!!.id,
+                                        message = messageText,
+                                        creationDate = LocalDateTime.now()
+                                    )
+                                )
+                            /*vm.addMessage(
                                 Message(
                                     id = vm.chat.messages.size + 1,
                                     senderId = loggedMember!!.id,
                                     message = messageText,
                                     creationDate = LocalDateTime.now()
                                 )
-                            )
+                            )*/
                             messageText = ""
                             focusManager.clearFocus()
                         }

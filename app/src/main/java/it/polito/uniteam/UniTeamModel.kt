@@ -64,14 +64,20 @@ class UniTeamModel {
     }
     // Funzione per ottenere il numero di messaggi non letti da un membro
     fun getUnreadMessagesCount(memberId: Int, chat: Chat): Int {
-        return chat.messages.count { isMessageUnreadByMember(memberId, it) }
+        return  chat.messages.count {loggedMember.value.id in it.membersUnread }
     }
 
-    fun getUnreadMessagesTeam(teamId: Int): Int? {
+    fun getUnreadMessagesTeam(teamId: Int): Int {
         val team = getTeam(teamId)
-        return _loggedMember.value?.id.let { team.chat?.let { it1 -> getUnreadMessagesCount(it!!, it1) } }
-    }
+        val loggedMemberId = _loggedMember.value.id
+        val chat = team.chat
 
+        return if (chat != null) {
+            getUnreadMessagesCount(loggedMemberId, chat)
+        } else {
+            0
+        }
+    }
     fun selectTeam(id: Int){ // click on team to set the selected team to show
         val team = getTeam(id)
         if(team != null){
@@ -290,14 +296,29 @@ class UniTeamModel {
         return chat!!
     }
 
-    fun getUsersChat(memberToChatWith: Member): Chat? {
+    fun getUsersChat(memberToChatWith: Member): Chat {
         _loggedMember.value.chats.forEach{chat ->
             val c = getChat(chat)
             if (c.receiver == memberToChatWith && c.sender == loggedMember.value) {
                 return c
             }
         }
-        return null
+        // Se non troviamo una chat esistente, creiamo una nuova chat
+        val newChat = createNewChat(memberToChatWith)
+        _loggedMember.value.chats.add(newChat.id)
+        return newChat
+    }
+    fun createNewChat(memberToChatWith: Member): Chat {
+        val newChatId = DummyDataProvider.allChats.map { it.id }.max()!! + 1
+        val newChat =  Chat(
+            id = newChatId,
+            sender = loggedMember.value,
+            receiver = memberToChatWith,
+            messages = mutableStateListOf()
+        )
+        DummyDataProvider.allChats.add(newChat)
+        loggedMember.value.chats.add(newChatId)
+        return newChat
     }
     fun getChat(chatId: Int): Chat {
         val allChats = DummyDataProvider.allChats

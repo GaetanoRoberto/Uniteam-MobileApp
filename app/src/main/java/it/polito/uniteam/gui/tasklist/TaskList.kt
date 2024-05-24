@@ -35,6 +35,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
@@ -51,6 +52,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -271,7 +273,24 @@ class TaskList(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) 
 }
 
 
+@Composable
+fun FAB(){
+    val teamId: String ="2"//checkNotNull(savedStateHandle["teamId"])
+    val navController = NavControllerManager.getNavController()
+    FloatingActionButton(onClick ={
+        navController.navigate("ChatList/${teamId}"){
+            launchSingleTop = true
+        }},
+        containerColor = MaterialTheme.colorScheme.primary,
+    ){
+        Icon(
+            imageVector = Icons.Default.Chat,
+            contentDescription = "Chat",
+            tint = MaterialTheme.colorScheme.onSecondary,
 
+        )
+    }
+}
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskListView(vm: TaskList = viewModel(factory = Factory(LocalContext.current))) {

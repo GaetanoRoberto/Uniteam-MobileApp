@@ -156,18 +156,18 @@ object DummyDataProvider {
 
     // Messages for group chats
     var groupMessages1 = mutableStateListOf(
-        Message(id = 19, senderId = 1, message = "Welcome to the team!", creationDate = LocalDateTime.now().minusDays(4), membersUnread = listOf(2,3,4,5)),
-        Message(id = 20, senderId = 2, message = "Thank you!", creationDate = LocalDateTime.now().minusDays(4), membersUnread = listOf(2,3,4,5,1)),
-        Message(id = 21, senderId = 3, message = "Glad to be here.", creationDate = LocalDateTime.now().minusDays(3), membersUnread = listOf(2,3,4,1,5)),
+        Message(id = 19, senderId = 1, message = "Welcome to the team!", creationDate = LocalDateTime.now().minusDays(4), membersUnread = mutableStateListOf(2,3,4,5)),
+        Message(id = 20, senderId = 2, message = "Thank you!", creationDate = LocalDateTime.now().minusDays(4), membersUnread = mutableStateListOf(2,3,4,5,1)),
+        Message(id = 21, senderId = 3, message = "Glad to be here.", creationDate = LocalDateTime.now().minusDays(3), membersUnread = mutableStateListOf(2,3,4,1,5)),
         Message(id = 22, senderId = 4, message = "Hello everyone!", creationDate = LocalDateTime.now().minusDays(2)),
         Message(id = 23, senderId = 5, message = "Hi all!", creationDate = LocalDateTime.now().minusDays(2)),
         Message(id = 24, senderId = 1, message = "Let's get started.", creationDate = LocalDateTime.now().minusDays(1))
     )
 
     var groupMessages2 = mutableStateListOf(
-        Message(id = 25, senderId = 3, message = "Team meeting at 10AM.", creationDate = LocalDateTime.now().minusDays(5), membersUnread = listOf(2,3,4,1,5)),
+        Message(id = 25, senderId = 3, message = "Team meeting at 10AM.", creationDate = LocalDateTime.now().minusDays(5), membersUnread = mutableStateListOf(2,3,4,1,5)),
         Message(id = 26, senderId = 2, message = "Got it.", creationDate = LocalDateTime.now().minusDays(5)),
-        Message(id = 27, senderId = 1, message = "See you there.", creationDate = LocalDateTime.now().minusDays(4)),
+        Message(id = 27, senderId = 1, message = "See you there.", creationDate = LocalDateTime.now().minusDays(4),),
         Message(id = 28, senderId = 4, message = "I'll be there.", creationDate = LocalDateTime.now().minusDays(3)),
         Message(id = 29, senderId = 5, message = "Looking forward to it.", creationDate = LocalDateTime.now().minusDays(2)),
         Message(id = 30, senderId = 3, message = "Don't forget to prepare your reports.", creationDate = LocalDateTime.now().minusDays(1))
@@ -175,18 +175,20 @@ object DummyDataProvider {
 
     // Chats
     var directChat1 = Chat(id = 1, sender = member1, receiver = member2, messages = directMessages1)
-    var directChat2 = Chat(id = 2, sender = member3, receiver = member4, messages = directMessages2)
-    var directChat3 = Chat(id = 3, sender = member5, receiver = member1, messages = directMessages3)
+    var directChat2 = Chat(id = 2, sender = member1, receiver = member4, messages = directMessages2)
+    var directChat3 = Chat(id = 3, sender = member5, receiver = member3, messages = directMessages3)
+    var directChat4 = Chat(id = 4, sender = member5, receiver = member1, messages = directMessages3)
 
     var groupChat1 = Chat(id = 4, sender = member1, teamId = 1, messages = groupMessages1)
-    var groupChat2 = Chat(id = 5, sender = member3, teamId = 2, messages = groupMessages2)
-    val allChats = listOf(directChat1, directChat2, directChat3, groupChat1, groupChat2 )
+    var groupChat2 = Chat(id = 5, sender = member1, teamId = 2, messages = groupMessages2)
+    var allChats = mutableStateListOf(directChat1, directChat2, directChat3, directChat4,groupChat1, groupChat2 )
 
 
     fun getMembers(): List<Member> {
         member1.chats.add(1)
-        member3.chats.add(2)
-        member5.chats.add(3)
+        member1.chats.add(4)
+        member1.chats.add(2)
+        member1.chats.add(3)
 
         return listOf(member1, member2, member3, member4, member5, member6)
     }
@@ -326,7 +328,7 @@ object DummyDataProvider {
         )
     }
 
-    fun getTeams(): List<Team> {
+    fun getTeams(): MutableList<Team> {
         val teams = mutableListOf<Team>()
         val members = getMembers()
         val tasks = getTasks(members[0], members[1], members[2])
@@ -343,7 +345,7 @@ object DummyDataProvider {
                 description = "Description for Team $i",
                 image = Uri.EMPTY,
                 creationDate = LocalDate.now(),
-                members = mutableListOf(member1, member2),
+                members = mutableListOf(member1, member2,member3, member4, member5, member6),
                 tasks = tasks.toMutableList(),
                 teamHistory = getHistory(members[i],isTeamHistory = true),
                 chat = if (i == 0) groupChat1 else if (i==1) groupChat2 else null
