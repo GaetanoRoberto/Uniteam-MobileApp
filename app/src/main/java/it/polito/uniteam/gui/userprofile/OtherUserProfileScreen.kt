@@ -98,7 +98,8 @@ import java.util.concurrent.ExecutorService
 
 class OtherUserProfileScreen (val model: UniTeamModel, val savedStateHandle: SavedStateHandle): ViewModel() {
 
-    val getMemberById: (Int) -> Member = { id -> model.getMemberById(id).first!! }
+    val memberId = checkNotNull(savedStateHandle["memberId"]).toString().toInt()
+    val member:Member = model.getMemberById(memberId).first!!
     val teams = model.teams.value
     val loggedMember = model.loggedMember.value
 }
@@ -108,9 +109,9 @@ class OtherUserProfileScreen (val model: UniTeamModel, val savedStateHandle: Sav
 
 
 @Composable
-fun OtherUserProfile(memberId: String,vm: OtherUserProfileScreen = viewModel(factory = Factory(LocalContext.current.applicationContext))) {
+fun OtherUserProfile(vm: OtherUserProfileScreen = viewModel(factory = Factory(LocalContext.current.applicationContext))) {
 
-    val member = vm.getMemberById(memberId.toInt())
+    val member = vm.member
     val teamsInCommon = vm.teams.filter{
         it.members.contains(member) && it.members.contains(vm.loggedMember)
     }
@@ -255,9 +256,9 @@ fun RowTeamItem(modifier: Modifier = Modifier, team: Team, role: String, member:
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OtherProfileSettings(memberId: String, vm: OtherUserProfileScreen = viewModel(factory = Factory(LocalContext.current.applicationContext))) {
+fun OtherProfileSettings( vm: OtherUserProfileScreen = viewModel(factory = Factory(LocalContext.current.applicationContext))) {
 
-    val member = vm.getMemberById(memberId.toInt())
+    val member = vm.member
 
     BoxWithConstraints {
 
@@ -289,10 +290,10 @@ fun OtherProfileSettings(memberId: String, vm: OtherUserProfileScreen = viewMode
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.Center
                             ) {
-                                DefaultImageForTeam(memberId, vm)
+                                DefaultImageForTeam( vm)
                             }
                             Spacer(modifier = Modifier.height(30.dp))
-                            OtherUserProfile(memberId)
+                            OtherUserProfile()
 
                         }
                     } else {
@@ -307,10 +308,10 @@ fun OtherProfileSettings(memberId: String, vm: OtherUserProfileScreen = viewMode
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Center
                             ) {
-                                DefaultImageForTeam(memberId, vm)
+                                DefaultImageForTeam( vm)
                             }
                             Spacer(modifier = Modifier.height(30.dp))
-                            OtherUserProfile(memberId)
+                            OtherUserProfile()
 
                         }
                     }
@@ -322,8 +323,8 @@ fun OtherProfileSettings(memberId: String, vm: OtherUserProfileScreen = viewMode
 
 
 @Composable
-fun DefaultImageForTeam(memberId: String,vm: OtherUserProfileScreen = viewModel(factory = Factory(LocalContext.current.applicationContext))) {
-    val member = vm.getMemberById(memberId.toInt())
+fun DefaultImageForTeam(vm: OtherUserProfileScreen = viewModel(factory = Factory(LocalContext.current.applicationContext))) {
+    val member = vm.member
     val name = member.fullName
     println(name)
     if (name.isNotBlank() || member.profileImage != Uri.EMPTY) {

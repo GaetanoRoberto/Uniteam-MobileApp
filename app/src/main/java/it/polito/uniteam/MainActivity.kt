@@ -459,8 +459,7 @@ class MainActivity : ComponentActivity() {
                                                         OtherProfileSettings(
                                                             vm = viewModel(
                                                                 factory = Factory(LocalContext.current)
-                                                            ),
-                                                            memberId = backstackEntry.arguments?.getString("memberId")!!
+                                                            )
                                                         )
                                                     }
                                                 }
