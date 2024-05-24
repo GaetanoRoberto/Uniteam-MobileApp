@@ -1,5 +1,6 @@
 package it.polito.uniteam.classes
 
+import androidx.compose.runtime.mutableStateListOf
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -8,7 +9,7 @@ data class Message (
     val senderId : Int,
     val message: String = "",
     val creationDate: LocalDateTime = LocalDateTime.now(),
-    var membersUnread: List<Int> = mutableListOf(),
+    var membersUnread: MutableList<Int> = mutableStateListOf(),
     var status: messageStatus = messageStatus.UNREAD
     )
 

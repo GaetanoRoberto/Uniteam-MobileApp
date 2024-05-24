@@ -1,57 +1,44 @@
 package it.polito.uniteam.gui.chatlist
 
+import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import it.polito.uniteam.Factory
-import it.polito.uniteam.gui.chat.ChatViewModel
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Chat
-import androidx.compose.material.icons.filled.ChatBubble
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material3.Divider
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
-import androidx.compose.ui.Alignment.Companion.TopCenter
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.style.TextAlign
 
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import androidx.media3.extractor.MpegAudioUtil.Header
 import it.polito.uniteam.NavControllerManager
+import it.polito.uniteam.classes.DummyDataProvider
 
 import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.MemberIcon
+import it.polito.uniteam.classes.Message
 import it.polito.uniteam.classes.Team
 import it.polito.uniteam.classes.TeamIcon
-import it.polito.uniteam.classes.messageStatus
 import it.polito.uniteam.isVertical
+import kotlinx.coroutines.flow.StateFlow
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -74,7 +61,7 @@ fun ListHeader(vm : ChatListViewModel ) {
             .padding(16.dp)
     ) {
         Text(
-            text = "${vm.getTeam(1).name} Members",
+            text = "${vm.team.name} Members",
             style = MaterialTheme.typography.headlineMedium,
             color = Color.White
         )
@@ -83,10 +70,13 @@ fun ListHeader(vm : ChatListViewModel ) {
 @Composable
 fun UserList(vm : ChatListViewModel) {
     //TODO: implement sorting
+
     //order by last message
     val members = vm.getMembers().sortedByDescending { member ->
+        val messages = vm.getChat(vm.getUsersChat(member).id).messages
+
         //member.messages.maxOfOrNull { it.creationDate } ?: LocalDateTime.MIN
-        vm.messages.filter { it.senderId == member.id }.maxOfOrNull { it.creationDate } ?: LocalDateTime.MIN
+        messages.maxOfOrNull { it.creationDate } ?: LocalDateTime.MIN
     }
 
    /*Text( // PER CONTROLLARE ORDINE
@@ -94,9 +84,9 @@ fun UserList(vm : ChatListViewModel) {
         style = MaterialTheme.typography.bodyMedium,
         color = Color.White
     )*/
-    TeamRow(team = vm.team, vm = vm)
-    LazyColumn {
-        items( vm.getMembers().filter { member -> member != vm.loggedMember.value  }) { user ->
+        TeamRow(team = vm.team, vm = vm)
+        LazyColumn {
+        items(members.filter { member -> member != vm.loggedMember.value  }) { user ->
             UserItem(member = user,vm = vm)
         }
     }
@@ -127,7 +117,7 @@ fun TeamRow(team: Team,vm: ChatListViewModel) {
         }
         Column (modifier = Modifier.weight(0.20f)){
             val recentMessageDate = vm.messages
-                .filter { it.senderId == team.chat?.sender?.id }
+                //.filter { it.senderId != team.chat?.sender?.id }
                 .maxOfOrNull { it.creationDate }
 
             recentMessageDate?.let {
@@ -151,12 +141,13 @@ fun TeamRow(team: Team,vm: ChatListViewModel) {
                     //.fillMaxSize()
                     .align(Alignment.Center)
                     .size(50.dp)
-                    .clickable { navController.navigate("Chat"){
+                    .clickable { navController.navigate("Chat/${vm.team.chat?.id}"){
                         launchSingleTop = true
                     }
                     },
             )
-            val unreadCount = vm.getUnreadMessagesTeam(team.chat?.sender?.id ?: 0)//vm.chat.messages.filter { it.status == messageStatus.UNREAD && it.senderId == member.id}.size
+            val unreadCount =
+                vm.chat.teamId?.let { vm.getUnreadMessagesTeam(it) }//vm.chat.messages.filter { it.status == messageStatus.UNREAD && it.senderId == member.id}.size
             if (unreadCount != null && unreadCount > 0 ) {
                 Box(
                     modifier = Modifier
@@ -205,8 +196,9 @@ fun UserItem(member: Member,vm : ChatListViewModel) {
             Text(text = member.teamsInfo?.get(1)?.role.toString(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
         }
         Column (modifier = Modifier.weight(0.20f)){
-            val recentMessageDate = vm.messages
-                .filter { it.senderId == member.id }
+            val messages = vm.getChat(vm.getUsersChat(member).id).messages
+            val recentMessageDate =  messages
+                //.filter { it.senderId == member.id }
                 .maxOfOrNull { it.creationDate }
 
             recentMessageDate?.let {
@@ -230,9 +222,13 @@ fun UserItem(member: Member,vm : ChatListViewModel) {
                     //.fillMaxSize()
                     .align(Alignment.Center)
                     .size(50.dp)
-                    .clickable { navController.navigate("Chat"){
-                        launchSingleTop = true
-                    }
+                    .clickable {
+                        val chat = vm.getUsersChat(member)
+                        if (chat != null) {
+                            navController.navigate("Chat/${chat.id}"){
+                                launchSingleTop = true
+                            }
+                        }
                 },
             )
             val unreadCount = vm.getUnreadMessagesCount(member.id)//vm.chat.messages.filter { it.status == messageStatus.UNREAD && it.senderId == member.id}.size

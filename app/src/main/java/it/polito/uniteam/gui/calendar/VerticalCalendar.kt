@@ -316,7 +316,7 @@ fun EventItem(vm: Calendar = viewModel(factory = Factory(LocalContext.current)),
                 MemberIcon(
                     modifierScale = Modifier.scale(0.6f),
                     modifierPadding = Modifier.padding(0.dp, 0.dp, 8.dp, 8.dp),
-                    member = memberTime.keys.first().first,
+                    member = memberTime.key.first,
                     selectUser= vm.selectUser
                 )
             } else {

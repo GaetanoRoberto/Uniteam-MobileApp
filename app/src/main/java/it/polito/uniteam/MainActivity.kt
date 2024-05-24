@@ -9,6 +9,7 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -90,6 +91,7 @@ import it.polito.uniteam.gui.notifications.Notifications
 import it.polito.uniteam.gui.showtaskdetails.TaskScreen
 import it.polito.uniteam.gui.statistics.Statistics
 import it.polito.uniteam.gui.statistics.VerticalStatistics
+import it.polito.uniteam.gui.tasklist.FAB
 import it.polito.uniteam.gui.tasklist.TaskListView
 import it.polito.uniteam.gui.userprofile.OtherProfileSettings
 import it.polito.uniteam.gui.userprofile.ProfileSettings
@@ -280,18 +282,7 @@ class MainActivity : ComponentActivity() {
                                         },
                                         floatingActionButton = {
                                             if (currentDestination == "Teams") {
-                                                FloatingActionButton(onClick ={
-                                                    navController.navigate("ChatList"){
-                                                        launchSingleTop = true
-                                                    }},
-                                                    containerColor = MaterialTheme.colorScheme.primary
-                                                ){
-                                                    Icon(
-                                                        imageVector = Icons.Default.Chat,
-                                                        contentDescription = "Chat",
-                                                        tint = MaterialTheme.colorScheme.onSecondary
-                                                    )
-                                                }
+                                                FAB()
                                                 }
                                             },
                                         /*floatingActionButton = {
@@ -410,14 +401,21 @@ class MainActivity : ComponentActivity() {
                                                             )
                                                         )
                                                     }
-                                                    composable("Chat") {
+                                                    /*composable("ChatTeam/{teamId}") {
+                                                        ChatScreen(
+                                                            vm = viewModel(
+                                                                factory = Factory(LocalContext.current)
+                                                            )
+                                                        )
+                                                    }*/
+                                                    composable("Chat/{chatId}") {
                                                         ChatScreen(
                                                             vm = viewModel(
                                                                 factory = Factory(LocalContext.current)
                                                             )
                                                         )
                                                     }
-                                                    composable("ChatList") {
+                                                    composable("ChatList/{teamId}") {
                                                         ChatListScreen(
                                                             vm = viewModel(
                                                                 factory = Factory(LocalContext.current)
