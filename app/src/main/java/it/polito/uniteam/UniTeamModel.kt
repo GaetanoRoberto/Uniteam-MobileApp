@@ -226,6 +226,25 @@ class UniTeamModel {
         return _teams.value.map { Pair(it,it.teamHistory) }
     }
 
+    fun addTeamHistory(teamId: Int, history: History) {
+        getTeam(teamId).teamHistory.add(history)
+    }
+
+    fun addTaskHistory(taskId: Int, history: History) {
+        getTask(taskId)?.taskHistory?.add(history)
+    }
+
+    fun getTask(taskId: Int): Task? {
+        _teams.value.forEach { team ->
+            team.tasks.forEach { task ->
+                if (task.id == taskId) {
+                    return task
+                }
+            }
+        }
+        return null
+    }
+
     fun getAllTeamMessagesCount(): List<Pair<Team,Int>> {
         val teams = mutableListOf<Pair<Team,Int>>()
         _teams.value.filter { it.chat!=null }.forEach {

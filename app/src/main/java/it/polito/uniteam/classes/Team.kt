@@ -11,6 +11,6 @@ data class Team (
     var creationDate: LocalDate = LocalDate.now(),
     var members: MutableList<Member> = mutableListOf(),
     var tasks: MutableList<Task> = mutableListOf(),
-    var teamHistory: List<History> = emptyList(),
+    var teamHistory: MutableList<History> = mutableListOf(),
     var chat: Chat? = null
     )

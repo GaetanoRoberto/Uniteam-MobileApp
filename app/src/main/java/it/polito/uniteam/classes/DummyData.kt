@@ -275,9 +275,9 @@ object DummyDataProvider {
         )
     }
 
-    private fun getHistory(member: Member, isTeamHistory: Boolean = false): List<History> {
+    private fun getHistory(member: Member, isTeamHistory: Boolean = false): MutableList<History> {
         if (isTeamHistory) {
-            return listOf(
+            return mutableListOf(
                 History(
                     id = ++historyId,
                     comment = "Task created successfully",
@@ -292,7 +292,7 @@ object DummyDataProvider {
                 )
             )
         } else {
-            return listOf(
+            return mutableListOf(
                 History(
                     id = ++historyId,
                     comment = "Task completed successfully",

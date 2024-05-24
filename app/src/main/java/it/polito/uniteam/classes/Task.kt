@@ -18,7 +18,7 @@ data class Task (
     var schedules: HashMap<Pair<Member,LocalDate>,Pair<Int,Int>> = hashMapOf(),
     var taskFiles: List<File> = emptyList(),
     var taskComments: List<Comment> = emptyList(),
-    var taskHistory: List<History> = emptyList()
+    var taskHistory: MutableList<History> = mutableListOf()
 ) {
     override fun toString(): String {
         return "Task(id=$id, name='$name', schedules=$schedules)"
