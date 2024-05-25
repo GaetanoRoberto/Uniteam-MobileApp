@@ -2,14 +2,22 @@ package it.polito.uniteam.gui.statistics
 
 import android.util.Log
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import it.polito.uniteam.UniTeamModel
+import it.polito.uniteam.classes.Category
 import it.polito.uniteam.classes.Member
+import it.polito.uniteam.classes.Priority
+import it.polito.uniteam.classes.Repetition
 import it.polito.uniteam.classes.Status
+import it.polito.uniteam.classes.Task
+import java.time.LocalDate
 import kotlin.math.roundToInt
 import kotlin.random.Random
 
@@ -34,6 +42,57 @@ class StatisticsViewModel(val model: UniTeamModel, val savedStateHandle: SavedSt
         private set
     var teamMembers = mutableStateOf(getTeam(teamId.toInt()).members.toList())
         private set
+
+    val initialTeamTasks = getTeam(teamId.toInt()).tasks.filter { it.status!=Status.TODO }.toList()
+    val initialTeamMembers = getTeam(teamId.toInt()).members.toList()
+    //Stati per la gestione degli ExpandableRow
+    val assigneeExpanded = mutableStateOf(false)
+    val tasksExpanded = mutableStateOf(false)
+    val categoryExpanded = mutableStateOf(false)
+    val priorityExpanded = mutableStateOf(false)
+    val statusExpanded = mutableStateOf(false)
+    val datesExpanded = mutableStateOf(false)
+    //Stati per la gestione dei filtri
+    var lastAppliedFilters = mutableStateOf<Map<String, Any>>(mapOf())
+    val selectedMembers = mutableStateMapOf<Member, Boolean>()
+    val selectedTasks = mutableStateMapOf<Task, Boolean>()
+    val selectedCategory = mutableStateMapOf<Category, Boolean>()
+    val selectedPriority = mutableStateMapOf<Priority, Boolean>()
+    val selectedStatus = mutableStateMapOf<Status, Boolean>()
+    val selectedStart = mutableStateOf<LocalDate?>(null)
+    val selectedEnd = mutableStateOf<LocalDate?>(null)
+    fun applyTasksFilters(task: Task, lastAppliedFilters: Map<String, Any>): Boolean {
+        var keep = true
+
+        val selectedTasks = lastAppliedFilters["selectedTasks"] as? Map<*, *> ?: emptyMap<Task, Boolean>()
+        val selectedMembers = lastAppliedFilters["selectedMembers"] as? Map<*, *> ?: emptyMap<Member, Boolean>()
+        val selectedCategory = lastAppliedFilters["selectedCategory"] as? Map<*, *> ?: emptyMap<Category, Boolean>()
+        val selectedPriority = lastAppliedFilters["selectedPriority"] as? Map<*, *> ?: emptyMap<Priority, Boolean>()
+        val selectedStatus = lastAppliedFilters["selectedStatus"] as? Map<*, *> ?: emptyMap<Status, Boolean>()
+
+        if (selectedTasks.isNotEmpty())
+            keep = keep && selectedTasks.filterValues{ it as Boolean }.keys.contains(task)
+        if (selectedMembers.isNotEmpty())
+            keep = keep && task.members.any { selectedMembers.containsKey(it) }
+        if (selectedCategory.isNotEmpty())
+            keep = keep && selectedCategory.filterValues{ it as Boolean }.keys.contains(task.category)
+        if (selectedPriority.isNotEmpty())
+            keep = keep && selectedPriority.filterValues{ it as Boolean }.keys.contains(task.priority)
+        if (selectedStatus.isNotEmpty())
+            keep = keep && selectedStatus.filterValues{ it as Boolean }.keys.contains(task.status)
+
+        return keep
+    }
+    fun applyMembersFilters(member: Member, lastAppliedFilters: Map<String, Any>): Boolean {
+        var keep = true
+
+        val selectedMembers = lastAppliedFilters["selectedMembers"] as? Map<*, *> ?: emptyMap<Member, Boolean>()
+
+        if (selectedMembers.isNotEmpty())
+            keep = keep && selectedMembers.filterValues{ it as Boolean }.keys.contains(member)
+
+        return keep
+    }
 
     fun getPlannedSpentHoursRatio(): Map<String, Pair<Float, Float>> {
         val memberPlannedSpent = mutableMapOf<String, Pair<Float, Float>>()
