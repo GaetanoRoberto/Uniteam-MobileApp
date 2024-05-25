@@ -30,7 +30,7 @@ class StatisticsViewModel(val model: UniTeamModel, val savedStateHandle: SavedSt
     }
 
     val teamId: String = checkNotNull(savedStateHandle["teamId"])
-    var teamTasks = mutableStateOf(getTeam(teamId.toInt()).tasks.toList())
+    var teamTasks = mutableStateOf(getTeam(teamId.toInt()).tasks.filter { it.status!=Status.TODO }.toList())
         private set
     var teamMembers = mutableStateOf(getTeam(teamId.toInt()).members.toList())
         private set

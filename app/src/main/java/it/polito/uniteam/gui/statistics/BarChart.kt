@@ -60,6 +60,7 @@ import com.patrykandpatrick.vico.core.cartesian.marker.CartesianMarkerValueForma
 import com.patrykandpatrick.vico.core.cartesian.marker.ColumnCartesianLayerMarkerTarget
 import com.patrykandpatrick.vico.core.common.component.TextComponent
 import com.patrykandpatrick.vico.core.common.data.ExtraStore
+import com.patrykandpatrick.vico.core.common.shape.DashedShape
 import it.polito.uniteam.Factory
 import kotlin.math.roundToInt
 
@@ -123,8 +124,24 @@ fun BarChart(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContext.
                     ),
                 ),
             ),
-            startAxis = rememberStartAxis(valueFormatter = yAxisFormatter, itemPlacer = remember { AxisItemPlacer.Vertical.step({ _ -> (maxY / 10) }) }),
-            bottomAxis = rememberBottomAxis(valueFormatter = xAxisFormatter),
+            startAxis = rememberStartAxis(
+                axis = rememberLineComponent(color = MaterialTheme.colorScheme.onPrimary),
+                guideline = rememberLineComponent(
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f),
+                    shape = DashedShape()
+                ),
+                label = rememberTextComponent(color = MaterialTheme.colorScheme.onPrimary),
+                valueFormatter = yAxisFormatter,
+                itemPlacer = remember { AxisItemPlacer.Vertical.step({ _ -> (maxY / 10) }) }),
+            bottomAxis = rememberBottomAxis(
+                axis = rememberLineComponent(color = MaterialTheme.colorScheme.onPrimary),
+                guideline = rememberLineComponent(
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f),
+                    shape = DashedShape()
+                ),
+                label = rememberTextComponent(color = MaterialTheme.colorScheme.onPrimary),
+                valueFormatter = xAxisFormatter
+            ),
             legend = rememberLegend(chartColors)
         ),
         modelProducer = modelProducer,
@@ -144,7 +161,7 @@ private fun rememberLegend(chartColors: List<Color>) =
                 icon = rememberShapeComponent(Shape.Pill, chartColor),
                 label =
                 rememberTextComponent(
-                    color = vicoTheme.textColor,
+                    color = MaterialTheme.colorScheme.onPrimary,
                     textSize = 12.sp,
                     typeface = Typeface.MONOSPACE,
                 ),
@@ -193,7 +210,7 @@ internal fun rememberMarker(
             ),
             padding = Dimensions.of(10.dp),
         )
-    val guideline = rememberAxisGuidelineComponent()
+    val guideline = rememberAxisGuidelineComponent(color = MaterialTheme.colorScheme.onPrimary)
     val markerFormatter = CartesianMarkerValueFormatter { _, targets ->
         val target = targets.first() as ColumnCartesianLayerMarkerTarget
         target.columns.map { column ->
