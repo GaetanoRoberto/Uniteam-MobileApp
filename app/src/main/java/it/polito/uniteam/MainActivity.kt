@@ -328,7 +328,7 @@ class MainActivity : ComponentActivity() {
                                                 // In your main activity or main screen composable
                                                 NavHost(
                                                     navController = navController,
-                                                    startDestination = "Teams"
+                                                    startDestination = "TeamDetails/1"
                                                 ) {
                                                     composable("Team/{teamId}", arguments = listOf(navArgument("teamId") { type = NavType.StringType })) {
                                                         TaskListView(
@@ -380,7 +380,7 @@ class MainActivity : ComponentActivity() {
                                                             )
                                                         )
                                                     }
-                                                    composable("AllTasks") {
+                                                    composable("TaskDetails") {
                                                         TaskScreen(
                                                             vm = viewModel(
                                                                 factory = Factory(LocalContext.current)
@@ -438,7 +438,7 @@ class MainActivity : ComponentActivity() {
                                                             )
                                                         )
                                                     }
-                                                    composable("TeamDetails") {
+                                                    composable("TeamDetails/{teamId}" , arguments = listOf(navArgument("teamId") { type = NavType.StringType })) {
                                                         TeamViewScreen(
                                                             vm = viewModel(
                                                                 factory = Factory(LocalContext.current)

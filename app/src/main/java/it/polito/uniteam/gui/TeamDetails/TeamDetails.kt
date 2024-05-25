@@ -34,14 +34,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Comment
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.InsertDriveFile
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -54,6 +59,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -102,9 +111,12 @@ import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.MemberIcon
 import it.polito.uniteam.classes.Status
 import it.polito.uniteam.classes.Team
+import it.polito.uniteam.gui.showtaskdetails.CommentsView
 import it.polito.uniteam.gui.showtaskdetails.CustomDatePickerPreview
 import it.polito.uniteam.gui.showtaskdetails.Demo_ExposedDropdownMenuBox
 import it.polito.uniteam.gui.showtaskdetails.EditRowItem
+import it.polito.uniteam.gui.showtaskdetails.FilesView
+import it.polito.uniteam.gui.showtaskdetails.HistoryView
 import it.polito.uniteam.gui.showtaskdetails.MembersDropdownMenuBox
 import it.polito.uniteam.gui.showtaskdetails.RowItem
 import it.polito.uniteam.gui.showtaskdetails.RowMemberItem
@@ -129,6 +141,9 @@ import java.util.concurrent.ExecutorService
 class TeamDetailsViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHandle): ViewModel() {
     // from model
     var selectedTeam = mutableStateOf( model.selectedTeam)
+    //val teamId = checkNotNull(savedStateHandle["teamId"]).toString().toInt()
+    val teamId = 1
+    val history = model.getAllHistories().filter { it.first.id == teamId }[0].second
     // internal
     var teamNameError by mutableStateOf("")
         private set
@@ -312,7 +327,9 @@ fun TeamViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalC
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Row(
-                                modifier = Modifier.fillMaxWidth(0.8f).padding(0.dp,20.dp,0.dp,0.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth(0.8f)
+                                    .padding(0.dp, 20.dp, 0.dp, 0.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.Center
                             ) {
@@ -608,7 +625,9 @@ fun CameraViewForTeam(
         AndroidView({ previewView }, modifier = Modifier.fillMaxSize())
         val configuration = LocalConfiguration.current
         IconButton(
-            modifier = Modifier.padding(bottom = 20.dp).size(60.dp),
+            modifier = Modifier
+                .padding(bottom = 20.dp)
+                .size(60.dp),
             onClick = {
                 takePhoto(
                     filenameFormat = "yyyy-MM-dd-HH-mm-ss-SSS",
@@ -632,7 +651,10 @@ fun CameraViewForTeam(
         }
 
         IconButton(
-            modifier = Modifier.align(Alignment.TopStart).padding(start = 16.dp, top = 16.dp).size(60.dp),
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(start = 16.dp, top = 16.dp)
+                .size(60.dp),
             onClick = {
                 vm.setIsFrontCamera(!vm.isFrontCamera)
             }) {
@@ -675,6 +697,28 @@ fun TeamDetailsView(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
         RowItem(title = "Description:", value = vm.selectedTeam.value.description.toString())
         RowMemberItem( title = "Members:", value = vm.selectedTeam.value.members)
         RowItem(title = "Creation Date:", value = vm.selectedTeam.value.creationDate.toString())
+        val icon = Icons.Filled.History
+        val title = "History"
+        Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+            Tab(selected = true,
+                enabled = false,
+                onClick = {},
+                text = { Text(text = title, color = MaterialTheme.colorScheme.onPrimary) },
+                icon = {
+                    Icon(
+                        icon,
+                        title,
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
+                })
+        }
+
+        HistoryView(history = vm.history.toMutableList())
+
+
+
+
+        Spacer(modifier = Modifier.height(10.dp))
 
     }
 }
@@ -717,11 +761,7 @@ val selectedTeam = vm.selectedTeam.value
                         errorText = vm.descriptionError,
                         onChange = vm::changeDescription
                     )
-                    TeamMembersDropdownMenuBox(
-                        vm,
-                        "AddMembers",
-                        selectedTeam.members
-                    )
+
                     Spacer(modifier = Modifier.height(10.dp))
 
                     if(!isVertical()){

@@ -106,7 +106,8 @@ class UniTeamModel {
 
     private val _teams = MutableStateFlow<MutableList<Team>>(mutableListOf<Team>(
         Team(id= 0, name = "Team1", description = "Description",
-            members = membersList)
+            members = membersList, teamHistory = mutableListOf(History(id = 0, comment = "Team created", date = "2024/11/11", user = DummyDataProvider.member1))
+        )
     ))
     val teams: StateFlow<MutableList<Team>> = _teams
 
