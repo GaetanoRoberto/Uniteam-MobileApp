@@ -577,7 +577,8 @@ fun VerticalStatistics(vm: StatisticsViewModel = viewModel(factory = Factory(Loc
             Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Top, horizontalAlignment = Alignment.CenterHorizontally) {
                 when(vm.selectedChart){
                     chartType.PLANNED_SPENT_HOURS_RATIO -> {
-                        Text(text = "Hold on a Chart Bar to see details")
+                        if(vm.getPlannedSpentHoursRatio()!=null)
+                            Text(text = "Hold on a Chart Bar to see details")
                         BarChart(vm = vm)
                     }
                     chartType.OVERALL_SPENT_HOURS -> {
@@ -605,7 +606,8 @@ fun HorizontalStatistics(vm: StatisticsViewModel = viewModel(factory = Factory(L
             Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Top, horizontalAlignment = Alignment.CenterHorizontally) {
                 when(vm.selectedChart){
                     chartType.PLANNED_SPENT_HOURS_RATIO -> {
-                        Text(text = "Hold on a Chart Bar to see details")
+                        if(vm.getPlannedSpentHoursRatio()!=null)
+                            Text(text = "Hold on a Chart Bar to see details")
                         BarChart(vm = vm)
                     }
                     chartType.OVERALL_SPENT_HOURS -> {
