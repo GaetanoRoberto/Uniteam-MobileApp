@@ -57,9 +57,12 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import co.yml.charts.common.model.LegendLabel
+import co.yml.charts.common.model.LegendsConfig
 import com.maxkeppeker.sheets.core.models.base.rememberUseCaseState
 import com.maxkeppeler.sheets.calendar.CalendarDialog
 import com.maxkeppeler.sheets.calendar.models.CalendarConfig
@@ -475,6 +478,7 @@ fun Statistics(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContex
                                         scope.launch { scrollState.animateScrollTo(0) }
                                         vm.teamTasks.value = vm.initialTeamTasks
                                         vm.teamMembers.value = vm.initialTeamMembers
+                                        vm.selectedChartValue = ""
                                     }) {
                                     Text("Reset")
                                 }
@@ -509,6 +513,7 @@ fun Statistics(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContex
                                     vm.teamMembers.value = vm.initialTeamMembers.filter { member ->
                                         vm.applyMembersFilters(member, vm.lastAppliedFilters.value)
                                     }
+                                    vm.selectedChartValue = ""
                                     scope.launch { drawerState.close() }
                                 }) {
                                     Text("Apply")
@@ -688,4 +693,27 @@ fun CustomDatePickerStatistics(
             disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
             disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant)
     )
+}
+
+@Composable
+fun SingleLegend(config: LegendsConfig, legendLabel: LegendLabel) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(0.dp,10.dp,0.dp,0.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
+    ) {
+        val boxModifier = Modifier.size(config.colorBoxSize)
+        if (legendLabel.brush != null) {
+            Box(modifier = boxModifier.background(legendLabel.brush!!))
+        } else {
+            Box(modifier = boxModifier.background(legendLabel.color))
+        }
+
+        Spacer(modifier = Modifier.padding(config.spaceBWLabelAndColorBox))
+        Text(
+            text = legendLabel.name, style = config.textStyle, overflow = TextOverflow.Ellipsis
+        )
+    }
 }

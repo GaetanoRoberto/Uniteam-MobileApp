@@ -7,12 +7,14 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import it.polito.uniteam.UniTeamModel
+import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.Message
 import it.polito.uniteam.classes.messageStatus
 import java.time.LocalDate
 import java.time.LocalDateTime
 
 class NotificationsViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
+    fun getUsersChat(member: Member) = model.getUsersChat(member)
     fun getAllHistories() = model.getAllHistories()
     fun getAllTeamMessages() = model.getAllTeamMessagesCount()
     fun getAllMembersMessages() = model.getAllMembersMessagesCount()

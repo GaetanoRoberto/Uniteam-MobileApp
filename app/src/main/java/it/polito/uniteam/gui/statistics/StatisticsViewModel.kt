@@ -115,8 +115,20 @@ class StatisticsViewModel(val model: UniTeamModel, val savedStateHandle: SavedSt
         return memberPlannedSpent.toMap()
     }
 
-    val colorPaletteSpentHours = if(getOverallSpentHours()!=null) generateDistinctColors(getOverallSpentHours()?.size!!) else listOf()
-    val colorPaletteTeamKpi = if(getOverallTeamKPI()!=null) generateDistinctColors(getOverallTeamKPI()?.size!!) else listOf()
+    val colorPaletteSpentHours = if(getOverallSpentHours()!=null) {
+        val memberHour = getOverallSpentHours()
+        val colors =generateDistinctColors(getOverallSpentHours()?.size!!)
+        memberHour?.entries?.withIndex()?.associate { (index,entry) ->
+            entry.key to colors[index]
+        }!!
+    } else mapOf()
+    val colorPaletteTeamKpi = if(getOverallTeamKPI()!=null){
+        val memberKpi = getOverallTeamKPI()
+        val colors = generateDistinctColors(getOverallTeamKPI()?.size!!)
+        memberKpi?.entries?.withIndex()?.associate { (index,entry) ->
+            entry.key to colors[index]
+        }!!
+    } else mapOf()
     fun generateUniqueRandomColor(): Color {
         val random = Random.Default
         val red = random.nextInt(256)

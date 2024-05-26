@@ -1,6 +1,5 @@
 package it.polito.uniteam.gui.notifications
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -85,22 +84,21 @@ fun MessagesSection(vm: NotificationsViewModel = viewModel(factory = Factory(Loc
     LazyColumn {
         item(vm.teamsMessages.size + vm.membersMessages.size) {
             vm.teamsMessages.forEach { (team,count) ->
-                MessageItem(teamMemberName = team.name, teamMemberId = team.id, nOfMessages = count)
+                MessageItem(teamMemberName = team.name, teamMemberChatId = team.chat?.id!!, nOfMessages = count)
             }
             vm.membersMessages.forEach { (member,count)->
-                MessageItem(teamMemberName = member.username, teamMemberId = member.id, nOfMessages = count)
+                MessageItem(teamMemberName = member.username, teamMemberChatId = vm.getUsersChat(member).id, nOfMessages = count)
             }
         }
     }
 }
 
 @Composable
-fun MessageItem(teamMemberName: String, teamMemberId:Int, nOfMessages: Int) {
+fun MessageItem(teamMemberName: String, teamMemberChatId:Int, nOfMessages: Int) {
     val navController = NavControllerManager.getNavController()
-    // TODO "Chat/${teamMemberId}" when Id Available
     Row(
         modifier = Modifier
-            .clickable { navController.navigate("Chat") }
+            .clickable { navController.navigate("Chat/$teamMemberChatId") }
             .fillMaxWidth()
             .border(0.5.dp, MaterialTheme.colorScheme.onPrimary)
             .padding(10.dp),

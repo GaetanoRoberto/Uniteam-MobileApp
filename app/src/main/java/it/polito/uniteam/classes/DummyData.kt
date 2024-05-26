@@ -179,8 +179,8 @@ object DummyDataProvider {
     var directChat3 = Chat(id = 3, sender = member5, receiver = member3, messages = directMessages3)
     var directChat4 = Chat(id = 4, sender = member5, receiver = member1, messages = directMessages3)
 
-    var groupChat1 = Chat(id = 4, sender = member1, teamId = 1, messages = groupMessages1)
-    var groupChat2 = Chat(id = 5, sender = member1, teamId = 2, messages = groupMessages2)
+    var groupChat1 = Chat(id = 5, sender = member1, teamId = 1, messages = groupMessages1)
+    var groupChat2 = Chat(id = 6, sender = member1, teamId = 2, messages = groupMessages2)
     var allChats = mutableStateListOf(directChat1, directChat2, directChat3, directChat4,groupChat1, groupChat2 )
 
 

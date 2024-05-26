@@ -79,9 +79,16 @@ fun BarChart(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContext.
         else
             "${minutes}m"
     }
-    val xAxisFormatter = CartesianValueFormatter { x, _, _ -> data.keys.elementAt(x.toInt()).toString() }
+    val xAxisFormatter = CartesianValueFormatter { x, _, _ ->
+        val index = x.toInt()
+        if (index in data.keys.indices) {
+            data.keys.elementAt(index).toString()
+        } else {
+            ""
+        }
+    }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(data) {
         withContext(Dispatchers.Default) {
             modelProducer.tryRunTransaction {
                 columnSeries {

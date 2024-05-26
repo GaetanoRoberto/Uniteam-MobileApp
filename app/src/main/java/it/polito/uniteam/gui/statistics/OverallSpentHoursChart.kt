@@ -1,5 +1,6 @@
 package it.polito.uniteam.gui.statistics
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,6 +11,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,7 +40,7 @@ fun OverallSpentHoursChart(vm: StatisticsViewModel = viewModel(factory = Factory
         val colorPaletteList = vm.colorPaletteSpentHours
         val donutChartData = PieChartData(
             slices = memberSpentHours.entries.mapIndexed { index, entry ->
-                PieChartData.Slice(entry.key, entry.value, colorPaletteList[index])
+                PieChartData.Slice(entry.key, entry.value, colorPaletteList[entry.key]!!)
             },
             plotType = PlotType.Donut
         )
@@ -57,35 +59,41 @@ fun OverallSpentHoursChart(vm: StatisticsViewModel = viewModel(factory = Factory
         )
         val legendsConfig = LegendsConfig(
             legendLabelList = memberSpentHours.entries.mapIndexed { index, entry ->
-                LegendLabel(colorPaletteList[index], entry.key)
+                LegendLabel(colorPaletteList[entry.key]!!, entry.key)
             },
             gridColumnCount = 2
         )
-
-        Box(contentAlignment = Alignment.Center) {
-            DonutPieChart(
-                modifier = Modifier
-                    .fillMaxHeight(0.7f),
-                donutChartData,
-                donutChartConfig,
-                onSliceClick = {
-                    if (vm.selectedChartValue == "${it.label}: ${it.value.formatToSinglePrecision()} %") {
-                        vm.selectedChartValue = ""
-                    } else {
-                        vm.selectedChartValue =
-                            "${it.label}: ${it.value.formatToSinglePrecision()} %"
+        Log.i("diooo",legendsConfig.toString())
+        key(memberSpentHours) {
+            Box(contentAlignment = Alignment.Center) {
+                DonutPieChart(
+                    modifier = Modifier
+                        .fillMaxHeight(0.7f),
+                    donutChartData,
+                    donutChartConfig,
+                    onSliceClick = {
+                        if (vm.selectedChartValue == "${it.label}: ${it.value.formatToSinglePrecision()} %") {
+                            vm.selectedChartValue = ""
+                        } else {
+                            vm.selectedChartValue =
+                                "${it.label}: ${it.value.formatToSinglePrecision()} %"
+                        }
                     }
-                }
-            )
-            Text(
-                text = vm.selectedChartValue,
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.onPrimary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+                )
+                Text(
+                    text = vm.selectedChartValue,
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            if (legendsConfig.legendLabelList.size > 1) {
+                Legends(legendsConfig = legendsConfig)
+            } else {
+                SingleLegend(config = legendsConfig, legendLabel = legendsConfig.legendLabelList[0])
+            }
         }
-        Legends(legendsConfig = legendsConfig)
     } else {
         Row(modifier = Modifier.fillMaxSize(),horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
             Text(text = "No Spent Hours Stats Yet.",

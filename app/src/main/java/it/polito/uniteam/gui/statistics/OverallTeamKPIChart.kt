@@ -13,6 +13,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -41,7 +42,7 @@ fun OverallTeamKPIChart(vm: StatisticsViewModel = viewModel(factory = Factory(Lo
         val colorPaletteList = vm.colorPaletteTeamKpi
         val pieChartData = PieChartData(
             slices = memberTeamKpi.entries.mapIndexed { index, entry ->
-                PieChartData.Slice(entry.key, entry.value, colorPaletteList[index])
+                PieChartData.Slice(entry.key, entry.value, colorPaletteList[entry.key]!!)
             },
             plotType = PlotType.Pie
         )
@@ -61,35 +62,41 @@ fun OverallTeamKPIChart(vm: StatisticsViewModel = viewModel(factory = Factory(Lo
         )
         val legendsConfig = LegendsConfig(
             legendLabelList = memberTeamKpi.entries.mapIndexed { index, entry ->
-                LegendLabel(colorPaletteList[index], entry.key)
+                LegendLabel(colorPaletteList[entry.key]!!, entry.key)
             },
             gridColumnCount = 2
         )
 
-        Box(contentAlignment = Alignment.Center) {
-            PieChart(
-                modifier = Modifier
-                    .fillMaxHeight(0.7f).aspectRatio(1f),
-                pieChartData,
-                pieChartConfig,
-                onSliceClick = {
-                    if (vm.selectedChartValue == "${it.label}: ${it.value.formatToSinglePrecision()} %") {
-                        vm.selectedChartValue = ""
-                    } else {
-                        vm.selectedChartValue =
-                            "${it.label}: ${it.value.formatToSinglePrecision()} %"
+        key(memberTeamKpi) {
+            Box(contentAlignment = Alignment.Center) {
+                PieChart(
+                    modifier = Modifier
+                        .fillMaxHeight(0.7f).aspectRatio(1f),
+                    pieChartData,
+                    pieChartConfig,
+                    onSliceClick = {
+                        if (vm.selectedChartValue == "${it.label}: ${it.value.formatToSinglePrecision()} %") {
+                            vm.selectedChartValue = ""
+                        } else {
+                            vm.selectedChartValue =
+                                "${it.label}: ${it.value.formatToSinglePrecision()} %"
+                        }
                     }
-                }
-            )
-            Text(
-                text = vm.selectedChartValue,
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.onPrimary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+                )
+                Text(
+                    text = vm.selectedChartValue,
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            if (legendsConfig.legendLabelList.size > 1) {
+                Legends(legendsConfig = legendsConfig)
+            } else {
+                SingleLegend(config = legendsConfig, legendLabel = legendsConfig.legendLabelList[0])
+            }
         }
-        Legends(legendsConfig = legendsConfig)
     } else {
         Row(modifier = Modifier.fillMaxSize(),horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
             Text(
