@@ -958,7 +958,8 @@ fun CommentsView(
 
 @Composable
 fun HistoryView(
-    history: MutableList<History>
+    history: MutableList<History>,
+    customHeight: Float = 0.7f
 ) {
     var date = ""
     val screenHeightDp = LocalConfiguration.current.screenHeightDp
@@ -971,7 +972,7 @@ fun HistoryView(
             Column(
                 modifier = Modifier
                     .fillMaxWidth(0.95f)
-                    .height((screenHeightDp * 0.7).dp)
+                    .height((screenHeightDp * customHeight).dp)
                     .padding(0.dp, 10.dp, 0.dp, 0.dp)
                     .verticalScroll(rememberScrollState(initial = Int.MAX_VALUE))
             ) {
@@ -993,7 +994,7 @@ fun HistoryView(
                         OutlinedTextField(
                             label = {
                                 Text(
-                                    text = history.user.username,
+                                    text = "",
                                     style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)//testo
                                 )
                             },
@@ -1001,8 +1002,9 @@ fun HistoryView(
                                 .fillMaxWidth()
                                 .padding(8.dp, 0.dp, 0.dp, 3.dp)
                                 .widthIn(10.dp, 100.dp),
-                            enabled = false,// <- Add this to make click event work
+                            enabled = true,// <- Add this to make click event work
                             value = history.comment,
+                            readOnly = true,
                             onValueChange = {},
                             trailingIcon = {
                             }

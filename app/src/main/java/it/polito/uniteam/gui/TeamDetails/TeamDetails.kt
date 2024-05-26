@@ -336,8 +336,8 @@ fun TeamViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalC
 
                                 DefaultImageForTeamScreen(vm)
                             }
-                            Spacer(modifier = Modifier.height(0.dp))
-                            TeamDetailsView()
+                            //Spacer(modifier = Modifier.height(0.dp))
+                            TeamDetailsView(customHeightForHistory = 0.3f)
 
                         }
                     } else {
@@ -671,7 +671,7 @@ fun CameraViewForTeam(
 }
 @Preview
 @Composable
-fun TeamDetailsView(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalContext.current.applicationContext))) {
+fun TeamDetailsView(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalContext.current.applicationContext)), customHeightForHistory: Float = 0.7f) {
 
     Column(modifier = Modifier
         .fillMaxSize()
@@ -698,8 +698,8 @@ fun TeamDetailsView(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
         RowMemberItem( title = "Members:", value = vm.selectedTeam.value.members)
         RowItem(title = "Creation Date:", value = vm.selectedTeam.value.creationDate.toString())
         val icon = Icons.Filled.History
-        val title = "History"
-        Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+        val title = " Team History"
+        Row(horizontalArrangement = Arrangement.Start, modifier = Modifier.fillMaxWidth()) {
             Tab(selected = true,
                 enabled = false,
                 onClick = {},
@@ -712,13 +712,11 @@ fun TeamDetailsView(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
                     )
                 })
         }
-
-        HistoryView(history = vm.history.toMutableList())
-
-
-
-
-        Spacer(modifier = Modifier.height(10.dp))
+        if(customHeightForHistory != 0.7f){
+            HistoryView(history = vm.history.toMutableList(), customHeightForHistory)
+        }else{
+            HistoryView(history = vm.history.toMutableList())
+        }
 
     }
 }
