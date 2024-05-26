@@ -177,15 +177,15 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
         try {
             val hours = spentHours.value.toUInt().toInt()
             val minutes = spentMinutes.value.toUInt().toInt()
-            if (hours == 0 && minutes == 0) {
-                spentTimeError.value = "You Need To Schedule A Positive Time Interval."
-            } else if (minutes >= 60) {
+            if (minutes >= 60) {
                 spentTimeError.value = "Invalid Minute Value."
             } else {
                 spentTimeError.value = ""
                 spentHours.value = "0"
                 spentMinutes.value = "0"
-                addSpentTime(member,Pair(hours,minutes))
+                if (!(hours == 0 && minutes == 0)) {
+                    addSpentTime(member,Pair(hours,minutes))
+                }
                 /*spentHours.value = hours.toString()
                 spentMinutes.value = minutes.toString()*/
             }
@@ -341,10 +341,10 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
     var categoryBefore = ""
     var priorityBefore = ""
     var deadlineBefore = ""
-    var estimateHoursBefore = ""
-    var estimateMinutesBefore = ""
-    var spentHoursBefore = ""
-    var spentMinutesBefore = ""
+    var estimateHoursBefore = "0"
+    var estimateMinutesBefore = "0"
+    var spentHoursBefore = "0"
+    var spentMinutesBefore = "0"
     var repeatableBefore = ""
     var statusBefore = ""
     var membersBefore = mutableListOf<Member>()
@@ -476,10 +476,10 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
         category = ""
         priority = ""
         //deadline =""
-        estimatedHours.value = ""
-        estimatedMinutes.value = ""
-        spentHours.value = ""
-        spentMinutes.value = ""
+        estimatedHours.value = "0"
+        estimatedMinutes.value = "0"
+        spentHours.value = "0"
+        spentMinutes.value = "0"
         repeatable = Repetition.NONE.toString()
         status = Status.TODO.toString()
         members = mutableStateListOf<Member>()

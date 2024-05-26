@@ -346,7 +346,7 @@ object DummyDataProvider {
                 image = Uri.EMPTY,
                 creationDate = LocalDate.now(),
                 members = mutableListOf(member1, member2,member3, member4, member5, member6),
-                tasks = tasks.toMutableList(),
+                tasks = mutableListOf(),
                 teamHistory = getHistory(members[i],isTeamHistory = true),
                 chat = if (i == 0) groupChat1 else if (i==1) groupChat2 else null
             )

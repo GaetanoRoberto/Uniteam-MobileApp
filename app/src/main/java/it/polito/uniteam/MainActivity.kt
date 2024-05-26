@@ -84,9 +84,13 @@ import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import it.polito.uniteam.classes.MemberIcon
 import it.polito.uniteam.gui.TeamDetails.TeamViewScreen
+import it.polito.uniteam.gui.availability.Availability
+import it.polito.uniteam.gui.availability.Join
 import it.polito.uniteam.gui.calendar.CalendarAppContainer
 import it.polito.uniteam.gui.chat.ChatScreen
 import it.polito.uniteam.gui.chatlist.ChatListScreen
+import it.polito.uniteam.gui.home.Home
+import it.polito.uniteam.gui.invitation.Invitation
 import it.polito.uniteam.gui.notifications.Notifications
 import it.polito.uniteam.gui.showtaskdetails.TaskScreen
 import it.polito.uniteam.gui.statistics.Statistics
@@ -337,42 +341,6 @@ class MainActivity : ComponentActivity() {
                                                             )
                                                         )
                                                     }
-                                                    /*composable("Invitation") {
-                                                        Invitation(teamId = "1", teamName = "Team#1")
-                                                    }
-                                                    composable("ChangeAvailability/{teamId}", arguments = listOf(navArgument("teamId") { type = NavType.StringType })) {
-                                                        Availability(
-                                                            vm = viewModel(
-                                                                factory = Factory(LocalContext.current)
-                                                            )
-                                                        )
-                                                    }
-                                                    composable("JoinTeam") {
-                                                        Join(
-                                                            vm = viewModel(
-                                                                factory = Factory(LocalContext.current)
-                                                            )
-                                                        )
-                                                    }*/
-                                                    composable("join/1", deepLinks = listOf(navDeepLink {uriPattern = "https://uniTeam/join/1" })) { backStackEntry ->
-                                                        val teamId = backStackEntry.arguments?.getString("teamId")
-                                                        ProfileSettings(
-                                                            vm = viewModel(
-                                                                factory = Factory(LocalContext.current)
-                                                            ),
-                                                            outputDirectory = getOutputDirectory(),
-                                                            cameraExecutor = cameraExecutor
-                                                        )
-                                                    }
-                                                    composable("join/2", deepLinks = listOf(navDeepLink {uriPattern = "https://uniTeam/join/2" })) { backStackEntry ->
-                                                        val teamId = backStackEntry.arguments?.getString("teamId")
-                                                        Notifications(
-                                                            vm = viewModel(
-                                                                factory = Factory(LocalContext.current)
-                                                            )
-                                                        )
-                                                    }
-                                                    // Define destinations for your screens
                                                     composable("Teams") {
                                                         TaskListView(
                                                             vm = viewModel(
@@ -429,6 +397,23 @@ class MainActivity : ComponentActivity() {
                                                             ),
                                                             outputDirectory = getOutputDirectory(),
                                                             cameraExecutor = cameraExecutor
+                                                        )
+                                                    }
+                                                    composable("Invitation/{teamId}/{teamName}", arguments = listOf(navArgument("teamId") { type = NavType.StringType }, navArgument("teamName") { type = NavType.StringType })) { backStackEntry ->
+                                                        Invitation(teamId = backStackEntry.arguments?.getString("teamId")!!, teamName = backStackEntry.arguments?.getString("teamName")!!)
+                                                    }
+                                                    composable("ChangeAvailability/{teamId}", arguments = listOf(navArgument("teamId") { type = NavType.StringType })) {
+                                                        Availability(
+                                                            vm = viewModel(
+                                                                factory = Factory(LocalContext.current)
+                                                            )
+                                                        )
+                                                    }
+                                                    composable("JoinTeam/{teamId}", deepLinks = listOf(navDeepLink {uriPattern = "https://UniTeam/join/{teamId}" })) {
+                                                        Join(
+                                                            vm = viewModel(
+                                                                factory = Factory(LocalContext.current)
+                                                            )
                                                         )
                                                     }
                                                     composable("Statistics/{teamId}", arguments = listOf(navArgument("teamId") { type = NavType.StringType })) {
@@ -608,7 +593,7 @@ fun MyTopAppBar(
         },
         colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primary),
         navigationIcon = {
-            if (navController.currentBackStackEntry?.destination?.route != "Teams" && navController.currentBackStackEntry?.destination?.route != "JoinTeam") {
+            if (navController.currentBackStackEntry?.destination?.route != "Teams" && navController.currentBackStackEntry?.destination?.route != "JoinTeam/{teamId}") {
                 IconButton(
                     onClick = {//navController.previousBackStackEntry?.savedStateHandle?.set("back", true)
                         if (!navController.popBackStack()) {//inutile fare if diverso da teams perchè fa la pop lo stessoghb

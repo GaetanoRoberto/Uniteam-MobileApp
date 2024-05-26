@@ -69,6 +69,7 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -359,7 +360,7 @@ fun TaskListView(vm: TaskList = viewModel(factory = Factory(LocalContext.current
                                     Modifier
                                         .fillMaxHeight(0.6f)
                                         .verticalScroll(scrollState)
-                                    ) {
+                            ) {
                                 ExpandableRow(
                                     expanded = assigneeExpanded,
                                     filter = {
@@ -777,6 +778,12 @@ fun TaskListView(vm: TaskList = viewModel(factory = Factory(LocalContext.current
                                         }
                                     }
                                 )
+                                // Execute scrollState.animateScrollTo() when SortBy row expands
+                                LaunchedEffect(sortByExpanded.value) {
+                                    if (sortByExpanded.value) {
+                                        scrollState.animateScrollTo(scrollState.value + 1000)
+                                    }
+                                }
                             }
                             Spacer(modifier = Modifier.padding(5.dp))
                             Row(
@@ -802,6 +809,7 @@ fun TaskListView(vm: TaskList = viewModel(factory = Factory(LocalContext.current
                                     priorityExpanded.value = false
                                     statusExpanded.value = false
                                     repetitionExpanded.value = false
+                                    deadlineExpanded.value = false
                                     sortByExpanded.value = false
                                     scope.launch { scrollState.animateScrollTo(0) }
                                     vm.filteredTasksList.value = vm.tasksList.value.filter { task ->
@@ -898,7 +906,7 @@ fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Coroutin
                                 style = MaterialTheme.typography.titleMedium
                             )
                         },
-                        onClick = { /* Handle change! */ },
+                        onClick = {  },
                         leadingIcon = {
                             Icon(
                                 painter = painterResource(id = R.drawable.availability),
@@ -914,7 +922,7 @@ fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Coroutin
                                 style = MaterialTheme.typography.titleMedium
                             )
                         },
-                        onClick = { /* Handle add! */ },
+                        onClick = { vm.expandedDropdown = false; navController.navigate("Invitation/1/WA2") { launchSingleTop = true } },
                         leadingIcon = {
                             Icon(
                                 painter = painterResource(id = R.drawable.addmember),
@@ -930,7 +938,7 @@ fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Coroutin
                                 style = MaterialTheme.typography.titleMedium
                             )
                         },
-                        onClick = { navController.navigate("Statistics/1") },
+                        onClick = { vm.expandedDropdown = false; navController.navigate("Statistics/1") {launchSingleTop = true} },
                         leadingIcon = {
                             Icon(
                                 painter = painterResource(id = R.drawable.statistics),
@@ -1132,10 +1140,10 @@ fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Coroutin
             ) {
                 Text(
                     text =
-                    if (vm.tasksList.value.isEmpty())
-                        "Team#1 team\nhas no tasks yet.\nCreate the first!"
-                    else
-                        "No tasks found!",
+                        if (vm.tasksList.value.isEmpty())
+                            "Team#1 team\nhas no tasks yet.\nCreate the first!"
+                        else
+                            "No tasks found!",
                     style = MaterialTheme.typography.headlineSmall,
                     modifier = Modifier.padding(top = 16.dp)
                 )
@@ -1285,7 +1293,7 @@ fun HorizontalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Corout
                                     style = MaterialTheme.typography.titleMedium
                                 )
                             },
-                            onClick = { /* Handle add! */ },
+                            onClick = { vm.expandedDropdown = false; navController.navigate("Invitation/1/WA2") { launchSingleTop = true } },
                             leadingIcon = {
                                 Icon(
                                     painter = painterResource(id = R.drawable.addmember),
@@ -1695,7 +1703,7 @@ fun ExpandableRow(
 ) {
     val rotationState by animateFloatAsState(
         targetValue = if (expanded.value) 180f else 0f,
-        animationSpec = tween(durationMillis = 150, easing = LinearEasing)
+        animationSpec = tween(durationMillis = 150, easing = LinearEasing), label = ""
     )
 
     ListItem(

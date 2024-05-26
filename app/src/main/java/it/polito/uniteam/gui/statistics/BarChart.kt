@@ -46,7 +46,13 @@ import com.patrykandpatrick.vico.core.common.shape.Shape
 import android.graphics.Typeface
 import android.text.SpannableStringBuilder
 import android.util.Log
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Text
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.style.TextOverflow
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottomAxis
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStartAxis
 import com.patrykandpatrick.vico.compose.common.component.fixed
@@ -69,94 +75,119 @@ fun BarChart(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContext.
     val chartColors = listOf(MaterialTheme.colorScheme.primary, Color(0xff018FF3))
     val modelProducer = remember { CartesianChartModelProducer.build() }
     val data = vm.getPlannedSpentHoursRatio()
-    val maxY = data.values.flatMap { listOf(it.first, it.second) }.max()
-    val yAxisFormatter = CartesianValueFormatter { x, _, _ ->
-        val integerPart = x.toInt()
-        val decimalPart = x - integerPart
-        val minutes = (decimalPart * 60).toInt()
-        if(integerPart!=0)
-            "${integerPart}h ${minutes}m"
-        else
-            "${minutes}m"
-    }
-    val xAxisFormatter = CartesianValueFormatter { x, _, _ ->
-        val index = x.toInt()
-        if (index in data.keys.indices) {
-            data.keys.elementAt(index).toString()
-        } else {
-            ""
+    if(data!=null) {
+        val maxY = if(data.values.isNotEmpty()) data.values.flatMap { listOf(it.first, it.second) }.max() else 0f
+        val yAxisFormatter = CartesianValueFormatter { x, _, _ ->
+            val integerPart = x.toInt()
+            val decimalPart = x - integerPart
+            val minutes = (decimalPart * 60).toInt()
+            if(integerPart!=0)
+                "${integerPart}h ${minutes}m"
+            else
+                "${minutes}m"
         }
-    }
+        val xAxisFormatter = CartesianValueFormatter { x, _, _ ->
+            val index = x.toInt()
+            if (index in data.keys.indices) {
+                data.keys.elementAt(index).toString()
+            } else {
+                ""
+            }
+        }
 
-    LaunchedEffect(data) {
-        withContext(Dispatchers.Default) {
-            modelProducer.tryRunTransaction {
-                columnSeries {
-                    series(
-                        data.values.map {
-                            it.first
+        if (data.isNotEmpty()) {
+            LaunchedEffect(data) {
+                withContext(Dispatchers.Default) {
+                    modelProducer.tryRunTransaction {
+                        columnSeries {
+                            series(
+                                data.values.map {
+                                    it.first
+                                }
+                            )
+                            series(
+                                data.values.map {
+                                    it.second
+                                }
+                            )
                         }
-                    )
-                    series(
-                        data.values.map {
-                            it.second
-                        }
-                    )
+                    }
                 }
+            }
+            CartesianChartHost(
+                chart =
+                rememberCartesianChart(
+                    rememberColumnCartesianLayer(
+                        columnProvider =
+                        ColumnCartesianLayer.ColumnProvider.series(
+                            chartColors.map { color ->
+                                rememberLineComponent(
+                                    color = color,
+                                    thickness = 20.dp,
+                                    shape = Shape.rounded(2.dp),
+                                )
+                            },
+                        )
+                    ),
+                    rememberLineCartesianLayer(
+                        lines =
+                        listOf(
+                            rememberLineSpec(
+                                shader = DynamicShader.color(MaterialTheme.colorScheme.onPrimary),
+                                pointConnector = DefaultPointConnector(cubicStrength = 0f),
+                            ),
+                        ),
+                    ),
+                    startAxis = rememberStartAxis(
+                        axis = rememberLineComponent(color = MaterialTheme.colorScheme.onPrimary),
+                        guideline = rememberLineComponent(
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f),
+                            shape = DashedShape()
+                        ),
+                        label = rememberTextComponent(color = MaterialTheme.colorScheme.onPrimary),
+                        valueFormatter = yAxisFormatter,
+                        itemPlacer = remember { AxisItemPlacer.Vertical.step({ _ -> (maxY / 10) }) }),
+                    bottomAxis = rememberBottomAxis(
+                        axis = rememberLineComponent(color = MaterialTheme.colorScheme.onPrimary),
+                        guideline = rememberLineComponent(
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f),
+                            shape = DashedShape()
+                        ),
+                        label = rememberTextComponent(color = MaterialTheme.colorScheme.onPrimary),
+                        valueFormatter = xAxisFormatter
+                    ),
+                    legend = rememberLegend(chartColors)
+                ),
+                modelProducer = modelProducer,
+                modifier = Modifier.fillMaxHeight(0.9f),
+                marker = rememberMarker(),
+                runInitialAnimation = true,
+                zoomState = rememberVicoZoomState(zoomEnabled = false)
+            )
+        }
+    } else {
+        if(vm.isFiltersApplied()) {
+            Row(modifier = Modifier.fillMaxSize(),horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "No Tasks Found.",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        } else {
+            Row(modifier = Modifier.fillMaxSize(),horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "No Tasks Yet.",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
     }
-
-    CartesianChartHost(
-        chart =
-        rememberCartesianChart(
-            rememberColumnCartesianLayer(
-                columnProvider =
-                ColumnCartesianLayer.ColumnProvider.series(
-                    chartColors.map { color ->
-                        rememberLineComponent(
-                            color = color,
-                            thickness = 20.dp,
-                            shape = Shape.rounded(2.dp),
-                        )
-                    },
-                )
-            ),
-            rememberLineCartesianLayer(
-                lines =
-                listOf(
-                    rememberLineSpec(
-                        shader = DynamicShader.color(MaterialTheme.colorScheme.onPrimary),
-                        pointConnector = DefaultPointConnector(cubicStrength = 0f),
-                    ),
-                ),
-            ),
-            startAxis = rememberStartAxis(
-                axis = rememberLineComponent(color = MaterialTheme.colorScheme.onPrimary),
-                guideline = rememberLineComponent(
-                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f),
-                    shape = DashedShape()
-                ),
-                label = rememberTextComponent(color = MaterialTheme.colorScheme.onPrimary),
-                valueFormatter = yAxisFormatter,
-                itemPlacer = remember { AxisItemPlacer.Vertical.step({ _ -> (maxY / 10) }) }),
-            bottomAxis = rememberBottomAxis(
-                axis = rememberLineComponent(color = MaterialTheme.colorScheme.onPrimary),
-                guideline = rememberLineComponent(
-                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f),
-                    shape = DashedShape()
-                ),
-                label = rememberTextComponent(color = MaterialTheme.colorScheme.onPrimary),
-                valueFormatter = xAxisFormatter
-            ),
-            legend = rememberLegend(chartColors)
-        ),
-        modelProducer = modelProducer,
-        modifier = Modifier.fillMaxHeight(0.9f),
-        marker = rememberMarker(),
-        runInitialAnimation = true,
-        zoomState = rememberVicoZoomState(zoomEnabled = false)
-    )
 }
 
 @Composable

@@ -38,13 +38,11 @@ class StatisticsViewModel(val model: UniTeamModel, val savedStateHandle: SavedSt
     }
 
     val teamId: String = checkNotNull(savedStateHandle["teamId"])
-    var teamTasks = mutableStateOf(getTeam(teamId.toInt()).tasks.filter { it.status!=Status.TODO }.toList())
-        private set
-    var teamMembers = mutableStateOf(getTeam(teamId.toInt()).members.toList())
-        private set
 
     val initialTeamTasks = getTeam(teamId.toInt()).tasks.filter { it.status!=Status.TODO }.toList()
     val initialTeamMembers = getTeam(teamId.toInt()).members.toList()
+    val teamTasks = mutableStateOf(initialTeamTasks.map { it.copy() })
+    val teamMembers = mutableStateOf(initialTeamMembers.map { it.copy() })
     //Stati per la gestione degli ExpandableRow
     val assigneeExpanded = mutableStateOf(false)
     val tasksExpanded = mutableStateOf(false)
@@ -61,6 +59,10 @@ class StatisticsViewModel(val model: UniTeamModel, val savedStateHandle: SavedSt
     val selectedStatus = mutableStateMapOf<Status, Boolean>()
     val selectedStart = mutableStateOf<LocalDate?>(null)
     val selectedEnd = mutableStateOf<LocalDate?>(null)
+
+    fun isFiltersApplied(): Boolean {
+        return lastAppliedFilters.value.isNotEmpty() || selectedStart.value!=null || selectedEnd.value!=null
+    }
     fun applyTasksFilters(task: Task, lastAppliedFilters: Map<String, Any>): Boolean {
         var keep = true
 
@@ -94,7 +96,10 @@ class StatisticsViewModel(val model: UniTeamModel, val savedStateHandle: SavedSt
         return keep
     }
 
-    fun getPlannedSpentHoursRatio(): Map<String, Pair<Float, Float>> {
+    fun getPlannedSpentHoursRatio(): Map<String, Pair<Float, Float>>? {
+        if(teamTasks.value.isEmpty()) {
+            return null
+        }
         val memberPlannedSpent = mutableMapOf<String, Pair<Float, Float>>()
         teamTasks.value.forEach { task ->
             val n_members = task.members.size

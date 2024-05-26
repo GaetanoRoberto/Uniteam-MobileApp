@@ -18,6 +18,8 @@ import it.polito.uniteam.classes.Team
 import it.polito.uniteam.classes.messageStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import java.util.HashMap
 import kotlin.math.log
 
 
@@ -96,12 +98,18 @@ class UniTeamModel {
     }
 
     // To update the teamsInfo of the loggedMember
-    fun updateTeamsInfo(newTeamsInfo: HashMap<Int, MemberTeamInfo>) {
-        _loggedMember.let {
-            val updatedMember = it.value.copy(teamsInfo = newTeamsInfo)
-            Log.i("updateTeamsInfo", updatedMember.toString())
+    fun updateTeamInfo(teamId: Int, newTeamInfo: MemberTeamInfo) {
+        _loggedMember.value.let { member ->
+            val updatedTeamsInfo = member.teamsInfo?.toMutableMap() ?: mutableMapOf()
+            updatedTeamsInfo[teamId] = newTeamInfo
+            val updatedMember = member.copy(teamsInfo = HashMap(updatedTeamsInfo))
+            Log.i("updateTeamInfo", updatedMember.toString())
             setLoggedMember(updatedMember)
         }
+    }
+    //To check if the logged member is already in a joining team
+    fun isMemberInTeam(teamId: Int): Boolean {
+        return _loggedMember.value.teamsInfo?.containsKey(teamId) ?: false
     }
 
     private val _teams = MutableStateFlow<MutableList<Team>>(mutableListOf<Team>(
@@ -204,7 +212,7 @@ class UniTeamModel {
         _teams.value.forEach { team->
             ret.addAll(team.members)
         }
-        return ret// TODO( DESELECT FOR PRODUCTION )
+        return ret// TODO ( DESELECT FOR PRODUCTION )
         //return only for testing
         /*return(listOf(DummyDataProvider.member1,
             DummyDataProvider.member2,
@@ -275,6 +283,19 @@ class UniTeamModel {
         Log.i("diooo",_teams.toString())
         return _teams.value.filter { it.id == teamId }[0]
     }
+
+    fun getAllTeamsMembers(): List<Member> {
+        val uniqueMembers = mutableSetOf<Member>()
+        _teams.value.forEach { team ->
+            team.members.forEach { member ->
+                if (member.id != _loggedMember.value.id) {
+                    uniqueMembers.add(member)
+                }
+            }
+        }
+        return uniqueMembers.toList()
+    }
+
     fun getAllTeams(): List<Team> {
         return _teams.value
     }
@@ -341,7 +362,9 @@ class UniTeamModel {
     fun addTeamMember(teamId: Int, member: Member) {
         _teams.value.replaceAll {
             if (it.id == teamId) {
-                it.members.add(member)
+                if (!it.members.any { it.id == member.id }) {
+                    it.members.add(member)
+                }
                 it
             } else {
                 it

@@ -1,5 +1,6 @@
 package it.polito.uniteam.gui.statistics
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -181,7 +182,7 @@ fun Statistics(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContex
                                                             }
                                                         }
                                                     )
-                                                    Text(member.fullName, textAlign = TextAlign.Center)
+                                                    Text(member.username, textAlign = TextAlign.Center)
                                                 }
                                             }
                                             if (vm.assigneeExpanded.value)
@@ -479,6 +480,8 @@ fun Statistics(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContex
                                         vm.teamTasks.value = vm.initialTeamTasks
                                         vm.teamMembers.value = vm.initialTeamMembers
                                         vm.selectedChartValue = ""
+                                        Log.i("TeamTasksReset", vm.teamTasks.value.toString())
+                                        Log.i("InitialReset", vm.initialTeamTasks.toString())
                                     }) {
                                     Text("Reset")
                                 }
@@ -492,10 +495,16 @@ fun Statistics(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContex
                                         "selectedPriority" to vm.selectedPriority,
                                         "selectedStatus" to vm.selectedStatus
                                     )
+                                    Log.i("initial", vm.initialTeamTasks.toString())
+                                    Log.i("TeamTasks", vm.teamTasks.value.toString())
                                     vm.teamTasks.value = vm.initialTeamTasks.filter { task ->
                                         vm.applyTasksFilters(task, vm.lastAppliedFilters.value)
                                     }
-                                    vm.teamTasks.value = vm.initialTeamTasks.map{ task->
+                                    Log.i("TeamTasks", vm.teamTasks.value.toString())
+                                    Log.i("TeamTasksBefore", vm.initialTeamTasks.toString())
+
+                                    vm.teamTasks.value = vm.teamTasks.value.map { t->
+                                        val task = t.copy()
                                         val newSchedules = task.schedules.filter { (key,value) ->
                                             val (member,date) = key
                                             if (vm.selectedStart.value != null && vm.selectedEnd.value != null)
@@ -510,6 +519,9 @@ fun Statistics(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContex
                                         task.schedules = newSchedules.toMap(HashMap())
                                         task
                                     }.filter { task -> task.schedules.isNotEmpty() }
+                                    Log.i("TeamTasks", vm.teamTasks.value.toString())
+                                    Log.i("TeamTasksAfter", vm.initialTeamTasks.toString())
+
                                     vm.teamMembers.value = vm.initialTeamMembers.filter { member ->
                                         vm.applyMembersFilters(member, vm.lastAppliedFilters.value)
                                     }

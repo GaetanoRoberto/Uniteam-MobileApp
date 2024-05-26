@@ -8,11 +8,13 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.CreationExtras
 import it.polito.uniteam.gui.TeamDetails.TeamDetailsViewModel
+import it.polito.uniteam.gui.availability.AvailabilityViewModel
+import it.polito.uniteam.gui.availability.JoinViewModel
 import it.polito.uniteam.gui.calendar.Calendar
 import it.polito.uniteam.gui.chat.ChatViewModel
 import it.polito.uniteam.gui.chatlist.ChatListViewModel
+import it.polito.uniteam.gui.home.HomeViewModel
 import it.polito.uniteam.gui.notifications.NotificationsViewModel
-//import it.polito.uniteam.gui.chat.ChatViewModel
 import it.polito.uniteam.gui.showtaskdetails.taskDetails
 import it.polito.uniteam.gui.statistics.StatisticsViewModel
 import it.polito.uniteam.gui.tasklist.TaskList
@@ -35,7 +37,10 @@ class Factory(context: Context): ViewModelProvider.Factory {
         StatisticsViewModel::class.java,
         YourTasksCalendarViewModel::class.java,
         OtherUserProfileScreen::class.java,
-        TeamDetailsViewModel::class.java
+        AvailabilityViewModel::class.java,
+        JoinViewModel::class.java,
+        TeamDetailsViewModel::class.java,
+        HomeViewModel::class.java
     )
 
     override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
