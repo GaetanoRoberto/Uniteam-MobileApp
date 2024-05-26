@@ -288,7 +288,7 @@ object DummyDataProvider {
                     id = ++historyId,
                     comment = "${member5.username} joined the team",
                     date = LocalDate.now().toString(),
-                    user = member
+                    user = member5
                 )
             )
         } else {

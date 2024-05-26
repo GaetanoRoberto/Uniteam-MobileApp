@@ -994,7 +994,7 @@ fun HistoryView(
                         OutlinedTextField(
                             label = {
                                 Text(
-                                    text = "",
+                                    text = history.user.username,
                                     style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)//testo
                                 )
                             },
