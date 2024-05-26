@@ -106,6 +106,7 @@ import it.polito.uniteam.Factory
 import it.polito.uniteam.R
 import it.polito.uniteam.UniTeamApplication
 import it.polito.uniteam.UniTeamModel
+import it.polito.uniteam.classes.History
 import it.polito.uniteam.classes.HourMinutesPicker
 import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.MemberIcon
@@ -135,15 +136,23 @@ import it.polito.uniteam.gui.yourTasksCalendar.YourTasksCalendarViewModel
 import it.polito.uniteam.isVertical
 import it.polito.uniteam.ui.theme.Orange
 import java.io.File
+import java.time.LocalDate
 import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
 
 class TeamDetailsViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHandle): ViewModel() {
     // from model
+    val member = model.loggedMember
     var selectedTeam = mutableStateOf( model.selectedTeam)
     //val teamId = checkNotNull(savedStateHandle["teamId"]).toString().toInt()
     val teamId = 1
-    val history = model.getAllHistories().filter { it.first.id == teamId }[0].second
+    var history = model.getAllHistories().filter { it.first.id == teamId }[0].second
+    fun refreshHistory(){
+        history = model.getAllHistories().filter { it.first.id == teamId }[0].second
+    }
+    fun addTeamHistory(teamId: Int, history: History){
+        model.addTeamHistory(teamId, history)
+    }
     // internal
     var teamNameError by mutableStateOf("")
         private set
@@ -337,6 +346,7 @@ fun TeamViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalC
                                 DefaultImageForTeamScreen(vm)
                             }
                             //Spacer(modifier = Modifier.height(0.dp))
+
                             TeamDetailsView(customHeightForHistory = 0.3f)
 
                         }
@@ -792,7 +802,12 @@ val selectedTeam = vm.selectedTeam.value
                                 Button( colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
                                     vm.validate()
                                     if (vm.teamNameError == "" && vm.descriptionError == "") {
-
+                                        if(vm.newTeam){
+                                            vm.addTeamHistory(vm.teamId, History(comment = "Team created successfully", date = LocalDate.now().toString(), user = vm.member.value))
+                                            vm.teamCreation(false)
+                                        }else{
+                                            vm.addTeamHistory(vm.teamId, History(comment = "Team details updated", date = LocalDate.now().toString(), user = vm.member.value))
+                                        }
                                         vm.changeEditing()
                                         /*navController.navigate("Tasks"){
                                             popUpTo(navController.graph.findStartDestination().id) {
@@ -863,8 +878,16 @@ val selectedTeam = vm.selectedTeam.value
                             Button(colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
                                 vm.validate()
                                 if (vm.teamNameError == "" && vm.descriptionError == "" ) {
+                                    if(vm.newTeam){
+                                        vm.addTeamHistory(vm.teamId, History(comment = "Team created successfully", date = LocalDate.now().toString(), user = vm.member.value))
+                                        vm.teamCreation(false)
+                                    }else{
+                                        vm.addTeamHistory(vm.teamId, History(comment = "Team details updated", date = LocalDate.now().toString(), user = vm.member.value))
+                                    }
+
 
                                     vm.changeEditing()
+
                                     /*navController.navigate("Tasks"){
                                         popUpTo(navController.graph.findStartDestination().id) {
                                             saveState = true

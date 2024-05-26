@@ -229,6 +229,7 @@ class UniTeamModel {
 
     fun addTeamHistory(teamId: Int, history: History) {
         getTeam(teamId).teamHistory.add(history)
+
     }
 
     fun addTaskHistory(taskId: Int, history: History) {
