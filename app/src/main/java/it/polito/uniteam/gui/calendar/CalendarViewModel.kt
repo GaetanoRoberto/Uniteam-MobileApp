@@ -19,6 +19,11 @@ import java.util.stream.Collectors
 import java.util.stream.Stream
 
 class Calendar(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
+
+    private val teamId: String = checkNotNull(savedStateHandle["teamId"])
+
+    fun getTeam(teamId: Int) = model.getTeam(teamId)
+
     var memberProfile = model.loggedMember.value
         private set
 
@@ -82,10 +87,11 @@ class Calendar(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) 
         // get logged in user
         memberProfile = model.loggedMember.value
         // get task to assign and filter them based on the user
-        tasksToAssign = DummyDataProvider.getTasksToAssign().toMutableStateList()
+        val teamTasks = getTeam(teamId.toInt()).tasks
+        tasksToAssign = teamTasks.toMutableStateList()
         tasksToAssign = tasksToAssign.filter { it.members.contains(memberProfile) && it.status != Status.COMPLETED }.toMutableStateList()
-        val tasks = DummyDataProvider.getScheduledTasks()
-        tasks.forEach { task ->
+        //val tasks = DummyDataProvider.getScheduledTasks()
+        teamTasks.forEach { task ->
             allScheduledTasks.add(task)
             viewedScheduledTasks.add(task)
         }

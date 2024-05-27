@@ -178,7 +178,7 @@ fun UserItem(member: Member,vm : ChatListViewModel) {
             .fillMaxWidth()
             .padding(2.dp)// LEVA SE VUOI UNIRE LE RIGHE
             .background(MaterialTheme.colorScheme.secondary)
-            .clickable { /*TODO*/ }
+            .clickable(onClick = { navController.navigate("OtherUserProfile/${member.id}") })
             .padding(16.dp)
             //.height((LocalConfiguration.current.screenHeightDp * 0.2).dp)
         ,

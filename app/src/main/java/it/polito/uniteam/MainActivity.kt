@@ -355,7 +355,7 @@ class MainActivity : ComponentActivity() {
                                                             )
                                                         )
                                                     }
-                                                    composable("Calendar") {
+                                                    composable("Calendar/{teamId}") {
                                                         CalendarAppContainer(
                                                             vm = viewModel(
                                                                 factory = Factory(LocalContext.current)

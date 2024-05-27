@@ -1112,7 +1112,7 @@ fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Coroutin
                 Icon(
                     painter = painterResource(id = R.drawable.calendar),
                     contentDescription = "Access calendar",
-                    modifier = Modifier.size(36.dp)
+                    modifier = Modifier.size(36.dp).clickable { navController.navigate("Calendar/1") }
                 )
             }
             Spacer(modifier = Modifier.padding(10.dp))
@@ -1459,7 +1459,7 @@ fun HorizontalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Corout
                     Icon(
                         painter = painterResource(id = R.drawable.calendar),
                         contentDescription = "Access calendar",
-                        modifier = Modifier.size(36.dp)
+                        modifier = Modifier.size(36.dp).clickable { navController.navigate("Calendar/1") }
                     )
                 }
                 Spacer(modifier = Modifier.padding(10.dp))

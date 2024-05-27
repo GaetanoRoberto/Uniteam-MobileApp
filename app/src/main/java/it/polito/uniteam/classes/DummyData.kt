@@ -216,12 +216,12 @@ object DummyDataProvider {
                 priority = Priority.HIGH
                 creationDate = LocalDate.now().minusDays(3)
                 deadline = LocalDate.now().plusDays(3)
-                estimatedTime = Pair(5, 0)
+                estimatedTime = Pair(5,0)
                 spentTime = hashMapOf(member4 to Pair(2, 0))
                 status = Status.IN_PROGRESS
                 repetition = Repetition.NONE
                 members = listOf(member4, member5, member6)
-                schedules = hashMapOf(Pair(member4,getDate(DayOfWeek.TUESDAY)) to Pair(5, 0))
+                schedules = hashMapOf(Pair(member4,getDate(DayOfWeek.TUESDAY)) to Pair(5,0))
             },
             Task().apply {
                 id = ++taskId
@@ -231,12 +231,12 @@ object DummyDataProvider {
                 priority = Priority.MEDIUM
                 creationDate = LocalDate.now().minusDays(3)
                 deadline = LocalDate.now().plusDays(4)
-                estimatedTime = Pair(4, 0)
-                spentTime = hashMapOf(member1 to Pair(1, 35),member2 to Pair(3, 0))
-                status = Status.COMPLETED
+                estimatedTime = Pair(4,0)
+                spentTime = hashMapOf(member1 to Pair(1, 0))
+                status = Status.IN_PROGRESS
                 repetition = Repetition.WEEKLY
                 members = listOf(member1, member2)
-                schedules = hashMapOf(Pair(member1,getDate(DayOfWeek.WEDNESDAY)) to Pair(4, 0))
+                schedules = hashMapOf(Pair(DummyDataProvider.member2,getDate(DayOfWeek.WEDNESDAY)) to Pair(4,0), Pair(member1,getDate(DayOfWeek.WEDNESDAY)) to Pair(4,0))
             },
             Task().apply {
                 id = ++taskId
@@ -246,12 +246,54 @@ object DummyDataProvider {
                 priority = Priority.LOW
                 creationDate = LocalDate.now().minusDays(3)
                 deadline = LocalDate.now().plusDays(5)
-                estimatedTime = Pair(3, 0)
+                estimatedTime = Pair(3,0)
                 spentTime = hashMapOf(member3 to Pair(2, 0))
                 status = Status.IN_PROGRESS
                 repetition = Repetition.DAILY
                 members = listOf(member3, member4)
-                schedules = hashMapOf(Pair(member3,getDate(DayOfWeek.FRIDAY)) to Pair(3, 0))
+                schedules = hashMapOf(Pair(member3,getDate(DayOfWeek.FRIDAY)) to Pair(3,0))
+            },
+            Task().apply {
+                id = ++taskId
+                name = "Task4"
+                description = "Description1"
+                category = Category.MEETING
+                priority = Priority.HIGH
+                creationDate = LocalDate.now().minusDays(3)
+                deadline = LocalDate.now().plusDays(6)
+                estimatedTime = Pair(8,0)
+                spentTime = hashMapOf(member1 to Pair(2, 0))
+                status = Status.IN_PROGRESS
+                repetition = Repetition.WEEKLY
+                members = listOf(member1, member2)
+            },
+            Task().apply {
+                id = ++taskId
+                name = "Task5"
+                description = "Description2"
+                category = Category.PROGRAMMING
+                priority = Priority.MEDIUM
+                creationDate = LocalDate.now().minusDays(3)
+                deadline = LocalDate.now().plusDays(7)
+                estimatedTime = Pair(10,0)
+                spentTime = hashMapOf(member3 to Pair(3, 0))
+                status = Status.TODO
+                repetition = Repetition.DAILY
+                members = listOf(member3, member4)
+            },
+            Task().apply {
+                id = ++taskId
+                name = "Task6"
+                description = "Description3"
+                category = Category.DESIGN
+                priority = Priority.LOW
+                creationDate = LocalDate.now().minusDays(3)
+                deadline = LocalDate.now().plusDays(8)
+                estimatedTime = Pair(5,0)
+                spentTime = hashMapOf(member5 to Pair(2,0))
+                status = Status.TODO
+                repetition = Repetition.NONE
+                members = listOf(member5, member6)
             }
         )
     }
@@ -356,147 +398,5 @@ object DummyDataProvider {
     }
     private fun getDate(day: DayOfWeek): LocalDate {
         return LocalDate.now().with(TemporalAdjusters.nextOrSame(day))
-    }
-
-    fun getTasksToAssign(): List<Task> {
-        return listOf(
-            Task().apply {
-                id = 1
-                name = "Task1"
-                description = "Description1"
-                category = Category.MEETING
-                priority = Priority.HIGH
-                creationDate = LocalDate.now().minusDays(3)
-                deadline = LocalDate.now().plusDays(3)
-                estimatedTime = Pair(5,0)
-                spentTime = hashMapOf(member4 to Pair(2, 0))
-                status = Status.IN_PROGRESS
-                repetition = Repetition.NONE
-                members = listOf(member4, member5, member6)
-                schedules = hashMapOf(Pair(member4,getDate(DayOfWeek.TUESDAY)) to Pair(5,0))
-            },
-            Task().apply {
-                id = 2
-                name = "Task2"
-                description = "Description2"
-                category = Category.PROGRAMMING
-                priority = Priority.MEDIUM
-                creationDate = LocalDate.now().minusDays(3)
-                deadline = LocalDate.now().plusDays(4)
-                estimatedTime = Pair(4,0)
-                spentTime = hashMapOf(member1 to Pair(1, 0))
-                status = Status.IN_PROGRESS
-                repetition = Repetition.WEEKLY
-                members = listOf(member1, member2)
-                schedules = hashMapOf(Pair(member1,getDate(DayOfWeek.WEDNESDAY)) to Pair(4,0))
-            },
-            Task().apply {
-                id = 3
-                name = "Task3"
-                description = "Description3"
-                category = Category.DESIGN
-                priority = Priority.LOW
-                creationDate = LocalDate.now().minusDays(3)
-                deadline = LocalDate.now().plusDays(5)
-                estimatedTime = Pair(3,0)
-                spentTime = hashMapOf(member3 to Pair(2, 0))
-                status = Status.IN_PROGRESS
-                repetition = Repetition.DAILY
-                members = listOf(member3, member4)
-                schedules = hashMapOf(Pair(member3,getDate(DayOfWeek.FRIDAY)) to Pair(3,0))
-            },
-            Task().apply {
-                id = 4
-                name = "Task4"
-                description = "Description1"
-                category = Category.MEETING
-                priority = Priority.HIGH
-                creationDate = LocalDate.now().minusDays(3)
-                deadline = LocalDate.now().plusDays(6)
-                estimatedTime = Pair(8,0)
-                spentTime = hashMapOf(member1 to Pair(2, 0))
-                status = Status.IN_PROGRESS
-                repetition = Repetition.WEEKLY
-                members = listOf(member1, member2)
-            },
-            Task().apply {
-                id = 5
-                name = "Task5"
-                description = "Description2"
-                category = Category.PROGRAMMING
-                priority = Priority.MEDIUM
-                creationDate = LocalDate.now().minusDays(3)
-                deadline = LocalDate.now().plusDays(7)
-                estimatedTime = Pair(10,0)
-                spentTime = hashMapOf(member3 to Pair(3, 0))
-                status = Status.TODO
-                repetition = Repetition.DAILY
-                members = listOf(member3, member4)
-            },
-            Task().apply {
-                id = 6
-                name = "Task6"
-                description = "Description3"
-                category = Category.DESIGN
-                priority = Priority.LOW
-                creationDate = LocalDate.now().minusDays(3)
-                deadline = LocalDate.now().plusDays(8)
-                estimatedTime = Pair(5,0)
-                spentTime = hashMapOf(member5 to Pair(2,0))
-                status = Status.TODO
-                repetition = Repetition.NONE
-                members = listOf(member5, member6)
-            }
-        )
-    }
-
-    fun getScheduledTasks(): List<Task> {
-        return listOf(
-            Task().apply {
-                id =1
-                name = "Task1"
-                description = "Description1"
-                category = Category.MEETING
-                priority = Priority.HIGH
-                creationDate = LocalDate.now().minusDays(3)
-                deadline = LocalDate.now().plusDays(3)
-                estimatedTime = Pair(5,0)
-                spentTime = hashMapOf(member4 to Pair(2,0))
-                status = Status.IN_PROGRESS
-                repetition = Repetition.NONE
-                members = listOf(member4, member5, member6)
-                schedules = hashMapOf(Pair(member4,getDate(DayOfWeek.TUESDAY)) to Pair(5,0))
-            },
-            Task().apply {
-                id = 2
-                name = "Task2"
-                description = "Description2"
-                category = Category.PROGRAMMING
-                priority = Priority.MEDIUM
-                creationDate = LocalDate.now().minusDays(3)
-                deadline = LocalDate.now().plusDays(4)
-                estimatedTime = Pair(4,0)
-                spentTime = hashMapOf(member2 to Pair(1,0))
-                status = Status.IN_PROGRESS
-                repetition = Repetition.WEEKLY
-                members = listOf(member1, member2)
-                schedules = hashMapOf(Pair(member2,getDate(DayOfWeek.WEDNESDAY)) to Pair(4,0))
-            },
-            Task().apply {
-                id = 3
-                name = "Task3"
-                description = "Description3"
-                category = Category.DESIGN
-                priority = Priority.LOW
-                creationDate = LocalDate.now().minusDays(3)
-                deadline = LocalDate.now().plusDays(5)
-                estimatedTime = Pair(3,0)
-                spentTime = hashMapOf(member3 to Pair(2,0))
-                status = Status.IN_PROGRESS
-                repetition = Repetition.DAILY
-                members = listOf(member3, member4)
-                schedules = hashMapOf(Pair(member3,getDate(DayOfWeek.FRIDAY)) to Pair(3,0))
-            }
-        )
     }
 }
