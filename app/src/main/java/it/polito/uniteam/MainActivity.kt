@@ -348,7 +348,7 @@ class MainActivity : ComponentActivity() {
                                                             )
                                                         )
                                                     }
-                                                    composable("AllTasks") {
+                                                    composable("Task/{taskId}") {
                                                         TaskScreen(
                                                             vm = viewModel(
                                                                 factory = Factory(LocalContext.current)

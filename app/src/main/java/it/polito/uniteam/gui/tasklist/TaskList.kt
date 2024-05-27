@@ -1020,7 +1020,7 @@ fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Coroutin
                 modifier = Modifier.weight(1f)
             )
             FilledTonalButton(
-                onClick = {navController.navigate("AllTasks"){
+                onClick = {navController.navigate("Task/0"){
                     /*popUpTo(navController.graph.findStartDestination().id) {
                         saveState = true
                     }*/
@@ -1152,7 +1152,7 @@ fun VerticalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Coroutin
             LazyColumn {
                 items(vm.filteredTasksList.value) { task ->
                     ListItem(
-                        modifier = Modifier.clickable { /*TODO*/ },
+                        modifier = Modifier.clickable { navController.navigate("Task/${task.id}") },
                         headlineContent = {
                             Text(
                                 task.name,
@@ -1497,7 +1497,7 @@ fun HorizontalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Corout
                     modifier = Modifier.weight(1f)
                 )
                 FilledTonalButton(
-                    onClick = {navController.navigate("Tasks"){
+                    onClick = {navController.navigate("Task/0"){
                         /*popUpTo(navController.graph.findStartDestination().id) {
                             saveState = true
                         }*/
@@ -1538,7 +1538,7 @@ fun HorizontalTaskListView(vm: TaskList, drawerState: DrawerState, scope: Corout
                 LazyColumn {
                     items(vm.filteredTasksList.value) { task ->
                         ListItem(
-                            modifier = Modifier.clickable { /*TODO*/ },
+                            modifier = Modifier.clickable { navController.navigate("Task/${task.id}") },
                             headlineContent = {
                                 Text(
                                     task.name,
