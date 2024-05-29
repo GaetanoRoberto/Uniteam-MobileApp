@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.CreationExtras
-import it.polito.uniteam.gui.TeamDetails.TeamDetailsViewModel
+import it.polito.uniteam.gui.teamDetails.TeamDetailsViewModel
 import it.polito.uniteam.gui.availability.AvailabilityViewModel
 import it.polito.uniteam.gui.availability.JoinViewModel
 import it.polito.uniteam.gui.calendar.Calendar
@@ -17,7 +17,7 @@ import it.polito.uniteam.gui.home.HomeViewModel
 import it.polito.uniteam.gui.notifications.NotificationsViewModel
 import it.polito.uniteam.gui.showtaskdetails.taskDetails
 import it.polito.uniteam.gui.statistics.StatisticsViewModel
-import it.polito.uniteam.gui.tasklist.TaskList
+import it.polito.uniteam.gui.teamScreen.TeamScreenViewModel
 import it.polito.uniteam.gui.userprofile.OtherUserProfileScreen
 import it.polito.uniteam.gui.userprofile.UserProfileScreen
 import it.polito.uniteam.gui.yourTasksCalendar.YourTasksCalendarViewModel
@@ -29,7 +29,7 @@ class Factory(context: Context): ViewModelProvider.Factory {
     private val viewModelClasses = arrayOf(
         Calendar::class.java,
         taskDetails::class.java,
-        TaskList::class.java,
+        TeamScreenViewModel::class.java,
         UserProfileScreen::class.java,
         NotificationsViewModel::class.java,
         ChatViewModel::class.java,

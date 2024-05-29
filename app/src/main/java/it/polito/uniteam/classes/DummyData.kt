@@ -383,7 +383,7 @@ object DummyDataProvider {
             }
             val team = Team(
                 id = ++teamId,
-                name = "Team $i",
+                name = "Team ${i+1}",
                 description = "Description for Team $i",
                 image = Uri.EMPTY,
                 creationDate = LocalDate.now(),

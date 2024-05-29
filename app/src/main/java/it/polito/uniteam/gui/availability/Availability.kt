@@ -28,6 +28,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,6 +57,9 @@ import kotlin.enums.EnumEntries
 class AvailabilityViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHandle): ViewModel() {
     val teamId: String = checkNotNull(savedStateHandle["teamId"])
     val teamName = model.getTeam(teamId.toInt()).name
+    init {
+        Log.i("updateTeamInfo", model.loggedMember.value.toString())
+    }
     var role by mutableStateOf(model.loggedMember.value.teamsInfo?.get(teamId.toInt())?.role)
         private set
 
@@ -141,7 +145,7 @@ fun Availability(vm: AvailabilityViewModel = viewModel(factory = Factory(LocalCo
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Change your role and availability in the team: ${vm.teamName}",
+                        text = if (isVertical()) "Change your role and availability in the team:\n ${vm.teamName}" else "Change your role and availability in the team: ${vm.teamName}",
                         style = MaterialTheme.typography.headlineSmall,
                         textAlign = TextAlign.Center
                     )

@@ -153,7 +153,7 @@ fun Home(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current)))
                                         .verticalScroll(scrollState)
                                 else
                                     Modifier
-                                        .fillMaxHeight(0.6f)
+                                        .fillMaxHeight(0.75f)
                                         .verticalScroll(scrollState)
                             ) {
                                 vm.membersList.forEach { member ->
@@ -191,7 +191,7 @@ fun Home(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current)))
                                                 }
                                             }
                                         )
-                                        Text(member.fullName, textAlign = TextAlign.Center)
+                                        Text(member.username, textAlign = TextAlign.Center)
                                     }
                                 }
                                 HorizontalDivider(
@@ -375,13 +375,14 @@ fun Home(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current)))
                     Scaffold(
                         floatingActionButton = {
                             FloatingActionButton(
-                                onClick = { /*TODO*/ },
+                                onClick = { navController.navigate("TeamDetails") { launchSingleTop = true } },
                                 containerColor = MaterialTheme.colorScheme.primary
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Add,
                                     contentDescription = "Create new team",
-                                    tint = MaterialTheme.colorScheme.onSecondary
+                                    tint = MaterialTheme.colorScheme.onSecondary,
+                                    modifier = Modifier.size(30.dp)
                                 )
                             }
                         },
@@ -457,7 +458,7 @@ fun Home(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current)))
                                         },
                                         expanded = false,
                                         onExpandedChange = { vm.expandedSearch = it },
-                                        modifier = Modifier.width((screenWeightDp * 0.7).dp)
+                                        modifier = Modifier.width((screenWeightDp * 0.8).dp)
                                     ) {}
                                     Spacer(modifier = Modifier.weight(1f))
                                     IconButton(
@@ -469,7 +470,7 @@ fun Home(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current)))
                                         Icon(
                                             painter = painterResource(id = R.drawable.filters),
                                             contentDescription = "Access filters",
-                                            modifier = Modifier.size(36.dp)
+                                            modifier = Modifier.size(30.dp)
                                         )
                                     }
                                 }
@@ -496,7 +497,7 @@ fun Home(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current)))
                                         LazyColumn {
                                             items(vm.filteredTeamsList.value) { team ->
                                                 ListItem(
-                                                    modifier = Modifier.clickable { /*TODO*/ },
+                                                    modifier = Modifier.clickable { navController.navigate("Team/${team.id}") { launchSingleTop = true } },
                                                     headlineContent = {
                                                         Text(
                                                             team.name,

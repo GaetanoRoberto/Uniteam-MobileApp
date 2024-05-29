@@ -58,7 +58,7 @@ fun Invitation(teamId: String, teamName: String) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Invite new members to join the team: $teamName",
+                    text = "Invite new members to join the team:\n $teamName",
                     style = MaterialTheme.typography.headlineSmall,
                     textAlign = TextAlign.Center
                 )
@@ -168,7 +168,7 @@ fun Invitation(teamId: String, teamName: String) {
             ) {
                 QrCodeView(
                     data = invitationLink,
-                    modifier = Modifier.size(150.dp),
+                    modifier = Modifier.size(200.dp),
                     colors = QrCodeColors(
                         background = Color.Black,
                         foreground = Color.White
