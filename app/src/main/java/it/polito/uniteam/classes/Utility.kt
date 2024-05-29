@@ -33,6 +33,7 @@ import coil.compose.rememberAsyncImagePainter
 import it.polito.uniteam.ui.theme.Orange
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.intl.LocaleList
@@ -40,6 +41,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.toUpperCase
 import java.util.Locale
 import it.polito.uniteam.NavControllerManager
+import it.polito.uniteam.R
 
 
 enum class Repetition{
@@ -138,15 +140,6 @@ fun TeamIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: Mo
                 contentScale = ContentScale.Crop
             )
         } else {
-            val initials = team.name.trim().split(' ');
-            var initialsValue = initials
-                .mapNotNull { it.firstOrNull()?.toString() }
-                .first().uppercase();
-            if (initials.size >= 2) {
-                initialsValue += initials
-                    .mapNotNull { it.firstOrNull()?.toString() }
-                    .last().uppercase()
-            }
             Box(
                 modifier = Modifier
                     .then(modifierPadding)
@@ -158,16 +151,12 @@ fun TeamIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: Mo
                         )
                     }
             ) {
-                Text(
-                    text = initialsValue,
-                    style = TextStyle(
-                        color = Color.White,
-                        fontSize = 13.sp,
-                        textAlign = TextAlign.Center,
-                    ),
-                    modifier = Modifier.align(Alignment.Center),
-                    maxLines = 1,
-                    overflow = TextOverflow.Clip
+                Image(
+                    painter = painterResource(id = R.drawable.people),
+                    contentDescription = "Image",
+                    modifier = Modifier
+                        //.padding(40.dp, 0.dp, 40.dp, 0.dp)
+                        .scale(1.5f)
                 )
             }
         }

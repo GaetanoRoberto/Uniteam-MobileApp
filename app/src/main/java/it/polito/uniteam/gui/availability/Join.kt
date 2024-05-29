@@ -132,7 +132,7 @@ fun Join(vm: JoinViewModel = viewModel(factory = Factory(LocalContext.current)))
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "${vm.loggedMember}, you are already a member of the team: ${vm.teamName}",
+                    text = if (isVertical()) "${vm.loggedMember}, you are already a member of the team:\n ${vm.teamName}" else "${vm.loggedMember}, you are already a member of the team: ${vm.teamName}",
                     style = MaterialTheme.typography.headlineSmall,
                     textAlign = TextAlign.Center
                 )

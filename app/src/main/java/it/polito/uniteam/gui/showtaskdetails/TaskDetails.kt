@@ -682,7 +682,7 @@ fun AssignMemberDialog(vm: taskDetails) {
                     TextButton(onClick = {
                         Log.i("diooo",selectedMembers.toString())
                         if(selectedMembers.all { !it.value }) {
-                            vm.membersError = "You Must Select at Least One Member."
+                            vm.membersError = "You Must Select at Least One Member"
                         } else {
                             vm.members.clear()
                             vm.members.addAll(selectedMembers.filterValues { it }.keys.toMutableStateList())

@@ -16,22 +16,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -40,12 +35,10 @@ import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -56,7 +49,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
@@ -73,16 +65,9 @@ import it.polito.uniteam.Factory
 import it.polito.uniteam.R
 import it.polito.uniteam.classes.Category
 import it.polito.uniteam.classes.Priority
-import it.polito.uniteam.classes.Repetition
 import it.polito.uniteam.classes.Status
-import it.polito.uniteam.gui.showtaskdetails.CustomDatePicker
 import it.polito.uniteam.gui.showtaskdetails.Demo_ExposedDropdownMenuBox
-import it.polito.uniteam.gui.tasklist.AssignDialog
-import it.polito.uniteam.gui.tasklist.ExpandableRow
-import it.polito.uniteam.gui.tasklist.HorizontalTaskListView
-import it.polito.uniteam.gui.tasklist.VerticalTaskListView
-import it.polito.uniteam.gui.tasklist.applyFilters
-import it.polito.uniteam.gui.tasklist.sortTasks
+import it.polito.uniteam.gui.teamScreen.ExpandableRow
 import it.polito.uniteam.isVertical
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -135,7 +120,7 @@ fun Statistics(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContex
                                         .verticalScroll(scrollState)
                                 else
                                     Modifier
-                                        .fillMaxHeight(0.6f)
+                                        .fillMaxHeight(0.75f)
                                         .verticalScroll(scrollState)
                             ) {
                                 ExpandableRow(
@@ -480,8 +465,6 @@ fun Statistics(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContex
                                         vm.teamTasks.value = vm.initialTeamTasks
                                         vm.teamMembers.value = vm.initialTeamMembers
                                         vm.selectedChartValue = ""
-                                        Log.i("TeamTasksReset", vm.teamTasks.value.toString())
-                                        Log.i("InitialReset", vm.initialTeamTasks.toString())
                                     }) {
                                     Text("Reset")
                                 }
@@ -495,14 +478,9 @@ fun Statistics(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContex
                                         "selectedPriority" to vm.selectedPriority,
                                         "selectedStatus" to vm.selectedStatus
                                     )
-                                    Log.i("initial", vm.initialTeamTasks.toString())
-                                    Log.i("TeamTasks", vm.teamTasks.value.toString())
                                     vm.teamTasks.value = vm.initialTeamTasks.filter { task ->
                                         vm.applyTasksFilters(task, vm.lastAppliedFilters.value)
                                     }
-                                    Log.i("TeamTasks", vm.teamTasks.value.toString())
-                                    Log.i("TeamTasksBefore", vm.initialTeamTasks.toString())
-
                                     vm.teamTasks.value = vm.teamTasks.value.map { t->
                                         val task = t.copy()
                                         val newSchedules = task.schedules.filter { (key,value) ->
@@ -519,9 +497,6 @@ fun Statistics(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContex
                                         task.schedules = newSchedules.toMap(HashMap())
                                         task
                                     }.filter { task -> task.schedules.isNotEmpty() }
-                                    Log.i("TeamTasks", vm.teamTasks.value.toString())
-                                    Log.i("TeamTasksAfter", vm.initialTeamTasks.toString())
-
                                     vm.teamMembers.value = vm.initialTeamMembers.filter { member ->
                                         vm.applyMembersFilters(member, vm.lastAppliedFilters.value)
                                     }
@@ -538,10 +513,12 @@ fun Statistics(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContex
             },
             content = { CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
                 //Resto della UI
-                if(isVertical()) {
-                    VerticalStatistics(vm = vm, scope = scope, drawerState = drawerState)
-                } else {
-                    HorizontalStatistics(vm = vm, scope = scope, drawerState = drawerState)
+                Box(modifier = Modifier.padding(8.dp, 8.dp, 8.dp, 0.dp)) {
+                    if (isVertical()) {
+                        VerticalStatistics(vm = vm, scope = scope, drawerState = drawerState)
+                    } else {
+                        HorizontalStatistics(vm = vm, scope = scope, drawerState = drawerState)
+                    }
                 }
             } }
         )
@@ -562,7 +539,7 @@ fun VerticalStatistics(vm: StatisticsViewModel = viewModel(factory = Factory(Loc
                 Icon(
                     painter = painterResource(id = R.drawable.filters),
                     contentDescription = "Access filters",
-                    modifier = Modifier.size(36.dp)
+                    modifier = Modifier.size(30.dp)
                 )
             }
         }
@@ -635,7 +612,7 @@ fun HorizontalStatistics(vm: StatisticsViewModel = viewModel(factory = Factory(L
                     Icon(
                         painter = painterResource(id = R.drawable.filters),
                         contentDescription = "Access filters",
-                        modifier = Modifier.size(36.dp)
+                        modifier = Modifier.size(30.dp)
                     )
                 }
             }
@@ -690,6 +667,7 @@ fun CustomDatePickerStatistics(
             .clickable { open.value = true },
         enabled = false,
         value = if (value == null) "" else value.format(DateTimeFormatter.ISO_DATE),
+        textStyle = MaterialTheme.typography.bodyMedium,
         onValueChange = {},
         trailingIcon = {
             Icon(

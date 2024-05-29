@@ -122,6 +122,8 @@ class UniTeamModel(val context: Context) {
             val updatedMember = member.copy(teamsInfo = HashMap(updatedTeamsInfo))
             Log.i("updateTeamInfo", updatedMember.toString())
             setLoggedMember(updatedMember)
+            Log.i("updateTeamInfo", loggedMember.value.toString())
+
         }
     }
     //To check if the logged member is already in a joining team
@@ -426,6 +428,13 @@ class UniTeamModel(val context: Context) {
     }
 
     fun deleteTeamMember(teamId: Int, memberId: Int) {
+        _teams.value.forEach { team ->
+            team.members.forEach { member ->
+                if (member.id == memberId) {
+                    member.teamsInfo?.remove(teamId)
+                }
+            }
+        }
         _teams.value.replaceAll {
             if (it.id == teamId) {
                 it.members = it.members.filter { it.id != memberId }
