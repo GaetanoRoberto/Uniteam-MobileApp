@@ -21,8 +21,8 @@ import java.util.stream.Stream
 class Calendar(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
 
     private val teamId: String = checkNotNull(savedStateHandle["teamId"])
-
     fun getTeam(teamId: Int) = model.getTeam(teamId)
+    val teamName = getTeam(teamId.toInt()).name
 
     var memberProfile = model.loggedMember.value
         private set

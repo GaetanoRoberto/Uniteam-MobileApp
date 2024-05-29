@@ -16,8 +16,8 @@ data class Task (
     var repetition: Repetition = Repetition.NONE,
     var members: List<Member> = emptyList(),
     var schedules: HashMap<Pair<Member,LocalDate>,Pair<Int,Int>> = hashMapOf(),
-    var taskFiles: List<File> = emptyList(),
-    var taskComments: List<Comment> = emptyList(),
+    var taskFiles: MutableList<File> = mutableListOf(),
+    var taskComments: MutableList<Comment> = mutableListOf(),
     var taskHistory: MutableList<History> = mutableListOf()
 ) {
     override fun toString(): String {

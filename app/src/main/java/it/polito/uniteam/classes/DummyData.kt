@@ -298,8 +298,8 @@ object DummyDataProvider {
         )
     }
 
-    private fun getComments(member1: Member, member2: Member): List<Comment> {
-        return listOf(
+    private fun getComments(member1: Member, member2: Member): MutableList<Comment> {
+        return mutableListOf(
             Comment(
                 id = ++commentId,
                 user = member1,
@@ -351,8 +351,8 @@ object DummyDataProvider {
         }
     }
 
-    private fun getFiles(member: Member): List<File> {
-        return listOf(
+    private fun getFiles(member: Member): MutableList<File> {
+        return mutableListOf(
             File(
                 id = ++fileId,
                 user = member,

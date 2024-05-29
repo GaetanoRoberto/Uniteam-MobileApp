@@ -29,8 +29,12 @@ import java.util.Locale
 
 @SuppressLint("MutableCollectionMutableState")
 class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
+    private val taskId: String = checkNotNull(savedStateHandle["taskId"])
+    fun getTask(taskId: Int) = model.getTask(taskId)
+    fun getTeamRelatedToTask(taskId: Int) = model.getTeamRelatedToTask(taskId)
 
-    var taskName by mutableStateOf("Task Name value")
+    private val task = getTask(taskId.toInt())
+    var taskName by mutableStateOf(task?.name ?: "")
         private set
     var taskError by mutableStateOf("")
         private set
@@ -47,7 +51,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
     }
 
 
-    var description by mutableStateOf("Description value")
+    var description by mutableStateOf(task?.description ?: "")
         private set
     var descriptionError by mutableStateOf("")
         private set
@@ -64,7 +68,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
     }
 
 
-    var category by mutableStateOf(Category.NONE.toString())
+    var category by mutableStateOf(task?.category?.toString() ?: Category.NONE.toString())
         private set
     val categoryValues = Category.entries.map { it.toString() }
     var categoryError by mutableStateOf("")
@@ -82,7 +86,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
     }
 
 
-    var priority by mutableStateOf(Priority.LOW.toString())
+    var priority by mutableStateOf(task?.priority?.toString() ?: Priority.LOW.toString())
         private set
     val priorityValues = Priority.entries.map { it.toString() }
     var priorityError by mutableStateOf("")
@@ -92,7 +96,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
         priority = s
     }
 
-    var deadline by mutableStateOf(LocalDate.now().toString())
+    var deadline by mutableStateOf(task?.deadline?.toString() ?: LocalDate.now().toString())
         private set
     var deadlineError by mutableStateOf("")
         private set
@@ -114,7 +118,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
     }
 
 
-    var status by mutableStateOf(Status.TODO.toString())
+    var status by mutableStateOf(task?.status?.toString() ?: Status.TODO.toString())
         private set
     var stateError by mutableStateOf("")
         private set
@@ -127,9 +131,9 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
         listOf(Status.TODO.toString(), "IN PROGRESS", Status.COMPLETED.toString())
 
 
-    var estimatedHours = mutableStateOf("1")
+    var estimatedHours = mutableStateOf(task?.estimatedTime?.first.toString() ?: "0")
         private set
-    var estimatedMinutes = mutableStateOf("0")
+    var estimatedMinutes = mutableStateOf(task?.estimatedTime?.second.toString() ?: "0")
         private set
     var estimatedTimeError = mutableStateOf("")
         private set
@@ -152,7 +156,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
         }
     }
 
-    var spentTime = mutableMapOf(DummyDataProvider.member1 to Pair(2,20))
+    var spentTime = task?.spentTime?.toMutableMap() ?: mutableMapOf()
         private set
 
     fun addSpentTime(member: Member, time: Pair<Int,Int>) {
@@ -166,9 +170,9 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
         }
         Log.i("diooo",spentTime.toString())
     }
-    var spentHours = mutableStateOf("0")
+    var spentHours = mutableStateOf(task?.spentTime?.values?.sumOf { it.first }?.toString() ?: "0")
         private set
-    var spentMinutes = mutableStateOf("0")
+    var spentMinutes = mutableStateOf(task?.spentTime?.values?.sumOf { it.second }?.toString() ?: "0")
         private set
     var spentTimeError = mutableStateOf("")
         private set
@@ -194,15 +198,8 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
         }
     }
 
-    var possibleMembers = mutableStateListOf<Member>(
-        DummyDataProvider.member1,
-        DummyDataProvider.member2,
-        DummyDataProvider.member3,
-        DummyDataProvider.member4,
-        DummyDataProvider.member5,
-        DummyDataProvider.member6
-    )
-    var members = mutableStateListOf<Member>(possibleMembers[0],possibleMembers[1])
+    var possibleMembers = getTeamRelatedToTask(taskId.toInt())?.members?.toMutableStateList() ?: mutableStateListOf()
+    var members = task?.members?.toMutableStateList() ?: mutableStateListOf()
 
     var openAssignDialog = mutableStateOf(false)
     var membersError by mutableStateOf("")
@@ -224,7 +221,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
     }
 
 
-    var repeatable by mutableStateOf(Repetition.NONE.toString())
+    var repeatable by mutableStateOf(task?.repetition?.toString() ?: Repetition.NONE.toString())
         private set
     val repeatableValues = Repetition.entries.map { it.toString() }
 
@@ -410,12 +407,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
     val member = model.loggedMember.value
     val dummyMembers = DummyDataProvider.getMembers()
 
-    var comments = mutableStateListOf(
-        Comment(++localId,dummyMembers[0], "Ciao", "2024-02-05", "18:31"),
-        Comment(++localId,dummyMembers[1], "Ciao", "2024-02-05", "18:40"),
-        Comment(++localId,dummyMembers[2], "Ciao", "2024-02-06", "18:31"),
-        Comment(++localId,dummyMembers[3], "Ciao", "2024-02-07", "18:50")
-    )
+    var comments = task?.taskComments?.toMutableStateList() ?: mutableStateListOf()
     var addComment by mutableStateOf(Comment(++localId,member, "", "", ""))
 
     fun changeAddComment(s: String) {

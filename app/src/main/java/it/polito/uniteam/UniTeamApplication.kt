@@ -55,5 +55,10 @@ class Factory(context: Context): ViewModelProvider.Factory {
 
 class UniTeamApplication: Application() {
     // one model will be created and stored in application object when process begins
-    val model = UniTeamModel()
+    lateinit var model : UniTeamModel
+
+    override fun onCreate() {
+        super.onCreate()
+        model = UniTeamModel(this)
+    }
 }

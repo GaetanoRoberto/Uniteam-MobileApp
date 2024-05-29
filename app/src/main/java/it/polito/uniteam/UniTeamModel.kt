@@ -1,5 +1,6 @@
 package it.polito.uniteam
 
+import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.getValue
@@ -7,8 +8,15 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
+import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import it.polito.uniteam.classes.Chat
+import it.polito.uniteam.classes.Comment
 import it.polito.uniteam.classes.DummyDataProvider
+import it.polito.uniteam.classes.File
 import it.polito.uniteam.classes.History
 import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.MemberTeamInfo
@@ -23,8 +31,17 @@ import java.util.HashMap
 import kotlin.math.log
 
 
-class UniTeamModel {
-
+class UniTeamModel(val context: Context) {
+    init {
+        FirebaseApp.initializeApp(context)
+        // TODO better with await in a suspend fun
+        FirebaseAuth.getInstance().signInAnonymously().addOnSuccessListener {
+            user = it.user!!
+            Log.i("User",user.uid.toString())
+        }
+    }
+    val db = Firebase.firestore
+    lateinit var user : FirebaseUser
     var membersList = mutableListOf<Member>(
         Member().apply {
             id = 1
@@ -242,12 +259,30 @@ class UniTeamModel {
         getTask(taskId)?.taskHistory?.add(history)
     }
 
+    fun addTaskComment(taskId: Int, comment: Comment) {
+        getTask(taskId)?.taskComments?.add(comment)
+    }
+
+    fun addTaskFile(taskId: Int, file: File) {
+        getTask(taskId)?.taskFiles?.add(file)
+    }
+
     fun getTask(taskId: Int): Task? {
         _teams.value.forEach { team ->
             team.tasks.forEach { task ->
                 if (task.id == taskId) {
                     return task
                 }
+            }
+        }
+        return null
+    }
+
+    fun getTeamRelatedToTask(taskId: Int): Team? {
+        _teams.value.forEach { team->
+            team.tasks.forEach { task->
+                if(task.id == taskId)
+                    return team
             }
         }
         return null

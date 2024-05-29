@@ -176,7 +176,7 @@ fun VerticalHeader(
     ) {
         Row {
             TextTrim(
-                inputText = "Team #1 - Tasks",
+                inputText = "${vm.teamName} - Tasks",
                 desiredLength = 20,
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
