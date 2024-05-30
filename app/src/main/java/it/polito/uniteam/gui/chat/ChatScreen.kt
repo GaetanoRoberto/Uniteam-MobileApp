@@ -1,4 +1,5 @@
 package it.polito.uniteam.gui.chat
+import android.util.Log
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -141,7 +142,7 @@ fun ChatRowDirect(
     val loggedMember = vm.getLoggedMember()
     val isSender = message.senderId == loggedMember.id
     val alignment = if (isSender) Alignment.End else Alignment.Start
-    vm.markUserMessageAsRead(loggedMember!!.id, message)
+    vm.markUserMessageAsRead( message)
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -151,7 +152,7 @@ fun ChatRowDirect(
                 Box(
                     modifier = Modifier
                         .background(
-                            if (message.senderId == loggedMember?.id) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer,
+                            if (message.senderId == loggedMember.id) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer,
                             RoundedCornerShape(30.dp)
                         ),
                     contentAlignment = Center
@@ -242,7 +243,6 @@ fun ChatRowTeam(
 fun ChatHeader(
     vm: ChatViewModel
 ) {
-
     val text = if (vm.chat.teamId != null) vm.teamName else vm.chat.receiver?.fullName
     Row(
         modifier = Modifier

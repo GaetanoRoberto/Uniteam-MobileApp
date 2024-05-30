@@ -1,6 +1,7 @@
 package it.polito.uniteam.classes
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.toMutableStateList
 import java.time.DayOfWeek
@@ -12,7 +13,7 @@ object DummyDataProvider {
     private var memberId: Int = 0
     private var taskId: Int = 0
     private var teamId: Int = 0
-    private var chatId: Int = 0
+    private var chatId: Int = 6
     private var historyId: Int = 0
     private var messageId: Int = 0
     private var fileId: Int = 0
@@ -390,8 +391,14 @@ object DummyDataProvider {
                 members = mutableListOf(member1, member2,member3, member4, member5, member6),
                 tasks = tasks.toMutableList(),
                 teamHistory = getHistory(members[i],isTeamHistory = true),
-                chat = if (i == 0) groupChat1 else if (i==1) groupChat2 else null
+                chat = if (i == 0) groupChat1 else if (i==1) groupChat2 else Chat(
+                    id = ++chatId,
+                    sender = member1,
+                    teamId = teamId,
+                    messages = mutableStateListOf()
+                )
             )
+            allChats.add(team.chat!!)
             teams.add(team)
         }
         return teams

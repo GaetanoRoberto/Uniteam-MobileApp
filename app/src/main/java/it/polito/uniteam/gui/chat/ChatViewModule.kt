@@ -75,28 +75,25 @@ class ChatViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHan
                 it.membersUnread.remove(memberId)
             }
         }
-        Log.d("ChatViewModel" ,"${message.membersUnread}" ,     )
-        chat.messages.find { it.id == message.id }?.membersUnread?.remove(memberId)
-        Log.d("ChatViewModel ", "${message.membersUnread}" , )
+        //Log.d("ChatViewModel" ,"${message.membersUnread}" ,     )
+        //chat.messages.find { it.id == message.id }?.membersUnread?.remove(memberId)
+        //Log.d("ChatViewModel ", "${message.membersUnread}" , )
 
     }
 
-
-    fun markUserMessageAsRead(memberId: Int, message: Message) {
-        if (message.status == messageStatus.UNREAD/* && message.senderId == memberId*/) {
+    fun markUserMessageAsRead( message: Message) {
+        if (message.status == messageStatus.UNREAD) {
             message.status = messageStatus.READ
         }
     }
-    /*
-    fun addMessage(message:Message) {
-        val member = getMemberById(message.senderId)
-        val chat = model.getUsersChat(member!!)
-        chat?.messages?.add(message)
+    /*fun markUserMessageAsRead(memberId: Int, message: Message) {
+        if (message.status == messageStatus.UNREAD/* && message.senderId == memberId*/) {
+            message.status = messageStatus.READ
+        }
     }*/
 
 
 }
 
-// DA QUI
 
 
