@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "978760585545",
+    "project_id": "uniteam-68729",
+    "storage_bucket": "uniteam-68729.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:978760585545:android:9dd26ed093f188f9ad8a98",
+        "android_client_info": {
+          "package_name": "it.polito.uniteam"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBrLVUZ6q_uWX_UU_112FRnz4lWG96qOyA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
