@@ -657,8 +657,9 @@ fun AlertDialogExample(
     onConfirmation: () -> Unit
 ) {
     AlertDialog(
+        containerColor = MaterialTheme.colorScheme.background,
         icon = {
-            Icon(Icons.Default.Info, contentDescription = "Example Icon")
+            Icon(Icons.Default.Info, contentDescription = "Example Icon", tint = MaterialTheme.colorScheme.onPrimary)
         },
         text = {
             Text(text = "Are you Sure to Remove the Profile Image ?",color = MaterialTheme.colorScheme.onPrimary)
@@ -672,7 +673,7 @@ fun AlertDialogExample(
                     onConfirmation()
                 }
             ) {
-                Text("Confirm",color = MaterialTheme.colorScheme.onPrimary)
+                Text("Confirm",color = MaterialTheme.colorScheme.primary)
             }
         },
         dismissButton = {
@@ -681,7 +682,7 @@ fun AlertDialogExample(
                     onDismissRequest()
                 }
             ) {
-                Text("Undo",color = MaterialTheme.colorScheme.onPrimary)
+                Text("Undo",color = MaterialTheme.colorScheme.primary)
             }
         }
     )
