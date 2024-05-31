@@ -319,7 +319,6 @@ class UniTeamModel(val context: Context) {
     }
 
     fun getTeam(teamId: Int): Team {
-        Log.i("diooo",_teams.toString())
         return _teams.value.filter { it.id == teamId }[0]
     }
 

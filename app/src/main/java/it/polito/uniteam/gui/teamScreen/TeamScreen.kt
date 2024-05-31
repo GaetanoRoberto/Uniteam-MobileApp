@@ -793,7 +793,7 @@ fun VerticalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, scop
                                 style = MaterialTheme.typography.titleMedium
                             )
                         },
-                        onClick = { vm.expandedDropdown = false; navController.navigate("TeamDetails") { launchSingleTop = true } },
+                        onClick = { vm.expandedDropdown = false; navController.navigate("TeamDetails/${vm.teamId}") { launchSingleTop = true } },
                         leadingIcon = {
                             Icon(
                                 Icons.Default.Info,
@@ -1203,7 +1203,7 @@ fun HorizontalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, sc
                                     style = MaterialTheme.typography.titleMedium
                                 )
                             },
-                            onClick = { vm.expandedDropdown = false; navController.navigate("TeamDetails") { launchSingleTop = true } },
+                            onClick = { vm.expandedDropdown = false; navController.navigate("TeamDetails/${vm.teamId}") { launchSingleTop = true } },
                             leadingIcon = {
                                 Icon(
                                     Icons.Default.Info,

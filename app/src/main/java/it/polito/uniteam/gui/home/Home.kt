@@ -375,7 +375,7 @@ fun Home(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current)))
                     Scaffold(
                         floatingActionButton = {
                             FloatingActionButton(
-                                onClick = { navController.navigate("TeamDetails") { launchSingleTop = true } },
+                                onClick = { navController.navigate("TeamDetails/0") { launchSingleTop = true } },
                                 containerColor = MaterialTheme.colorScheme.primary
                             ) {
                                 Icon(

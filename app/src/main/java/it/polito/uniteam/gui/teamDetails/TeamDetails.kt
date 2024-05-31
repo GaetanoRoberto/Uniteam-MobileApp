@@ -127,12 +127,8 @@ class TeamDetailsViewModel(val model: UniTeamModel, val savedStateHandle: SavedS
     // from model
     val member = model.loggedMember
     var selectedTeam = mutableStateOf( model.selectedTeam)
-    //val teamId = checkNotNull(savedStateHandle["teamId"]).toString().toInt()
-    val teamId = 1
-    var history = model.getAllHistories().filter { it.first.id == teamId }[0].second
-    fun refreshHistory(){
-        history = model.getAllHistories().filter { it.first.id == teamId }[0].second
-    }
+    val teamId = checkNotNull(savedStateHandle["teamId"]).toString().toInt()
+    var history = if (teamId == 0) mutableListOf() else model.getTeam(teamId).teamHistory
     fun addTeamHistory(teamId: Int, history: History){
         model.addTeamHistory(teamId, history)
     }
