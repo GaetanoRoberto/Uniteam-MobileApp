@@ -1412,7 +1412,7 @@ fun DefaultImageForEditingTeam(vm: TeamDetailsViewModel = viewModel(factory = Fa
                             radius = this.size.minDimension/2f
                         )
                     }
-                    .scale(1.5f)
+                    .scale(0.7f)
             )
             if(!vm.cameraPressed) {
                 Button(
