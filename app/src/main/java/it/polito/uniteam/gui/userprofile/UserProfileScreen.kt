@@ -8,7 +8,6 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResult
-import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -31,6 +30,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -47,14 +47,11 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -79,37 +76,69 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import it.polito.uniteam.Factory
 import it.polito.uniteam.R
 import it.polito.uniteam.UniTeamModel
+import it.polito.uniteam.isVertical
 import it.polito.uniteam.ui.theme.Orange
 import java.io.File
 import java.util.concurrent.ExecutorService
 
 
 class UserProfileScreen(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
+    var nameBefore = ""
+    var usernameBefore = ""
+    var emailBefore = ""
+    var locationBefore = ""
+    var descriptionBefore = ""
     var isEditing by mutableStateOf(false)
         private set  //By adding "private set" only this class can change 'isEditing'
 
     fun edit() {
+        nameBefore = nameValue
+        usernameBefore = usernameValue
+        emailBefore = emailValue
+        locationBefore = locationValue
+        descriptionBefore = descriptionValue
         isEditing = true
+    }
+
+    fun cancelEdit() {
+        nameValue = nameBefore
+        usernameValue = usernameBefore
+        emailValue = emailBefore
+        locationValue = locationBefore
+        descriptionValue = descriptionBefore
+        nameError = ""
+        emailError = ""
+        usernameError = ""
+        locationError = ""
+        descriptionError = ""
+        isEditing = false
     }
 
     fun validate() {
         checkName()
         checkEmail()
-        checkNickname()
+        checkUsername()
         checkLocation()
         checkDescription()
 
-        if (nameError.isBlank() && emailError.isBlank() && nicknameError.isBlank() && locationError.isBlank() && descriptionError.isBlank())
+        if (nameError.isBlank() && emailError.isBlank() && usernameError.isBlank() && locationError.isBlank() && descriptionError.isBlank()) {
+            val updatedMember = model.loggedMember.value.copy(
+                fullName = nameValue,
+                username = usernameValue,
+                email = emailValue,
+                location = locationValue,
+                description = descriptionValue
+            )
+            model.setLoggedMember(updatedMember)
             isEditing = false
+        }
     }
 
-    var nameValue by mutableStateOf("Gaetano Roberto")
+    var nameValue by mutableStateOf(model.loggedMember.value.fullName)
         private set
     var nameError by mutableStateOf("")
         private set
@@ -125,23 +154,23 @@ class UserProfileScreen(val model: UniTeamModel, val savedStateHandle: SavedStat
             nameError = ""
     }
 
-    var nicknameValue by mutableStateOf("Tanucc")
+    var usernameValue by mutableStateOf(model.loggedMember.value.username)
         private set
-    var nicknameError by mutableStateOf("")
+    var usernameError by mutableStateOf("")
         private set
 
-    fun setNickname(n: String) {
-        nicknameValue = n
+    fun setUsername(n: String) {
+        usernameValue = n
     }
 
-    private fun checkNickname() {
-        if (nicknameValue.isBlank())
-            nicknameError = "Nickname cannot be blank!"
+    private fun checkUsername() {
+        if (usernameValue.isBlank())
+            usernameError = "Username cannot be blank!"
         else
-            nicknameError = ""
+            usernameError = ""
     }
 
-    var emailValue by mutableStateOf("franco@gmail.com")
+    var emailValue by mutableStateOf(model.loggedMember.value.email)
         private set
     var emailError by mutableStateOf("")
         private set
@@ -160,7 +189,7 @@ class UserProfileScreen(val model: UniTeamModel, val savedStateHandle: SavedStat
             emailError = ""
     }
 
-    var locationValue by mutableStateOf("Corso Duca Degli Abruzzi")
+    var locationValue by mutableStateOf(model.loggedMember.value.location)
         private set
     var locationError by mutableStateOf("")
         private set
@@ -176,7 +205,7 @@ class UserProfileScreen(val model: UniTeamModel, val savedStateHandle: SavedStat
             locationError = ""
     }
 
-    var descriptionValue by mutableStateOf("Ciao Sono Gaetano vvmkogrtnijtrnjtrnjhnjrnhkjtrnhktrnhjkrhnrjknhktrjnhkrnthkjtnjhkrjnhrknhtkhnrkt")
+    var descriptionValue by mutableStateOf(model.loggedMember.value.description)
         private set
     var descriptionError by mutableStateOf("")
         private set
@@ -192,12 +221,8 @@ class UserProfileScreen(val model: UniTeamModel, val savedStateHandle: SavedStat
             descriptionError = ""
     }
 
-    var KPIValue by mutableStateOf("100% on all Tasks")
+    var KPIValue by mutableStateOf(model.loggedMember.value.kpi)
         private set
-
-    fun setKPI(t: String) {
-        KPIValue = t
-    }
 
     var cameraPressed by mutableStateOf(false)
         private set
@@ -285,7 +310,6 @@ fun EditRowItem(value: String, keyboardType: KeyboardType = KeyboardType.Text ,o
 }
 
 
-//fun EditProfile(vm: UserProfileScreen = viewModel(),navController: NavHostController) {
 @Preview
 @Composable
 fun EditProfile(vm: UserProfileScreen = viewModel(factory = Factory(LocalContext.current))) {
@@ -293,72 +317,132 @@ fun EditProfile(vm: UserProfileScreen = viewModel(factory = Factory(LocalContext
     BackHandler(onBack = {
         vm.validate()
     })
-    BoxWithConstraints {
-        if (this.maxHeight > this.maxWidth) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier.fillMaxHeight(0.8f)
+        ) {
+            if (isVertical()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    EditRowItem(
+                        value = vm.nameValue,
+                        onChange = vm::setName,
+                        label = "Full Name",
+                        errorText = vm.nameError
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    EditRowItem(
+                        value = vm.usernameValue,
+                        onChange = vm::setUsername,
+                        label = "Username",
+                        errorText = vm.usernameError
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    EditRowItem(
+                        value = vm.emailValue,
+                        keyboardType = KeyboardType.Email,
+                        onChange = vm::setEmail,
+                        label = "Email",
+                        errorText = vm.emailError
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    EditRowItem(
+                        value = vm.locationValue,
+                        onChange = vm::setLocation,
+                        label = "Location",
+                        errorText = vm.locationError
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    EditRowItem(
+                        value = vm.descriptionValue,
+                        onChange = vm::setDescription,
+                        label = "Description",
+                        errorText = vm.descriptionError
+                    )
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Spacer(modifier = Modifier.height(5.dp))
+                    EditRowItem(
+                        value = vm.nameValue,
+                        onChange = vm::setName,
+                        label = "Full Name",
+                        errorText = vm.nameError
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    EditRowItem(
+                        value = vm.usernameValue,
+                        onChange = vm::setUsername,
+                        label = "Username",
+                        errorText = vm.usernameError
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    EditRowItem(
+                        value = vm.emailValue,
+                        onChange = vm::setEmail,
+                        label = "Email",
+                        errorText = vm.emailError
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    EditRowItem(
+                        value = vm.locationValue,
+                        onChange = vm::setLocation,
+                        label = "Location",
+                        errorText = vm.locationError
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    EditRowItem(
+                        value = vm.descriptionValue,
+                        onChange = vm::setDescription,
+                        label = "Description",
+                        errorText = vm.descriptionError
+                    )
+                }
+            }
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+                .padding(32.dp, 16.dp, 32.dp, 0.dp)
+            ,
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.Bottom
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth(0.5f)
+            ) {
+                Box(modifier = Modifier.weight(1f)) {
+                    Button(colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = { vm.cancelEdit() }, modifier = Modifier.fillMaxWidth()) {
+                        Text(text = "Cancel", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.width(16.dp))
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .verticalScroll(rememberScrollState()),
-                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(16.dp))
-                EditRowItem(value = vm.nameValue, onChange = vm::setName, label = "Full Name", errorText = vm.nameError)
-                Spacer(modifier = Modifier.height(16.dp))
-                EditRowItem(value = vm.nicknameValue, onChange = vm::setNickname, label = "Nickname", errorText = vm.nicknameError)
-                Spacer(modifier = Modifier.height(16.dp))
-                EditRowItem(value = vm.emailValue, keyboardType = KeyboardType.Email ,onChange = vm::setEmail, label = "Email", errorText = vm.emailError)
-                Spacer(modifier = Modifier.height(16.dp))
-                EditRowItem(value = vm.locationValue, onChange = vm::setLocation, label = "Location", errorText = vm.locationError)
-                Spacer(modifier = Modifier.height(16.dp))
-                EditRowItem(value = vm.descriptionValue, onChange = vm::setDescription, label = "Description", errorText = vm.descriptionError)
-                /*Button(colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
-                    navController.navigate("Profile"){
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
-                        }
-                        launchSingleTop = true
-                        restoreState = true
+                Box(modifier = Modifier.weight(1f)) {
+                    Button(colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = { vm.validate() }, modifier = Modifier.fillMaxWidth()) {
+                        Text(text = "Save", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
                     }
-                }, modifier = Modifier.fillMaxWidth()) {
-                    Text(text = "Save", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
                 }
             }
-            Button(colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
-                //vm.cancelEdit()
-                //vm.changeEditing()
-                navController.navigate("Profile"){
-                    popUpTo(navController.graph.findStartDestination().id) {
-                        saveState = true
-                    }
-                    launchSingleTop = true
-                    restoreState = true
-                }
-
-            }, modifier = Modifier.fillMaxWidth()) {
-                Text(text = "Cancel", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
-            */
-            }
-        } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState()),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                EditRowItem(value = vm.nameValue, onChange = vm::setName, label = "Full Name", errorText = vm.nameError)
-                Spacer(modifier = Modifier.height(16.dp))
-                EditRowItem(value = vm.nicknameValue, onChange = vm::setNickname, label = "Nickname", errorText = vm.nicknameError)
-                Spacer(modifier = Modifier.height(16.dp))
-                EditRowItem(value = vm.emailValue, onChange = vm::setEmail, label = "Email", errorText = vm.emailError)
-                Spacer(modifier = Modifier.height(16.dp))
-                EditRowItem(value = vm.locationValue, onChange = vm::setLocation, label = "Location", errorText = vm.locationError)
-                Spacer(modifier = Modifier.height(16.dp))
-                EditRowItem(value = vm.descriptionValue, onChange = vm::setDescription, label = "Description", errorText = vm.descriptionError)
-                Spacer(modifier = Modifier.height(16.dp))
         }
     }
-}
 }
 
 @Preview
@@ -369,6 +453,7 @@ fun DefaultImage(vm: UserProfileScreen = viewModel(factory = Factory(LocalContex
     if (name.isNotBlank() || vm.photoUri != Uri.EMPTY) {
 
         Card(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
+
             Row(
                 modifier = Modifier
                     .background(MaterialTheme.colorScheme.background),
@@ -566,7 +651,6 @@ fun DefaultImage(vm: UserProfileScreen = viewModel(factory = Factory(LocalContex
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlertDialogExample(
     onDismissRequest: () -> Unit,
@@ -587,8 +671,6 @@ fun AlertDialogExample(
                 onClick = {
                     onConfirmation()
                 }
-                //colors = ButtonDefaults.textButtonColors(contentColor = Color.Red)
-
             ) {
                 Text("Confirm",color = MaterialTheme.colorScheme.onPrimary)
             }
@@ -598,7 +680,6 @@ fun AlertDialogExample(
                 onClick = {
                     onDismissRequest()
                 }
-                //colors = ButtonDefaults.textButtonColors(contentColor =  Color.Red)
             ) {
                 Text("Undo",color = MaterialTheme.colorScheme.onPrimary)
             }
@@ -644,7 +725,7 @@ fun PresentationPane(vm: UserProfileScreen = viewModel(factory = Factory(LocalCo
             ) {
                 val rowItems = listOf(
                     Triple(Icons.Default.Person, "name", vm.nameValue),
-                    Triple(Icons.Default.Face, "nickname", vm.nicknameValue),
+                    Triple(Icons.Default.Face, "username", vm.usernameValue),
                     Triple(Icons.Default.Email, "email", vm.emailValue),
                     Triple(Icons.Default.LocationOn, "location", vm.locationValue),
                     Triple(Icons.Default.Info, "description", vm.descriptionValue),
@@ -661,12 +742,6 @@ fun PresentationPane(vm: UserProfileScreen = viewModel(factory = Factory(LocalCo
                         RowItem(modifier = line_modifier, icon = icon, description = description, value = value)
                     }
                 }
-                /*RowItem(icon = Icons.Default.Person, description = "name", value = vm.nameValue)
-                RowItem(icon = Icons.Default.Face, description = "nickname", value = vm.nicknameValue)
-                RowItem(icon = Icons.Default.Email, description = "email", value = vm.emailValue)
-                RowItem(icon = Icons.Default.LocationOn, description = "location", value = vm.locationValue)
-                RowItem(icon = Icons.Default.Menu, description = "description", value = vm.descriptionValue)
-                RowItem(icon = Icons.Default.Star, description = "KPI", value = vm.KPIValue)*/
             }
         } else {
             Column(
@@ -678,7 +753,7 @@ fun PresentationPane(vm: UserProfileScreen = viewModel(factory = Factory(LocalCo
             ) {
                 val rowItems = listOf(
                     Triple(Icons.Default.Person, "name", vm.nameValue),
-                    Triple(Icons.Default.Face, "nickname", vm.nicknameValue),
+                    Triple(Icons.Default.Face, "username", vm.usernameValue),
                     Triple(Icons.Default.Email, "email", vm.emailValue),
                     Triple(Icons.Default.LocationOn, "location", vm.locationValue),
                     Triple(Icons.Default.Info, "description", vm.descriptionValue),
@@ -698,16 +773,36 @@ fun PresentationPane(vm: UserProfileScreen = viewModel(factory = Factory(LocalCo
             }
         }
     }
-
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileSettings(
     vm: UserProfileScreen = viewModel(factory = Factory(LocalContext.current)),
     outputDirectory: File,
     cameraExecutor: ExecutorService
 ) {
+    if (isVertical()) {
+        Box(
+            contentAlignment = Alignment.TopEnd,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            if (!vm.isEditing) {
+                FloatingActionButton(
+                    onClick = { vm.edit() },
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Edit",
+                        tint = MaterialTheme.colorScheme.onSecondary
+                    )
+                }
+            }
+        }
+    }
+
+
     val pickImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { activity: ActivityResult? ->
         if (activity == null || activity.resultCode != Activity.RESULT_OK) {
             // User canceled the action, handle it here
@@ -768,6 +863,7 @@ fun ProfileSettings(
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
                             .fillMaxHeight(0.1f)
+                            .padding(8.dp, 0.dp, 8.dp, 0.dp)
                     ) {
                         Row(
                             modifier = Modifier
@@ -870,51 +966,6 @@ fun ProfileSettings(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-           /* TopAppBar(
-                title = {
-                    // Centro il titolo utilizzando un approccio basato su un trucco visuale
-                    Row(
-                        modifier = Modifier.fillMaxWidth(), // Riempie la larghezza massima
-                        horizontalArrangement = Arrangement.Center, // Allinea orizzontalmente il contenuto al centro
-                        verticalAlignment = Alignment.CenterVertically // Allinea verticalmente il contenuto al centro
-                    ) {
-                        Text("UNITEAM")
-                    }
-                },                colors = TopAppBarDefaults.topAppBarColors(containerColor =  MaterialTheme.colorScheme.primary),
-                navigationIcon = {
-                    IconButton(onClick = { /* Azione per tornare indietro */ }, colors = IconButtonDefaults.iconButtonColors(MaterialTheme.colorScheme.secondary),) {
-                        Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSecondary)
-                    }
-                },
-                actions = {
-                    if (vm.isEditing)
-                        Button(onClick = { vm.validate() }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary) // Imposta il colore di sfondo del bottone a rosso
-                        ) {
-                            Text("Done",color = MaterialTheme.colorScheme.onSecondary)
-
-                        }
-                    else
-                        IconButton(onClick = { vm.edit() }, colors = IconButtonDefaults.iconButtonColors(MaterialTheme.colorScheme.secondary),
-                        ) {
-                            Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.onSecondary)
-                        }
-                }
-            )*/
-            //
-            if (vm.isEditing)
-                Button(onClick = { vm.validate() }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary) // Imposta il colore di sfondo del bottone a rosso
-                ) {
-                    Text("Done",color = MaterialTheme.colorScheme.onSecondary)
-
-                }
-            else
-                IconButton(onClick = { vm.edit() }, colors = IconButtonDefaults.iconButtonColors(MaterialTheme.colorScheme.secondary),
-                ) {
-                    Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.onSecondary)
-                }
-            Spacer(modifier = Modifier.height(16.dp))
-
-            //
             BoxWithConstraints {
                 if(this.maxHeight > this.maxWidth) {
                     Column(
@@ -948,69 +999,33 @@ fun ProfileSettings(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
-                            DefaultImage(vm)
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                DefaultImage(vm)
+                                if (!vm.isEditing) {
+                                    FloatingActionButton(
+                                        onClick = { vm.edit() },
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier
+                                            .align(Alignment.TopEnd)
+                                            .padding(16.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Edit,
+                                            contentDescription = "Edit",
+                                            tint = MaterialTheme.colorScheme.onSecondary
+                                        )
+                                    }
+                                }
+                            }
                         }
                         Spacer(modifier = Modifier.height(30.dp))
                         if (vm.isEditing)
                             EditProfile(vm)
                         else
                             PresentationPane(vm)
-
-                        /*
-                            if (vm.isEditing)
-                                Button(onClick = { vm.validate() }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary) // Imposta il colore di sfondo del bottone a rosso
-                                ) {
-                                    Text("Done",color = MaterialTheme.colorScheme.onSecondary)
-
-                                }
-                            else
-                                IconButton(onClick = { vm.edit() }, colors = IconButtonDefaults.iconButtonColors(MaterialTheme.colorScheme.secondary),
-                                ) {
-                                    Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.onSecondary)
-                                }
-                        }*/
                     }
                 }
             }
-            /*Column(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(0.8f),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    DefaultImage(vm)
-                }
-                Spacer(modifier = Modifier.height(30.dp))
-                if (vm.isEditing)
-                    EditProfile(vm)
-                else
-                    PresentationPane(vm)
-                Column(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .verticalScroll(rememberScrollState())
-                ) {
-                    Spacer(modifier = Modifier.height(16.dp))
-                    EditRowItem(value = vm.nameValue, onChange = vm::setName, label = "Full Name", errorText = vm.nameError)
-                    Spacer(modifier = Modifier.height(16.dp))
-                    EditRowItem(value = vm.nicknameValue, onChange = vm::setNickname, label = "Nickname", errorText = vm.nicknameError)
-                    Spacer(modifier = Modifier.height(16.dp))
-                    EditRowItem(value = vm.emailValue, keyboardType = KeyboardType.Email ,onChange = vm::setEmail, label = "Email", errorText = vm.emailError)
-                    Spacer(modifier = Modifier.height(16.dp))
-                    EditRowItem(value = vm.locationValue, onChange = vm::setLocation, label = "Location", errorText = vm.locationError)
-                    Spacer(modifier = Modifier.height(16.dp))
-                    EditRowItem(value = vm.descriptionValue, onChange = vm::setDescription, label = "Description", errorText = vm.descriptionError)
-                }
-            }
-            if (vm.isEditing)
-                EditProfile(vm)
-            else
-                PresentationPane(vm)*/
-
         }
     }
 }
