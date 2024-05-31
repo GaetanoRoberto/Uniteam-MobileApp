@@ -920,7 +920,6 @@ fun TeamMembersDropdownMenuBox(
     label: String,
     currentMembers: List<Member>
 ) {
-    var expanded by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -929,9 +928,8 @@ fun TeamMembersDropdownMenuBox(
 
     ) {
         ExposedDropdownMenuBox(
-            expanded = expanded,
+            expanded = vm.openAssignDialog.value,
             onExpandedChange = {
-                expanded = !expanded
                 vm.openAssignDialog.value = true
             },
             modifier = Modifier.fillMaxWidth()

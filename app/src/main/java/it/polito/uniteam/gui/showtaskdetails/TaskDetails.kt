@@ -525,7 +525,6 @@ fun MembersDropdownMenuBox(
     label: String,
     currentMembers: List<Member>
 ) {
-    var expanded by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -533,9 +532,9 @@ fun MembersDropdownMenuBox(
             .padding(0.dp, 8.dp)
     ) {
         ExposedDropdownMenuBox(
-            expanded = expanded,
+            expanded = vm.openAssignDialog.value,
             onExpandedChange = {
-                expanded = !expanded
+                //expanded = !expanded
                 vm.openAssignDialog.value = true
             },
             modifier = Modifier.fillMaxWidth()
@@ -570,7 +569,7 @@ fun MembersDropdownMenuBox(
                             .padding(0.dp, 0.dp, 5.dp, 0.dp)
                     ) {
                         currentMembers.forEachIndexed { index, member ->
-                            MemberIcon(member = member, modifierScale = Modifier.scale(0.65f), modifierPadding = Modifier.padding(start = if (index == 0) 12.dp else 0.dp))
+                            MemberIcon(member = member, modifierScale = Modifier.scale(0.65f), modifierPadding = Modifier.padding(start = if (index == 0) 12.dp else 0.dp), enableNavigation = false)
                             Text(
                                 text = member.username.toString() + if (index < currentMembers.size - 1) {
                                     ", "
