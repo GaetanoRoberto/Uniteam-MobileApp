@@ -92,6 +92,7 @@ class UserProfileScreen(val model: UniTeamModel, val savedStateHandle: SavedStat
     var emailBefore = ""
     var locationBefore = ""
     var descriptionBefore = ""
+    var imageBefore = Uri.EMPTY
     var isEditing by mutableStateOf(false)
         private set  //By adding "private set" only this class can change 'isEditing'
 
@@ -101,6 +102,7 @@ class UserProfileScreen(val model: UniTeamModel, val savedStateHandle: SavedStat
         emailBefore = emailValue
         locationBefore = locationValue
         descriptionBefore = descriptionValue
+        imageBefore = photoUri
         isEditing = true
     }
 
@@ -110,6 +112,7 @@ class UserProfileScreen(val model: UniTeamModel, val savedStateHandle: SavedStat
         emailValue = emailBefore
         locationValue = locationBefore
         descriptionValue = descriptionBefore
+        photoUri = imageBefore
         nameError = ""
         emailError = ""
         usernameError = ""
@@ -131,7 +134,8 @@ class UserProfileScreen(val model: UniTeamModel, val savedStateHandle: SavedStat
                 username = usernameValue,
                 email = emailValue,
                 location = locationValue,
-                description = descriptionValue
+                description = descriptionValue,
+                profileImage = photoUri
             )
             model.setLoggedMember(updatedMember)
             isEditing = false
@@ -236,7 +240,7 @@ class UserProfileScreen(val model: UniTeamModel, val savedStateHandle: SavedStat
     fun showCamera(boolean: Boolean) {
         showCamera = boolean
     }
-    var photoUri by mutableStateOf(Uri.EMPTY)
+    var photoUri by mutableStateOf(model.loggedMember.value.profileImage)
         private set
 
     fun setUri(uri: Uri) {
@@ -796,7 +800,8 @@ fun ProfileSettings(
                     Icon(
                         imageVector = Icons.Default.Edit,
                         contentDescription = "Edit",
-                        tint = MaterialTheme.colorScheme.onSecondary
+                        tint = MaterialTheme.colorScheme.onSecondary,
+                        modifier = Modifier.size(30.dp)
                     )
                 }
             }
@@ -1013,7 +1018,8 @@ fun ProfileSettings(
                                         Icon(
                                             imageVector = Icons.Default.Edit,
                                             contentDescription = "Edit",
-                                            tint = MaterialTheme.colorScheme.onSecondary
+                                            tint = MaterialTheme.colorScheme.onSecondary,
+                                            modifier = Modifier.size(30.dp)
                                         )
                                     }
                                 }

@@ -1,6 +1,7 @@
 package it.polito.uniteam.gui.home
 
 import android.content.Context
+import android.net.Uri
 import android.view.inputmethod.InputMethodManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -505,7 +506,7 @@ fun Home(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current)))
                                                         )
                                                     },
                                                     leadingContent = {
-                                                        TeamIcon(team = team)
+                                                        TeamIcon(team = team, modifierPadding = if(team.image != Uri.EMPTY) Modifier.padding(5.dp, 0.dp, 15.dp, 0.dp) else Modifier.padding(0.dp, 0.dp, 20.dp, 0.dp))
                                                     },
                                                     supportingContent = {
                                                         if (vm.descriptionSearched) {

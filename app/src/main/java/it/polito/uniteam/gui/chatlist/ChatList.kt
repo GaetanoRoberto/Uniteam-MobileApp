@@ -1,6 +1,6 @@
 package it.polito.uniteam.gui.chatlist
 
-import android.util.Log
+import android.net.Uri
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.platform.LocalContext
@@ -19,7 +19,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
@@ -30,15 +29,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import it.polito.uniteam.NavControllerManager
-import it.polito.uniteam.classes.DummyDataProvider
 
 import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.MemberIcon
-import it.polito.uniteam.classes.Message
 import it.polito.uniteam.classes.Team
 import it.polito.uniteam.classes.TeamIcon
 import it.polito.uniteam.isVertical
-import kotlinx.coroutines.flow.StateFlow
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -100,13 +96,16 @@ fun TeamRow(team: Team,vm: ChatListViewModel) {
             .fillMaxWidth()
             .padding(2.dp)// LEVA SE VUOI UNIRE LE RIGHE
             .background(MaterialTheme.colorScheme.onSecondaryContainer)
-            .clickable { /*TODO*/ }
             .padding(16.dp)
         //.height((LocalConfiguration.current.screenHeightDp * 0.2).dp)
         ,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        TeamIcon(modifierScale= Modifier.scale(1f), modifierPadding = Modifier.padding(4.dp, 0.dp, 15.dp, 0.dp),team = team )
+        TeamIcon(
+            team = team,
+            modifierPadding = if(team.image != Uri.EMPTY) Modifier.padding(6.dp, 8.dp, 12.dp, 7.dp) else Modifier.padding(4.dp, 0.dp, 12.dp, 0.dp),
+            modifierScale = if(team.image != Uri.EMPTY) Modifier.scale(2f) else Modifier.scale(1f)
+        )
         Spacer(modifier = Modifier.width(10.dp))
         Column(
             modifier = Modifier
@@ -191,7 +190,7 @@ fun UserItem(member: Member,vm : ChatListViewModel) {
                 .weight(0.40f)
                 .padding(end = 5.dp)
         ) {
-            Text(text = member.fullName, style = MaterialTheme.typography.bodyLarge)
+            Text(text = member.username, style = MaterialTheme.typography.bodyLarge)
             //ROLE IN DUMMY DATA DA CAMBIARE TODO
             Text(text = member.teamsInfo?.get(1)?.role.toString(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
         }

@@ -482,6 +482,8 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
         history = mutableStateListOf()
     }
 
+    var openDeleteTaskDialog by mutableStateOf(false)
+
     init {
         if(newTask) {
             changeEditing()

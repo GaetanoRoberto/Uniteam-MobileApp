@@ -47,6 +47,8 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.InsertDriveFile
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -110,6 +112,7 @@ import it.polito.uniteam.classes.MemberIcon
 import it.polito.uniteam.classes.MemberTeamInfo
 import it.polito.uniteam.classes.Status
 import it.polito.uniteam.classes.Team
+import it.polito.uniteam.classes.TeamIcon
 import it.polito.uniteam.classes.permissionRole
 import it.polito.uniteam.gui.showtaskdetails.CommentsView
 import it.polito.uniteam.gui.showtaskdetails.CustomDatePickerPreview
@@ -120,7 +123,10 @@ import it.polito.uniteam.gui.showtaskdetails.HistoryView
 import it.polito.uniteam.gui.showtaskdetails.MembersDropdownMenuBox
 import it.polito.uniteam.gui.showtaskdetails.RowItem
 import it.polito.uniteam.gui.showtaskdetails.RowMemberItem
+import it.polito.uniteam.gui.teamScreen.LeaveTeamDialog
+import it.polito.uniteam.gui.teamScreen.TeamScreenViewModel
 import it.polito.uniteam.gui.userprofile.AlertDialogExample
+import it.polito.uniteam.gui.userprofile.DefaultImage
 import it.polito.uniteam.gui.userprofile.getCameraProvider
 import it.polito.uniteam.gui.userprofile.takePhoto
 import it.polito.uniteam.isVertical
@@ -243,7 +249,7 @@ class TeamDetailsViewModel(val model: UniTeamModel, val savedStateHandle: SavedS
 
     var openAssignDialog = mutableStateOf(false)
 
-    var possibleMembers = model.getAllMembers()
+    var possibleMembers = DummyDataProvider.getMembers()
 
     var teamMembersBeforeEditing = selectedTeam.value.members.toList()
     var teamImageBeforeEditing = selectedTeam.value.image
@@ -304,10 +310,7 @@ class TeamDetailsViewModel(val model: UniTeamModel, val savedStateHandle: SavedS
         showConfirmationDialog = !showConfirmationDialog
     }
 
-
-
-
-
+    var openDeleteTeamDialog by mutableStateOf(false)
 
 }
 
@@ -319,6 +322,40 @@ fun TeamViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalC
         TeamEditViewScreen(vm, outputDirectory, cameraExecutor)
 
     }else{
+        if (isVertical() && vm.isAdmin) {
+            Box(
+                contentAlignment = Alignment.TopEnd,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Column {
+                    FloatingActionButton(
+                        onClick = { vm.changeEditing() },
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Edit",
+                            tint = MaterialTheme.colorScheme.onSecondary,
+                            modifier = Modifier.size(30.dp)
+                        )
+                    }
+                    FloatingActionButton(
+                        onClick = { vm.openDeleteTeamDialog = true },
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Delete",
+                            tint = MaterialTheme.colorScheme.onSecondary,
+                            modifier = Modifier.size(30.dp)
+                        )
+                    }
+                }
+            }
+        }
+
         BoxWithConstraints {
 
             Box(modifier = Modifier.fillMaxSize()) {
@@ -365,13 +402,45 @@ fun TeamViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalC
                         ) {
                             Column(
                                 modifier = Modifier
-                                    .fillMaxWidth(0.33f)
+                                    .fillMaxWidth(0.4f)
                                     .fillMaxHeight()
                                     .padding(10.dp, 0.dp, 10.dp, 0.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Center
                             ) {
-                                DefaultImageForTeamScreen(vm)
+                                Row {
+                                    Column(modifier = Modifier.fillMaxHeight(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                                        DefaultImageForTeamScreen(vm)
+                                    }
+                                    Column(modifier = Modifier.fillMaxHeight(), verticalArrangement = Arrangement.Top, horizontalAlignment = Alignment.CenterHorizontally) {
+                                        if (vm.isAdmin) {
+                                            FloatingActionButton(
+                                                onClick = { vm.changeEditing() },
+                                                containerColor = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Edit,
+                                                    contentDescription = "Edit",
+                                                    tint = MaterialTheme.colorScheme.onSecondary,
+                                                    modifier = Modifier.size(30.dp)
+                                                )
+                                            }
+                                            FloatingActionButton(
+                                                onClick = { vm.openDeleteTeamDialog = true },
+                                                containerColor = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.padding(16.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Delete,
+                                                    contentDescription = "Delete",
+                                                    tint = MaterialTheme.colorScheme.onSecondary,
+                                                    modifier = Modifier.size(30.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
                             }
                             Spacer(modifier = Modifier.height(30.dp))
                             TeamDetailsView()
@@ -380,6 +449,12 @@ fun TeamViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalC
                     }
                 }
             }
+        }
+    }
+    //Dialog per la delete del team
+    when {
+        vm.openDeleteTeamDialog -> {
+            DeleteTeamDialog(vm)
         }
     }
 }
@@ -594,7 +669,6 @@ fun TeamEditViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(Lo
                         ) {
                             DefaultImageForEditingTeam(vm)
                         }
-                        Spacer(modifier = Modifier.height(30.dp))
 
                         TeamDetailsEdit(vm)
 
@@ -614,9 +688,7 @@ fun TeamEditViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(Lo
                         ) {
                             DefaultImageForEditingTeam(vm)
                         }
-                        Spacer(modifier = Modifier.height(30.dp))
-
-                            TeamDetailsEdit(vm)
+                        TeamDetailsEdit(vm)
 
 
 
@@ -720,17 +792,7 @@ fun TeamDetailsView(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
     Column(modifier = Modifier
         .fillMaxSize()
         .verticalScroll(rememberScrollState())) {
-        Spacer(modifier = Modifier.padding(10.dp))
-        Row(modifier = Modifier.fillMaxWidth(0.95f), horizontalArrangement = Arrangement.End) {
-            if (vm.isAdmin) {
-                IconButton(onClick = {
-                    vm.changeEditing()
-                    //vm.enterEditingMode()
-                }) {
-                    Icon(Icons.Default.Edit, contentDescription = "Edit ")
-                }
-            }
-        }
+        Spacer(modifier = Modifier.padding(16.dp))
 
         RowItem(title = "Name:", value = vm.selectedTeam.value.name)
         RowItem(title = "Description:", value = vm.selectedTeam.value.description.toString())
@@ -768,7 +830,7 @@ fun TeamDetailsEdit(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
     val selectedTeam = vm.selectedTeam.value
     Row(){
         Column(modifier = Modifier.fillMaxSize(),  verticalArrangement = Arrangement.Bottom) {
-            Row(modifier = Modifier.fillMaxHeight(0.85f)) {
+            Row(modifier = Modifier.fillMaxHeight(0.8f)) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -810,7 +872,9 @@ fun TeamDetailsEdit(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
 
                     if(!isVertical()){
 
-                        Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.Bottom){
+                        Row(modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp), verticalAlignment = Alignment.Bottom){
                             Spacer(modifier = Modifier.width(15.dp))
                             Box(modifier = Modifier.weight(1f)) {
                                 Button(colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
@@ -874,6 +938,7 @@ fun TeamDetailsEdit(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .padding(16.dp)
                         //.fillMaxHeight()
                         .padding(0.dp, 0.dp, 0.dp, 5.dp)
                     ,
@@ -1145,17 +1210,7 @@ fun DefaultImageForTeamScreen(vm: TeamDetailsViewModel = viewModel(factory = Fac
                             contentScale = ContentScale.Crop
                         )
                     } else {
-                        val initials = name.trim().split(' ');
-                        var initialsValue = initials
-                            .mapNotNull { it.firstOrNull()?.toString() }
-                            .first();
-
-                        if (initials.size >=2) {
-                            initialsValue += initials
-                                .mapNotNull { it.firstOrNull()?.toString() }
-                                .last()
-                        }
-                        Text(
+                        Box(
                             modifier = Modifier
                                 .padding(40.dp)
                                 .size(80.dp)
@@ -1164,12 +1219,17 @@ fun DefaultImageForTeamScreen(vm: TeamDetailsViewModel = viewModel(factory = Fac
                                         color = Orange,
                                         radius = this.size.maxDimension
                                     )
-                                },
-                            text = initialsValue,
-                            style = TextStyle(color = Color.White, fontSize = 60.sp, textAlign = TextAlign.Center)
-                        )
+                                }
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.people),
+                                contentDescription = "Image",
+                                modifier = Modifier
+                                    //.padding(40.dp, 0.dp, 40.dp, 0.dp)
+                                    .scale(1.5f)
+                            )
+                        }
                     }
-
                 }
             }
         }
@@ -1196,25 +1256,75 @@ fun DefaultImageForEditingTeam(vm: TeamDetailsViewModel = viewModel(factory = Fa
                         Image(
                             painter = rememberAsyncImagePainter(vm.selectedTeam.value.image),
                             contentDescription = null,
-                            modifier = Modifier
-                                .size(160.dp)
-                                .clip(CircleShape), // Clip the image into a circular shape
+                            modifier = if (!isVertical()) {
+                                Modifier
+                                    .padding(
+                                        start = 0.dp,
+                                        top = 0.dp,
+                                        end = 35.dp,
+                                        bottom = 15.dp)
+                                    .size(160.dp)
+                                    .clip(CircleShape) // Clip the image into a circular shape
+                            } else {
+                                Modifier
+                                    .padding(
+                                        start = 0.dp,
+                                        top = 8.dp,
+                                        end = 0.dp,
+                                        bottom = 0.dp)
+                                    .size(160.dp)
+                                    .clip(CircleShape) // Clip the image into a circular shape
+                            },
                             contentScale = ContentScale.Crop
                         )
                     } else {
-                        Image(
+                        Box(
+                            modifier = if (!isVertical()) {
+                                Modifier
+                                    .padding(
+                                        start = 40.dp,
+                                        top = 40.dp,
+                                        end = 75.dp,
+                                        bottom = 55.dp
+                                    )
+                                    .size(80.dp)
+                                    .drawBehind {
+                                        drawCircle(
+                                            color = Orange,
+                                            radius = this.size.maxDimension
+                                        )
+                                    }
+                            } else {
+                                Modifier
+                                    .padding(
+                                        start = 40.dp,
+                                        top = 48.dp,
+                                        end = 40.dp,
+                                        bottom = 40.dp
+                                    )
+                                    .size(80.dp)
+                                    .drawBehind {
+                                        drawCircle(
+                                            color = Orange,
+                                            radius = this.size.maxDimension
+                                        )
+                                    }
+                            }
+                        ) {
+                            Image(
                             painter = painterResource(id = R.drawable.people),
                             contentDescription = "Image",
                             modifier = Modifier
                                 //.padding(40.dp, 0.dp, 40.dp, 0.dp)
-                                .size(160.dp)
                                 .drawBehind {
                                     drawCircle(
                                         color = Orange,
                                         radius = this.size.minDimension/2f
                                     )
                                 }
+                                .scale(1.5f)
                         )
+                        }
                     }
                     if (vm.editing) {
                         if(!vm.cameraPressed) {
@@ -1302,7 +1412,7 @@ fun DefaultImageForEditingTeam(vm: TeamDetailsViewModel = viewModel(factory = Fa
                             radius = this.size.minDimension/2f
                         )
                     }
-                    .size(160.dp)
+                    .scale(1.5f)
             )
             if(!vm.cameraPressed) {
                 Button(
@@ -1376,4 +1486,32 @@ fun DefaultImageForEditingTeam(vm: TeamDetailsViewModel = viewModel(factory = Fa
     }
 }
 
+@Composable
+fun DeleteTeamDialog(vm: TeamDetailsViewModel) {
+    val navController = NavControllerManager.getNavController()
 
+    AlertDialog(
+        containerColor = MaterialTheme.colorScheme.background,
+        onDismissRequest = { vm.openDeleteTeamDialog = false },
+        icon = { Icon(Icons.Default.Warning, contentDescription = "Warning", tint = MaterialTheme.colorScheme.primary) },
+        title = { Text("Are you sure you want to delete the team: ${vm.selectedTeam.value.name} ?") },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    vm.openDeleteTeamDialog = false
+                    //vm.deleteTeam
+                    navController.navigate("Teams") { launchSingleTop = true }
+                }
+            ) {
+                Text("Confirm", color = MaterialTheme.colorScheme.primary)
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = { vm.openDeleteTeamDialog = false }
+            ) {
+                Text("Cancel", color = MaterialTheme.colorScheme.primary)
+            }
+        }
+    )
+}

@@ -170,7 +170,15 @@ class MainActivity : ComponentActivity() {
                     val currentDestination = navBackStackEntry?.destination?.route
                     Surface(
                         modifier = Modifier
-                            .fillMaxSize(),
+                            .fillMaxSize()
+                            // remove the focus and the opened photo/gallery menu
+                            .pointerInput(Unit, interactionSource) {
+                                detectTapGestures(
+                                    onPress = {
+                                        focusManager.clearFocus()
+                                    }
+                                )
+                            },
                         color = MaterialTheme.colorScheme.background
                     ) {
                         Column(

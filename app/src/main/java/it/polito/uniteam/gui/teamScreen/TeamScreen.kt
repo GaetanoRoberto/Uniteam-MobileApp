@@ -112,14 +112,12 @@ import it.polito.uniteam.NavControllerManager
 import it.polito.uniteam.R
 import it.polito.uniteam.UniTeamModel
 import it.polito.uniteam.classes.Category
-import it.polito.uniteam.classes.DummyDataProvider
 import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.MemberIcon
 import it.polito.uniteam.classes.Priority
 import it.polito.uniteam.classes.Repetition
 import it.polito.uniteam.classes.Status
 import it.polito.uniteam.classes.Task
-import it.polito.uniteam.classes.Team
 import it.polito.uniteam.classes.TeamIcon
 import it.polito.uniteam.gui.showtaskdetails.CustomDatePicker
 import it.polito.uniteam.isVertical
@@ -749,7 +747,11 @@ fun VerticalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, scop
             horizontalArrangement = Arrangement.Center,
 //            verticalAlignment = Alignment.CenterVertically
         ) {
-            TeamIcon(team = vm.currentTeam, modifierScale = Modifier.scale(1f), modifierPadding = Modifier.padding(12.dp, 12.dp, 12.dp, 0.dp))
+            TeamIcon(
+                team = vm.currentTeam,
+                modifierPadding = if(vm.currentTeam.image != Uri.EMPTY) Modifier.padding(12.dp, 12.dp, 12.dp, 7.dp) else Modifier.padding(12.dp, 12.dp, 12.dp, 0.dp),
+                modifierScale = if(vm.currentTeam.image != Uri.EMPTY) Modifier.scale(2f) else Modifier.scale(1f)
+            )
             Spacer(modifier = Modifier.padding(5.dp))
             Text(
                 text = vm.currentTeam.name,
@@ -1159,7 +1161,11 @@ fun HorizontalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, sc
                 horizontalArrangement = Arrangement.Center,
 //            verticalAlignment = Alignment.CenterVertically
             ) {
-                TeamIcon(team = vm.currentTeam, modifierScale = Modifier.scale(1f), modifierPadding = Modifier.padding(12.dp, 12.dp, 12.dp, 0.dp))
+                TeamIcon(
+                    team = vm.currentTeam,
+                    modifierPadding = if(vm.currentTeam.image != Uri.EMPTY) Modifier.padding(12.dp, 12.dp, 12.dp, 7.dp) else Modifier.padding(12.dp, 12.dp, 12.dp, 0.dp),
+                    modifierScale = if(vm.currentTeam.image != Uri.EMPTY) Modifier.scale(2f) else Modifier.scale(1f)
+                )
                 Spacer(modifier = Modifier.padding(5.dp))
                 Text(
                     text = vm.currentTeam.name,

@@ -82,6 +82,8 @@ fun MemberIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: 
                 painter = rememberAsyncImagePainter(member.profileImage),
                 contentDescription = null,
                 modifier = Modifier
+                    .then(modifierPadding)
+                    .scale(2f)
                     .size(22.dp)
                     .clip(CircleShape)
                     .clickable(onClick = { if(enableNavigation) navController.navigate("OtherUserProfile/${member.id}") }),
@@ -125,13 +127,18 @@ fun MemberIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: 
     }
 }
 @Composable
-fun TeamIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: Modifier = Modifier.padding(0.dp, 0.dp, 20.dp, 0.dp), team: Team) {
+fun TeamIcon(
+    team: Team,
+    modifierPadding: Modifier = Modifier.padding(0.dp, 0.dp, 20.dp, 0.dp),
+    modifierScale: Modifier = if (team.image != Uri.EMPTY) Modifier.scale(1.7f) else Modifier.scale(0.8f)
+) {
     Box(modifier = modifierScale) {
         if (team.image != Uri.EMPTY) {
             Image(
                 painter = rememberAsyncImagePainter(team.image),
                 contentDescription = null,
                 modifier = Modifier
+                    .then(modifierPadding)
                     .size(22.dp)
                     .clip(CircleShape),
                 contentScale = ContentScale.Crop

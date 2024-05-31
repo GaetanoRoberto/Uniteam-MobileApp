@@ -1,5 +1,5 @@
 package it.polito.uniteam.gui.chat
-import android.util.Log
+import android.net.Uri
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -13,15 +13,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -34,31 +31,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import it.polito.uniteam.Factory
-import it.polito.uniteam.R
-import it.polito.uniteam.UniTeamModel
-import it.polito.uniteam.classes.Chat
 import it.polito.uniteam.classes.MemberIcon
 import it.polito.uniteam.classes.Message
 import it.polito.uniteam.classes.TeamIcon
@@ -67,7 +52,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import java.util.concurrent.ExecutorService
 
 @Composable
 fun ChatScreen( vm : ChatViewModel = viewModel(factory = Factory(LocalContext.current))) {
@@ -202,7 +186,7 @@ fun ChatRowTeam(
             }
             Column {
                 if (!isSender){
-                    Text(text = member?.fullName ?: "Unknown", style = TextStyle(
+                    Text(text = member?.username ?: "Unknown", style = TextStyle(
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
@@ -243,7 +227,7 @@ fun ChatRowTeam(
 fun ChatHeader(
     vm: ChatViewModel
 ) {
-    val text = if (vm.chat.teamId != null) vm.teamName else vm.chat.receiver?.fullName
+    val text = if (vm.chat.teamId != null) vm.teamName else vm.chat.receiver?.username
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -254,7 +238,10 @@ fun ChatHeader(
         if (vm.chat.teamId == null) {
             vm.chat.receiver?.let { MemberIcon(member = it) }
         } else {
-            TeamIcon(team = vm.getTeam(vm.chat.teamId))
+            TeamIcon(
+                team = vm.getTeam(vm.chat.teamId),
+                modifierPadding = if(vm.getTeam(vm.chat.teamId).image != Uri.EMPTY) Modifier.padding(6.dp, 4.dp, 12.dp, 7.dp) else Modifier.padding(4.dp, 0.dp, 12.dp, 0.dp),
+                modifierScale = if(vm.getTeam(vm.chat.teamId).image != Uri.EMPTY) Modifier.scale(2f) else Modifier.scale(1f))
         }
         Spacer(modifier = Modifier.width(8.dp))
         Text(

@@ -71,6 +71,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -82,10 +83,13 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -114,6 +118,8 @@ import it.polito.uniteam.classes.Repetition
 import it.polito.uniteam.classes.Status
 import it.polito.uniteam.classes.Task
 import it.polito.uniteam.gui.notifications.notificationsSection
+import it.polito.uniteam.gui.teamDetails.DeleteTeamDialog
+import it.polito.uniteam.gui.teamDetails.TeamDetailsViewModel
 import java.util.HashMap
 
 
@@ -129,6 +135,12 @@ fun TaskScreen(vm: taskDetails = viewModel(factory = Factory(LocalContext.curren
         vm.enterEditingMode()
         vm.newTask()*/
         TaskDetailsView()
+    }
+    //Dialog per la delete del task
+    when {
+        vm.openDeleteTaskDialog -> {
+            DeleteTaskDialog(vm)
+        }
     }
 }
 
@@ -156,13 +168,30 @@ fun TaskDetailsView(vm: taskDetails = viewModel(factory = Factory(LocalContext.c
                 scrollState
             )
     ) {
-        Spacer(modifier = Modifier.padding(10.dp))
         Row(modifier = Modifier.fillMaxWidth(0.95f), horizontalArrangement = Arrangement.End) {
-            IconButton(onClick = {
-                vm.changeEditing()
-                vm.enterEditingMode()
-            }) {
-                Icon(Icons.Default.Edit, contentDescription = "Edit ")
+            FloatingActionButton(
+                onClick = { vm.changeEditing(); vm.enterEditingMode(); },
+                containerColor = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(start = 5.dp, top = 10.dp, end = 5.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Edit",
+                    tint = MaterialTheme.colorScheme.onSecondary,
+                    modifier = Modifier.size(30.dp)
+                )
+            }
+            FloatingActionButton(
+                onClick = { vm.openDeleteTaskDialog = true },
+                containerColor = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(start = 5.dp, top = 10.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete",
+                    tint = MaterialTheme.colorScheme.onSecondary,
+                    modifier = Modifier.size(30.dp)
+                )
             }
         }
 
@@ -561,7 +590,7 @@ fun RowMemberItem( modifier: Modifier = Modifier, title: String, value: List<Mem
         modifier = modifier.horizontalScroll(rememberScrollState()),
     ) {
         for ((i, member) in value.withIndex()) {
-            MemberIcon(member = member, modifierScale = Modifier.scale(0.65f), modifierPadding = Modifier.padding(start = if (i == 0) 16.dp else 0.dp))
+            MemberIcon(member = member, modifierScale = Modifier.scale(0.65f), modifierPadding = Modifier.padding(start = if (i == 0) 16.dp else 0.dp, top = 8.dp))
             Text(
                 member.username.toString() + if (i < value.size - 1) {
                     ", "
@@ -1242,15 +1271,32 @@ fun getFileName(uri: Uri, contentResolver: ContentResolver): String? {
     }
 }
 
+@Composable
+fun DeleteTaskDialog(vm: taskDetails) {
+    val navController = NavControllerManager.getNavController()
 
-
-
-
-
-
-
-
-
-
-
-
+    AlertDialog(
+        containerColor = MaterialTheme.colorScheme.background,
+        onDismissRequest = { vm.openDeleteTaskDialog = false },
+        icon = { Icon(Icons.Default.Warning, contentDescription = "Warning", tint = MaterialTheme.colorScheme.primary) },
+        title = { Text("Are you sure you want to delete the task: ${vm.taskName} ?") },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    vm.openDeleteTaskDialog = false
+                    //vm.deleteTask
+                    navController.navigate("Team/${vm.model.selectedTeam.value.id}") { launchSingleTop = true }
+                }
+            ) {
+                Text("Confirm", color = MaterialTheme.colorScheme.primary)
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = { vm.openDeleteTaskDialog = false }
+            ) {
+                Text("Cancel", color = MaterialTheme.colorScheme.primary)
+            }
+        }
+    )
+}
