@@ -34,6 +34,26 @@ object DummyDataProvider {
             role = CategoryRole.PROGRAMMER
             weeklyAvailabilityTimes = 5
             weeklyAvailabilityHours = Pair(3, 0)
+        },2 to MemberTeamInfo().apply {
+            role = CategoryRole.PROGRAMMER
+            weeklyAvailabilityTimes = 5
+            weeklyAvailabilityHours = Pair(3, 0)
+        },3 to MemberTeamInfo().apply {
+            role = CategoryRole.PROGRAMMER
+            weeklyAvailabilityTimes = 5
+            weeklyAvailabilityHours = Pair(3, 0)
+        },4 to MemberTeamInfo().apply {
+            role = CategoryRole.PROGRAMMER
+            weeklyAvailabilityTimes = 5
+            weeklyAvailabilityHours = Pair(3, 0)
+        },5 to MemberTeamInfo().apply {
+            role = CategoryRole.PROGRAMMER
+            weeklyAvailabilityTimes = 5
+            weeklyAvailabilityHours = Pair(3, 0)
+        },6 to MemberTeamInfo().apply {
+            role = CategoryRole.PROGRAMMER
+            weeklyAvailabilityTimes = 5
+            weeklyAvailabilityHours = Pair(3, 0)
         })
         chats = mutableListOf()
     }
