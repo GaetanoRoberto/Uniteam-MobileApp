@@ -114,6 +114,10 @@ class UniTeamModel(val context: Context) {
         _loggedMember.value = member
     }
 
+    fun addTeamInfo(teamId: Int, newTeamInfo: MemberTeamInfo) {
+        _loggedMember.value.teamsInfo?.put(teamId,newTeamInfo)
+    }
+
     // To update the teamsInfo of the loggedMember
     fun updateTeamInfo(teamId: Int, newTeamInfo: MemberTeamInfo) {
         _loggedMember.value.let { member ->

@@ -67,6 +67,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -99,10 +100,14 @@ import it.polito.uniteam.Factory
 import it.polito.uniteam.NavControllerManager
 import it.polito.uniteam.R
 import it.polito.uniteam.UniTeamModel
+import it.polito.uniteam.classes.CategoryRole
+import it.polito.uniteam.classes.Chat
+import it.polito.uniteam.classes.DummyDataProvider
 import it.polito.uniteam.classes.History
 import it.polito.uniteam.classes.HourMinutesPicker
 import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.MemberIcon
+import it.polito.uniteam.classes.MemberTeamInfo
 import it.polito.uniteam.classes.Status
 import it.polito.uniteam.classes.Team
 import it.polito.uniteam.classes.permissionRole
@@ -184,12 +189,24 @@ class TeamDetailsViewModel(val model: UniTeamModel, val savedStateHandle: SavedS
         if (teamNameError.isEmpty() && descriptionError.isEmpty()) {
             model.changeSelectedTeamName(selectedTeam.value.name)
             model.changeSelectedTeamDescription(selectedTeam.value.description)
-            /*val existingTeams = model.getAllTeams().map { it.id }
+            val existingTeams = model.getAllTeams().map { it.id }
             // new team creation
             if(!existingTeams.contains(selectedTeam.value.id)){
-                selectedTeam.value.members.addAll(model.getAllMembers())
+                selectedTeam.value.members.addAll(DummyDataProvider.getMembers())
+                selectedTeam.value.chat = Chat(
+                    id = ++DummyDataProvider.chatId,
+                    sender = member.value,
+                    teamId = selectedTeam.value.id,
+                    messages = mutableStateListOf()
+                )
                 model.addTeam(selectedTeam.value)
-            }*/
+                model.addTeamInfo(selectedTeam.value.id, MemberTeamInfo().apply {
+                    role = CategoryRole.PROGRAMMER
+                    weeklyAvailabilityTimes = 5
+                    weeklyAvailabilityHours = Pair(3, 0)
+                    permissionrole = permissionRole.ADMIN
+                })
+            }
 
         }
 
@@ -798,17 +815,17 @@ fun TeamDetailsEdit(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
                                     vm.validate()
                                     if (vm.teamNameError == "" && vm.descriptionError == "") {
                                         // TODO finish save team logic with db
-                                        /*if(vm.newTeam){
+                                        controller.navigate("Teams")
+                                        if(vm.newTeam){
                                             vm.addTeamHistory(selectedTeam.id, History(comment = "Team created successfully", date = LocalDate.now().toString(), user = vm.member.value))
-                                            vm.teamCreation(false)
+                                            //vm.teamCreation(false)
                                         }else{
                                             vm.addTeamHistory(vm.teamId, History(comment = "Team details updated", date = LocalDate.now().toString(), user = vm.member.value))
                                         }
-                                        vm.changeEditing()
+                                        /*vm.changeEditing()
                                         vm.teamMembersBeforeEditing = selectedTeam.members
-                                        vm.teamImageBeforeEditing = selectedTeam.image*/
-                                        controller.navigate("Teams")
-                                        /*navController.navigate("Tasks"){
+                                        vm.teamImageBeforeEditing = selectedTeam.image
+                                        navController.navigate("Tasks"){
                                             popUpTo(navController.graph.findStartDestination().id) {
                                                 saveState = true
                                             }
@@ -864,17 +881,17 @@ fun TeamDetailsEdit(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
                             vm.validate()
                             if (vm.teamNameError == "" && vm.descriptionError == "" ) {
                                 // TODO finish save team logic with db
-                                /*if(vm.newTeam){
+                                controller.navigate("Teams")
+                                if(vm.newTeam){
                                     vm.addTeamHistory(selectedTeam.id, History(comment = "Team created successfully", date = LocalDate.now().toString(), user = vm.member.value))
-                                    vm.teamCreation(false)
+                                    //vm.teamCreation(false)
                                 }else{
                                     vm.addTeamHistory(vm.teamId, History(comment = "Team details updated", date = LocalDate.now().toString(), user = vm.member.value))
                                 }
-                                vm.changeEditing()
+                                /*vm.changeEditing()
                                 vm.teamMembersBeforeEditing = selectedTeam.members
-                                vm.teamImageBeforeEditing = selectedTeam.image*/
-                                controller.navigate("Teams")
-                                /*navController.navigate("Tasks"){
+                                vm.teamImageBeforeEditing = selectedTeam.image
+                                navController.navigate("Tasks"){
                                     popUpTo(navController.graph.findStartDestination().id) {
                                         saveState = true
                                     }

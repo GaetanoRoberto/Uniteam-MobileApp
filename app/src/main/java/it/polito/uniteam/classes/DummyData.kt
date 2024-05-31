@@ -13,7 +13,7 @@ object DummyDataProvider {
     private var memberId: Int = 0
     private var taskId: Int = 0
     private var teamId: Int = 0
-    private var chatId: Int = 6
+    var chatId: Int = 6
     private var historyId: Int = 0
     private var messageId: Int = 0
     private var fileId: Int = 0
