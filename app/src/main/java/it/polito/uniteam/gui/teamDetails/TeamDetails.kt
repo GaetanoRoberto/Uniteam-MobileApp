@@ -726,7 +726,7 @@ fun TeamDetailsEdit(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
     val selectedTeam = vm.selectedTeam.value
     Row(){
         Column(modifier = Modifier.fillMaxSize(),  verticalArrangement = Arrangement.Bottom) {
-            Row(modifier = Modifier.fillMaxHeight(0.9f)) {
+            Row(modifier = Modifier.fillMaxHeight(0.85f)) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -832,27 +832,48 @@ fun TeamDetailsEdit(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
                     modifier = Modifier
                         .fillMaxWidth()
                         //.fillMaxHeight()
-                        .height(50.dp)
-                    //.padding(0.dp, 8.dp, 0.dp, 5.dp)
+                        .padding(0.dp, 0.dp, 0.dp, 5.dp)
                     ,
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.Bottom
                 ) {
-
-
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth(0.5f)
-                    ) {
-                        Box(modifier = Modifier.weight(1f)) {
-                            Button(colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
-                                if(vm.newTeam){
-                                    controller.navigate("Teams")
-                                } else {
-                                    vm.onCancel()
-                                    vm.teamCreation(false)
-                                    vm.changeEditing()
+                    Column(modifier = Modifier.weight(1f)) {
+                        Button(colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
+                            if(vm.newTeam){
+                                controller.navigate("Teams")
+                            } else {
+                                vm.onCancel()
+                                vm.teamCreation(false)
+                                vm.changeEditing()
+                            }
+                            /*navController.navigate("Tasks"){
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
                                 }
+                                launchSingleTop = true
+                                restoreState = true
+                            }*/
+
+                        }, modifier = Modifier.fillMaxWidth()) {
+                            Text(text = "Cancel", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(15.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Button(colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
+                            vm.validate()
+                            if (vm.teamNameError == "" && vm.descriptionError == "" ) {
+                                // TODO finish save team logic with db
+                                /*if(vm.newTeam){
+                                    vm.addTeamHistory(selectedTeam.id, History(comment = "Team created successfully", date = LocalDate.now().toString(), user = vm.member.value))
+                                    vm.teamCreation(false)
+                                }else{
+                                    vm.addTeamHistory(vm.teamId, History(comment = "Team details updated", date = LocalDate.now().toString(), user = vm.member.value))
+                                }
+                                vm.changeEditing()
+                                vm.teamMembersBeforeEditing = selectedTeam.members
+                                vm.teamImageBeforeEditing = selectedTeam.image*/
+                                controller.navigate("Teams")
                                 /*navController.navigate("Tasks"){
                                     popUpTo(navController.graph.findStartDestination().id) {
                                         saveState = true
@@ -861,46 +882,9 @@ fun TeamDetailsEdit(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
                                     restoreState = true
                                 }*/
 
-                            }, modifier = Modifier.fillMaxWidth()) {
-                                Text(text = "Cancel", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
                             }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.width(15.dp))
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                    ) {
-                        Spacer(modifier = Modifier.width(15.dp))
-
-                        Box(modifier = Modifier.weight(1f)) {
-                            Button(colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
-                                vm.validate()
-                                if (vm.teamNameError == "" && vm.descriptionError == "" ) {
-                                    // TODO finish save team logic with db
-                                    /*if(vm.newTeam){
-                                        vm.addTeamHistory(selectedTeam.id, History(comment = "Team created successfully", date = LocalDate.now().toString(), user = vm.member.value))
-                                        vm.teamCreation(false)
-                                    }else{
-                                        vm.addTeamHistory(vm.teamId, History(comment = "Team details updated", date = LocalDate.now().toString(), user = vm.member.value))
-                                    }
-                                    vm.changeEditing()
-                                    vm.teamMembersBeforeEditing = selectedTeam.members
-                                    vm.teamImageBeforeEditing = selectedTeam.image*/
-                                    controller.navigate("Teams")
-                                    /*navController.navigate("Tasks"){
-                                        popUpTo(navController.graph.findStartDestination().id) {
-                                            saveState = true
-                                        }
-                                        launchSingleTop = true
-                                        restoreState = true
-                                    }*/
-
-                                }
-                            }, modifier = Modifier.fillMaxWidth()) {
-                                Text(text = "Save", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
-                            }
+                        }, modifier = Modifier.fillMaxWidth()) {
+                            Text(text = "Save", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
                         }
                     }
                 }
