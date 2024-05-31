@@ -91,6 +91,7 @@ import it.polito.uniteam.gui.showtaskdetails.TaskScreen
 import it.polito.uniteam.gui.statistics.Statistics
 import it.polito.uniteam.gui.teamScreen.TeamScreen
 import it.polito.uniteam.gui.home.Home
+import it.polito.uniteam.gui.notifications.messageUnreadCountForBottomBar
 import it.polito.uniteam.gui.userprofile.OtherProfileSettings
 import it.polito.uniteam.gui.userprofile.ProfileSettings
 import it.polito.uniteam.gui.userprofile.UserProfileScreen
@@ -155,7 +156,7 @@ class MainActivity : ComponentActivity() {
                         selectedIcon = Icons.Filled.Notifications,
                         unselectedIcon = Icons.Outlined.Notifications,
                         hasNews = false,
-                        badgeCount = 5
+                        badgeCount = messageUnreadCountForBottomBar()
                     ),
 
                     )

@@ -31,6 +31,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -51,6 +52,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -369,6 +371,7 @@ fun DefaultImage(vm: UserProfileScreen = viewModel(factory = Factory(LocalContex
     if (name.isNotBlank() || vm.photoUri != Uri.EMPTY) {
 
         Card(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
+
             Row(
                 modifier = Modifier
                     .background(MaterialTheme.colorScheme.background),
@@ -708,6 +711,26 @@ fun ProfileSettings(
     outputDirectory: File,
     cameraExecutor: ExecutorService
 ) {
+    Box(
+        contentAlignment = Alignment.TopEnd, // Allinea il contenuto in alto a destra
+        modifier = Modifier.fillMaxSize()
+    ) {
+        if (!vm.isEditing) {
+            FloatingActionButton(
+                onClick = { vm.edit() },
+                containerColor = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Edit",
+                    tint = MaterialTheme.colorScheme.onSecondary
+                )
+            }
+        }
+    }
+
+
     val pickImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { activity: ActivityResult? ->
         if (activity == null || activity.resultCode != Activity.RESULT_OK) {
             // User canceled the action, handle it here

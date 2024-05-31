@@ -38,6 +38,14 @@ import it.polito.uniteam.Factory
 import it.polito.uniteam.NavControllerManager
 
 @Composable
+fun messageUnreadCountForBottomBar(vm : NotificationsViewModel = viewModel(factory = Factory(LocalContext.current))): Int{
+    var count = 0
+    vm.teamsMessages.forEach { (_,c) -> count += c }
+    vm.membersMessages.forEach { (_,c) -> count += c }
+    return count
+    }
+
+@Composable
 fun Notifications(vm: NotificationsViewModel = viewModel(factory = Factory(LocalContext.current))) {
     val icons = listOf(Icons.Filled.Comment, Icons.Filled.Info)
     val titles = notificationsSection.entries.map { it.toString() }
