@@ -787,13 +787,13 @@ fun AssignMemberDialog(vm: taskDetails) {
                     } 
                     }
                 }
-                if (vm.membersError.isNotEmpty()) {
+                if (vm.membersDialogError.isNotEmpty()) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(10.dp, 10.dp, 0.dp, 0.dp), horizontalArrangement = Arrangement.Start
                     ) {
-                        Text(text = vm.membersError, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+                        Text(text = vm.membersDialogError, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
                     }
                 }
                 Row(
@@ -802,19 +802,19 @@ fun AssignMemberDialog(vm: taskDetails) {
                         .padding(10.dp),
                     horizontalArrangement = Arrangement.Center,
                 ) {
-                    TextButton(onClick = { vm.openAssignDialog.value = false; vm.membersError = "" }) {
+                    TextButton(onClick = { vm.openAssignDialog.value = false; vm.membersDialogError = "" }) {
                         Text("Cancel")
                     }
                     Spacer(modifier = Modifier.padding(10.dp))
                     TextButton(onClick = {
                         Log.i("diooo",selectedMembers.toString())
                         if(selectedMembers.all { !it.value }) {
-                            vm.membersError = "You Must Select at Least One Member"
+                            vm.membersDialogError = "You Must Select at Least One Member"
                         } else {
                             vm.members.clear()
                             vm.members.addAll(selectedMembers.filterValues { it }.keys.toMutableStateList())
                             vm.openAssignDialog.value = false
-                            vm.membersError = ""
+                            vm.membersDialogError = ""
                         }
                     }
                     ) {

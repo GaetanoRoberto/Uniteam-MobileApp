@@ -205,6 +205,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
 
     var openAssignDialog = mutableStateOf(false)
     var membersError by mutableStateOf("")
+    var membersDialogError by mutableStateOf("")
 
     fun addMembers(m: Member) {
         members.add(m)
