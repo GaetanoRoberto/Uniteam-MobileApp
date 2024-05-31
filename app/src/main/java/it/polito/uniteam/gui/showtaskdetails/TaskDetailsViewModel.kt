@@ -200,7 +200,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
         }
     }
 
-    var possibleMembers = getTeamRelatedToTask(taskId.toInt())?.members?.toMutableStateList() ?: mutableStateListOf()
+    var possibleMembers = getTeamRelatedToTask(taskId.toInt())?.members?.toMutableStateList() ?: DummyDataProvider.getMembers()
     var members = task?.members?.toMutableStateList() ?: mutableStateListOf()
 
     var openAssignDialog = mutableStateOf(false)

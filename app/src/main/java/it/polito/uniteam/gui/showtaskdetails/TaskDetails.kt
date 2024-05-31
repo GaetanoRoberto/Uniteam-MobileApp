@@ -6,6 +6,7 @@ import android.content.ContentResolver
 import android.net.Uri
 import android.provider.OpenableColumns
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -103,11 +104,17 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import it.polito.uniteam.Factory
 import it.polito.uniteam.NavControllerManager
+import it.polito.uniteam.classes.Category
+import it.polito.uniteam.classes.DummyDataProvider
 import it.polito.uniteam.classes.HourMinutesPicker
 import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.MemberIcon
+import it.polito.uniteam.classes.Priority
+import it.polito.uniteam.classes.Repetition
 import it.polito.uniteam.classes.Status
+import it.polito.uniteam.classes.Task
 import it.polito.uniteam.gui.notifications.notificationsSection
+import java.util.HashMap
 
 
 //@Preview
@@ -238,6 +245,44 @@ fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.curr
     /*vm.changeEditing()
     vm.enterEditingMode()*/
     val controller = NavControllerManager.getNavController()
+    BackHandler(onBack = {
+        vm.validate()
+        if (vm.taskError == "" && vm.descriptionError == "" && vm.categoryError == "" && vm.deadlineError == "" && vm.estimatedTimeError.value == "" && vm.spentTimeError.value == "" && vm.priorityError == "") {
+            if(vm.newTask) {
+                vm.handleHistory()
+                // TODO save now navigate
+                /*vm.model.addTeamTask(vm.model.selectedTeam.value.id, Task(
+                    id = ++DummyDataProvider.taskId,
+                    name = vm.taskName,
+                    description = vm.description,
+                    category = Category.valueOf(vm.category),
+                    priority = Priority.valueOf(vm.priority),
+                    creationDate = LocalDate.now(),
+                    deadline = LocalDate.parse(vm.deadline),
+                    estimatedTime = Pair(vm.estimatedHours.value.toInt(),vm.estimatedMinutes.value.toInt()),
+                    spentTime = HashMap(vm.spentTime),
+                    status = Status.valueOf(vm.status),
+                    repetition = Repetition.valueOf(vm.repeatable),
+                    members = vm.members,
+                    schedules = hashMapOf(),
+                    taskFiles = vm.files,
+                    taskComments = vm.comments,
+                    taskHistory = vm.history
+                ))*/
+                controller.popBackStack()
+            } else {
+                vm.handleHistory()
+                vm.changeEditing()
+            }
+            /*navController.navigate("Tasks"){
+                popUpTo(navController.graph.findStartDestination().id) {
+                    saveState = true
+                }
+                launchSingleTop = true
+                restoreState = true
+            }*/
+        }
+    })
     Row(){
         Column(modifier = Modifier.fillMaxSize(),  verticalArrangement = Arrangement.Bottom) {
             Row(modifier = Modifier.fillMaxHeight(0.9f)) {
@@ -322,8 +367,32 @@ fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.curr
                                 Button( colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
                                     vm.validate()
                                     if (vm.taskError == "" && vm.descriptionError == "" && vm.categoryError == "" && vm.deadlineError == "" && vm.estimatedTimeError.value == "" && vm.spentTimeError.value == "" && vm.priorityError == "") {
-                                        vm.handleHistory()
-                                        vm.changeEditing()
+                                        if(vm.newTask) {
+                                            vm.handleHistory()
+                                            // TODO save now navigate
+                                            /*vm.model.addTeamTask(vm.model.selectedTeam.value.id, Task(
+                                                id = ++DummyDataProvider.taskId,
+                                                name = vm.taskName,
+                                                description = vm.description,
+                                                category = Category.valueOf(vm.category),
+                                                priority = Priority.valueOf(vm.priority),
+                                                creationDate = LocalDate.now(),
+                                                deadline = LocalDate.parse(vm.deadline),
+                                                estimatedTime = Pair(vm.estimatedHours.value.toInt(),vm.estimatedMinutes.value.toInt()),
+                                                spentTime = HashMap(vm.spentTime),
+                                                status = Status.valueOf(vm.status),
+                                                repetition = Repetition.valueOf(vm.repeatable),
+                                                members = vm.members,
+                                                schedules = hashMapOf(),
+                                                taskFiles = vm.files,
+                                                taskComments = vm.comments,
+                                                taskHistory = vm.history
+                                            ))*/
+                                            controller.popBackStack()
+                                        } else {
+                                            vm.handleHistory()
+                                            vm.changeEditing()
+                                        }
                                         /*navController.navigate("Tasks"){
                                             popUpTo(navController.graph.findStartDestination().id) {
                                                 saveState = true
@@ -393,8 +462,32 @@ fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.curr
                             Button(colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
                                 vm.validate()
                                 if (vm.taskError == "" && vm.descriptionError == "" && vm.categoryError == "" && vm.deadlineError == "" && vm.estimatedTimeError.value == "" && vm.spentTimeError.value == "" && vm.priorityError == "") {
-                                    vm.handleHistory()
-                                    vm.changeEditing()
+                                    if(vm.newTask) {
+                                        vm.handleHistory()
+                                        // TODO save now navigate
+                                        /*vm.model.addTeamTask(vm.model.selectedTeam.value.id, Task(
+                                            id = ++DummyDataProvider.taskId,
+                                            name = vm.taskName,
+                                            description = vm.description,
+                                            category = Category.valueOf(vm.category),
+                                            priority = Priority.valueOf(vm.priority),
+                                            creationDate = LocalDate.now(),
+                                            deadline = LocalDate.parse(vm.deadline),
+                                            estimatedTime = Pair(vm.estimatedHours.value.toInt(),vm.estimatedMinutes.value.toInt()),
+                                            spentTime = HashMap(vm.spentTime),
+                                            status = Status.valueOf(vm.status),
+                                            repetition = Repetition.valueOf(vm.repeatable),
+                                            members = vm.members,
+                                            schedules = hashMapOf(),
+                                            taskFiles = vm.files,
+                                            taskComments = vm.comments,
+                                            taskHistory = vm.history
+                                        ))*/
+                                        controller.popBackStack()
+                                    } else {
+                                        vm.handleHistory()
+                                        vm.changeEditing()
+                                    }
                                     /*navController.navigate("Tasks"){
                                         popUpTo(navController.graph.findStartDestination().id) {
                                             saveState = true
@@ -402,7 +495,6 @@ fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.curr
                                         launchSingleTop = true
                                         restoreState = true
                                     }*/
-
                                 }
                             }, modifier = Modifier.fillMaxWidth()) {
                                 Text(text = "Save", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)

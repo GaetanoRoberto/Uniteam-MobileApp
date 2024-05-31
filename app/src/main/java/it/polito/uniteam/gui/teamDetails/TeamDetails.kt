@@ -388,7 +388,32 @@ fun TeamViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalC
 fun TeamEditViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalContext.current.applicationContext)), outputDirectory: File,
                        cameraExecutor: ExecutorService
 ){
-
+    val controller = NavControllerManager.getNavController()
+    // Handle Back Button
+    BackHandler(onBack = {
+        vm.validate()
+        if (vm.teamNameError == "" && vm.descriptionError == "") {
+            // TODO finish save team logic with db
+            if(vm.newTeam){
+                controller.navigate("Teams")
+                vm.addTeamHistory(vm.selectedTeam.value.id, History(comment = "Team created successfully", date = LocalDate.now().toString(), user = vm.member.value))
+                //vm.teamCreation(false)
+            }else{
+                vm.addTeamHistory(vm.teamId, History(comment = "Team details updated", date = LocalDate.now().toString(), user = vm.member.value))
+                vm.changeEditing()
+            }
+            /*vm.changeEditing()
+            vm.teamMembersBeforeEditing = selectedTeam.members
+            vm.teamImageBeforeEditing = selectedTeam.image
+            navController.navigate("Tasks"){
+                popUpTo(navController.graph.findStartDestination().id) {
+                    saveState = true
+                }
+                launchSingleTop = true
+                restoreState = true
+            }*/
+        }
+    })
     val pickImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { activity: ActivityResult? ->
         if (activity == null || activity.resultCode != Activity.RESULT_OK) {
             // User canceled the action, handle it here
@@ -815,12 +840,13 @@ fun TeamDetailsEdit(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
                                     vm.validate()
                                     if (vm.teamNameError == "" && vm.descriptionError == "") {
                                         // TODO finish save team logic with db
-                                        controller.navigate("Teams")
                                         if(vm.newTeam){
+                                            controller.navigate("Teams")
                                             vm.addTeamHistory(selectedTeam.id, History(comment = "Team created successfully", date = LocalDate.now().toString(), user = vm.member.value))
                                             //vm.teamCreation(false)
                                         }else{
                                             vm.addTeamHistory(vm.teamId, History(comment = "Team details updated", date = LocalDate.now().toString(), user = vm.member.value))
+                                            vm.changeEditing()
                                         }
                                         /*vm.changeEditing()
                                         vm.teamMembersBeforeEditing = selectedTeam.members
@@ -881,12 +907,13 @@ fun TeamDetailsEdit(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
                             vm.validate()
                             if (vm.teamNameError == "" && vm.descriptionError == "" ) {
                                 // TODO finish save team logic with db
-                                controller.navigate("Teams")
                                 if(vm.newTeam){
+                                    controller.navigate("Teams")
                                     vm.addTeamHistory(selectedTeam.id, History(comment = "Team created successfully", date = LocalDate.now().toString(), user = vm.member.value))
                                     //vm.teamCreation(false)
                                 }else{
                                     vm.addTeamHistory(vm.teamId, History(comment = "Team details updated", date = LocalDate.now().toString(), user = vm.member.value))
+                                    vm.changeEditing()
                                 }
                                 /*vm.changeEditing()
                                 vm.teamMembersBeforeEditing = selectedTeam.members

@@ -142,8 +142,8 @@ class UniTeamModel(val context: Context) {
     ))
     val teams: StateFlow<MutableList<Team>> = _teams
 
-    private var _selectedTeam = mutableStateOf(Team(name= "default", description = "default" ))// team selected to show its details
-    var selectedTeam= _selectedTeam.value
+    private var _selectedTeam = MutableStateFlow<Team>(Team(name= "default", description = "default" ))// team selected to show its details
+    val selectedTeam: StateFlow<Team> = _selectedTeam
 
 
     // USER CHAT UNREAD
@@ -197,9 +197,8 @@ class UniTeamModel(val context: Context) {
         }else{
             newId = _teams.value.map { it.id }.max() +1
         }
-        _selectedTeam = mutableStateOf(Team(id = newId, name= "", description = ""))
-        selectedTeam= _selectedTeam.value
-        return selectedTeam
+        _selectedTeam.value = Team(id = newId, name= "", description = "")
+        return selectedTeam.value
     }
 
     fun changeSelectedTeamName(s:String){

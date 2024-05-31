@@ -11,7 +11,7 @@ import java.time.temporal.TemporalAdjusters
 
 object DummyDataProvider {
     private var memberId: Int = 0
-    private var taskId: Int = 0
+    var taskId: Int = 0
     private var teamId: Int = 0
     var chatId: Int = 6
     private var historyId: Int = 0

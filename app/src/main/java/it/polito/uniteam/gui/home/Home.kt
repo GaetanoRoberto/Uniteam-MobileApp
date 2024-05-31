@@ -497,7 +497,7 @@ fun Home(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current)))
                                         LazyColumn {
                                             items(vm.filteredTeamsList.value) { team ->
                                                 ListItem(
-                                                    modifier = Modifier.clickable { navController.navigate("Team/${team.id}") { launchSingleTop = true } },
+                                                    modifier = Modifier.clickable { vm.model.selectTeam(team.id); navController.navigate("Team/${team.id}") { launchSingleTop = true } },
                                                     headlineContent = {
                                                         Text(
                                                             team.name,
