@@ -58,6 +58,7 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.auth.ktx)
     implementation("com.google.firebase:firebase-auth-ktx:23.0.0")
+    implementation(libs.firebase.common.ktx)
     val cameraxVersion = "1.2.2"
     implementation ("androidx.camera:camera-core:${cameraxVersion}")
     implementation ("androidx.camera:camera-camera2:${cameraxVersion}")
