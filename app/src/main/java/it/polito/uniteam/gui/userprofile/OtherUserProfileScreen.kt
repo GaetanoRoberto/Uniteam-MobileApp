@@ -200,19 +200,6 @@ fun OtherProfileSettings( vm: OtherUserProfileScreen = viewModel(factory = Facto
     BoxWithConstraints {
 
             Box(modifier = Modifier.fillMaxSize()) {
-                // Image at the top
-                Image(
-                    painter = rememberAsyncImagePainter(member.profileImage),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight(0.9f)
-                        .align(Alignment.TopCenter),
-                )
-
-                // Buttons at the bottom
-
-                Spacer(modifier = Modifier.height(16.dp))
 
                 //
                 BoxWithConstraints {
