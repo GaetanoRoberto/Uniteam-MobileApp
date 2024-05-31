@@ -358,6 +358,13 @@ class MainActivity : ComponentActivity() {
                                                             )
                                                         )
                                                     }
+                                                    /*composable("ChatTeam/{teamId}") {
+                                                        ChatScreen(
+                                                            vm = viewModel(
+                                                                factory = Factory(LocalContext.current)
+                                                            )
+                                                        )
+                                                    }*/
                                                     composable("Chat/{chatId}") {
                                                         ChatScreen(
                                                             vm = viewModel(
@@ -405,7 +412,7 @@ class MainActivity : ComponentActivity() {
                                                             )
                                                         )
                                                     }
-                                                    composable("TeamDetails") {
+                                                    composable("TeamDetails/{teamId}" , arguments = listOf(navArgument("teamId") { type = NavType.StringType })) {
                                                         TeamViewScreen(
                                                             vm = viewModel(
                                                                 factory = Factory(LocalContext.current)

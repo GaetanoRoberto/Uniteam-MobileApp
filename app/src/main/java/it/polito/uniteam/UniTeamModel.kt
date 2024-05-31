@@ -133,7 +133,8 @@ class UniTeamModel(val context: Context) {
 
     private val _teams = MutableStateFlow<MutableList<Team>>(mutableListOf<Team>(
         Team(id= 0, name = "Team1", description = "Description",
-            members = membersList)
+            members = membersList, teamHistory = mutableListOf(History(id = 0, comment = "Team created", date = "2024/11/11", user = DummyDataProvider.member1))
+        )
     ))
     val teams: StateFlow<MutableList<Team>> = _teams
 
@@ -255,6 +256,7 @@ class UniTeamModel(val context: Context) {
 
     fun addTeamHistory(teamId: Int, history: History) {
         getTeam(teamId).teamHistory.add(history)
+
     }
 
     fun addTaskHistory(taskId: Int, history: History) {
