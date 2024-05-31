@@ -1202,28 +1202,18 @@ fun DefaultImageForEditingTeam(vm: TeamDetailsViewModel = viewModel(factory = Fa
                             contentScale = ContentScale.Crop
                         )
                     } else {
-                        val initials = name.trim().split(' ');
-                        var initialsValue = initials
-                            .mapNotNull { it.firstOrNull()?.toString() }
-                            .first();
-
-                        if (initials.size >=2) {
-                            initialsValue += initials
-                                .mapNotNull { it.firstOrNull()?.toString() }
-                                .last()
-                        }
-                        Text(
+                        Image(
+                            painter = painterResource(id = R.drawable.people),
+                            contentDescription = "Image",
                             modifier = Modifier
-                                .padding(40.dp)
-                                .size(80.dp)
+                                //.padding(40.dp, 0.dp, 40.dp, 0.dp)
+                                .size(160.dp)
                                 .drawBehind {
                                     drawCircle(
                                         color = Orange,
-                                        radius = this.size.maxDimension
+                                        radius = this.size.minDimension/2f
                                     )
-                                },
-                            text = initialsValue,
-                            style = TextStyle(color = Color.White, fontSize = 60.sp, textAlign = TextAlign.Center)
+                                }
                         )
                     }
                     if (vm.editing) {
@@ -1302,10 +1292,16 @@ fun DefaultImageForEditingTeam(vm: TeamDetailsViewModel = viewModel(factory = Fa
     } else {
         Box(modifier = Modifier.size(200.dp), contentAlignment = Alignment.Center) {
             Image(
-                painter = painterResource(id = R.drawable.user_icon),
+                painter = painterResource(id = R.drawable.people),
                 contentDescription = "Image",
                 modifier = Modifier
                     //.padding(40.dp, 0.dp, 40.dp, 0.dp)
+                    .drawBehind {
+                        drawCircle(
+                            color = Orange,
+                            radius = this.size.minDimension/2f
+                        )
+                    }
                     .size(160.dp)
             )
             if(!vm.cameraPressed) {
