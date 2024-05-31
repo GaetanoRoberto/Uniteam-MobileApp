@@ -184,11 +184,12 @@ class TeamDetailsViewModel(val model: UniTeamModel, val savedStateHandle: SavedS
         if (teamNameError.isEmpty() && descriptionError.isEmpty()) {
             model.changeSelectedTeamName(selectedTeam.value.name)
             model.changeSelectedTeamDescription(selectedTeam.value.description)
-            val existingTeams = model.getAllTeams().map { it.id }
+            /*val existingTeams = model.getAllTeams().map { it.id }
             // new team creation
             if(!existingTeams.contains(selectedTeam.value.id)){
+                selectedTeam.value.members.addAll(model.getAllMembers())
                 model.addTeam(selectedTeam.value)
-            }
+            }*/
 
         }
 
@@ -796,13 +797,17 @@ fun TeamDetailsEdit(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
                                 Button( colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
                                     vm.validate()
                                     if (vm.teamNameError == "" && vm.descriptionError == "") {
-                                        if(vm.newTeam){
+                                        // TODO finish save team logic with db
+                                        /*if(vm.newTeam){
                                             vm.addTeamHistory(selectedTeam.id, History(comment = "Team created successfully", date = LocalDate.now().toString(), user = vm.member.value))
                                             vm.teamCreation(false)
                                         }else{
                                             vm.addTeamHistory(vm.teamId, History(comment = "Team details updated", date = LocalDate.now().toString(), user = vm.member.value))
                                         }
                                         vm.changeEditing()
+                                        vm.teamMembersBeforeEditing = selectedTeam.members
+                                        vm.teamImageBeforeEditing = selectedTeam.image*/
+                                        controller.navigate("Teams")
                                         /*navController.navigate("Tasks"){
                                             popUpTo(navController.graph.findStartDestination().id) {
                                                 saveState = true
@@ -873,17 +878,17 @@ fun TeamDetailsEdit(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
                             Button(colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
                                 vm.validate()
                                 if (vm.teamNameError == "" && vm.descriptionError == "" ) {
-                                    if(vm.newTeam){
+                                    // TODO finish save team logic with db
+                                    /*if(vm.newTeam){
                                         vm.addTeamHistory(selectedTeam.id, History(comment = "Team created successfully", date = LocalDate.now().toString(), user = vm.member.value))
                                         vm.teamCreation(false)
                                     }else{
                                         vm.addTeamHistory(vm.teamId, History(comment = "Team details updated", date = LocalDate.now().toString(), user = vm.member.value))
                                     }
-
-
                                     vm.changeEditing()
                                     vm.teamMembersBeforeEditing = selectedTeam.members
-                                    vm.teamImageBeforeEditing = selectedTeam.image
+                                    vm.teamImageBeforeEditing = selectedTeam.image*/
+                                    controller.navigate("Teams")
                                     /*navController.navigate("Tasks"){
                                         popUpTo(navController.graph.findStartDestination().id) {
                                             saveState = true

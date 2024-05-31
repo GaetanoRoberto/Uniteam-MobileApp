@@ -1,6 +1,7 @@
 package it.polito.uniteam.gui.showtaskdetails
 
 
+import android.annotation.SuppressLint
 import android.content.ContentResolver
 import android.net.Uri
 import android.provider.OpenableColumns
@@ -101,6 +102,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import it.polito.uniteam.Factory
+import it.polito.uniteam.NavControllerManager
 import it.polito.uniteam.classes.HourMinutesPicker
 import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.MemberIcon
@@ -149,13 +151,6 @@ fun TaskDetailsView(vm: taskDetails = viewModel(factory = Factory(LocalContext.c
     ) {
         Spacer(modifier = Modifier.padding(10.dp))
         Row(modifier = Modifier.fillMaxWidth(0.95f), horizontalArrangement = Arrangement.End) {
-            IconButton(onClick = {
-                vm.changeEditing()
-                vm.enterEditingMode()
-                vm.newTask()
-            }) {
-                Icon(Icons.Default.Add, contentDescription = "Add ")
-            }
             IconButton(onClick = {
                 vm.changeEditing()
                 vm.enterEditingMode()
@@ -237,10 +232,12 @@ fun TaskDetailsView(vm: taskDetails = viewModel(factory = Factory(LocalContext.c
 }
 
 
+@SuppressLint("RestrictedApi")
 @Composable
 fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.current))) {
     /*vm.changeEditing()
     vm.enterEditingMode()*/
+    val controller = NavControllerManager.getNavController()
     Row(){
         Column(modifier = Modifier.fillMaxSize(),  verticalArrangement = Arrangement.Bottom) {
             Row(modifier = Modifier.fillMaxHeight(0.9f)) {
@@ -309,8 +306,12 @@ fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.curr
                                         launchSingleTop = true
                                         restoreState = true
                                     }*/
-                                    vm.cancelEdit()
-                                    vm.changeEditing()
+                                    if(vm.newTask){
+                                        controller.popBackStack()
+                                    } else {
+                                        vm.cancelEdit()
+                                        vm.changeEditing()
+                                    }
                                 }, modifier = Modifier.fillMaxWidth()) {
                                     Text(text = "Cancel", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
                                 }
@@ -361,8 +362,12 @@ fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.curr
                     ) {
                         Box(modifier = Modifier.weight(1f)) {
                             Button(colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
-                                vm.cancelEdit()
-                                vm.changeEditing()
+                                if(vm.newTask){
+                                    controller.popBackStack()
+                                } else {
+                                    vm.cancelEdit()
+                                    vm.changeEditing()
+                                }
                                 /*navController.navigate("Tasks"){
                                     popUpTo(navController.graph.findStartDestination().id) {
                                         saveState = true
@@ -526,7 +531,6 @@ fun MembersDropdownMenuBox(
         modifier = Modifier
             .fillMaxWidth()
             .padding(0.dp, 8.dp)
-
     ) {
         ExposedDropdownMenuBox(
             expanded = expanded,
@@ -588,6 +592,9 @@ fun MembersDropdownMenuBox(
                 AssignMemberDialog(vm)
             }
         }
+    }
+    if(vm.membersError.isNotEmpty()) {
+        Text(text = vm.membersError, color = MaterialTheme.colorScheme.error)
     }
 }
 

@@ -30,6 +30,8 @@ import java.util.Locale
 @SuppressLint("MutableCollectionMutableState")
 class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
     private val taskId: String = checkNotNull(savedStateHandle["taskId"])
+    val newTask = taskId.toInt() == 0
+
     fun getTask(taskId: Int) = model.getTask(taskId)
     fun getTeamRelatedToTask(taskId: Int) = model.getTeamRelatedToTask(taskId)
 
@@ -323,7 +325,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
         checkDeadline()
         checkEstimatedTime()
         checkSpentTime()
-        //checkMembers()
+        checkMembers()
     }
 
     var editing by mutableStateOf(false)
@@ -480,4 +482,11 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
         history = mutableStateListOf()
     }
 
+    init {
+        if(newTask) {
+            changeEditing()
+            enterEditingMode()
+            newTask()
+        }
+    }
 }
