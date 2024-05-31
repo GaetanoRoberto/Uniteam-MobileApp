@@ -185,16 +185,17 @@ class UniTeamModel(val context: Context) {
 
 
 
-    fun newTeam(){
+    fun newTeam(): Team{
         var newId: Int
 
         if(_teams.value.size <1 ){
-            newId = 0
+            newId = 1
         }else{
             newId = _teams.value.map { it.id }.max() +1
         }
         _selectedTeam = mutableStateOf(Team(id = newId, name= "", description = ""))
         selectedTeam= _selectedTeam.value
+        return selectedTeam
     }
 
     fun changeSelectedTeamName(s:String){

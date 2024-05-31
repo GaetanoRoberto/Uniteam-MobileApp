@@ -26,8 +26,10 @@ data class Task (
 }
 
 data class TaskForCalendar(
+    val id: Int,
     val team: String,
     val name: String,
     val date: LocalDate,
-    val estimatedTime: Pair<Int,Int> = Pair(0,0)
+    val deadline: LocalDate,
+    val scheduledTime: Pair<Int,Int> = Pair(0,0)
     )

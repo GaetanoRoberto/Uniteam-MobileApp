@@ -34,6 +34,7 @@ object DummyDataProvider {
             role = CategoryRole.PROGRAMMER
             weeklyAvailabilityTimes = 5
             weeklyAvailabilityHours = Pair(3, 0)
+            permissionrole = permissionRole.ADMIN
         },2 to MemberTeamInfo().apply {
             role = CategoryRole.PROGRAMMER
             weeklyAvailabilityTimes = 5

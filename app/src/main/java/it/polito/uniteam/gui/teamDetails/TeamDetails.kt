@@ -96,6 +96,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import it.polito.uniteam.Factory
+import it.polito.uniteam.NavControllerManager
 import it.polito.uniteam.R
 import it.polito.uniteam.UniTeamModel
 import it.polito.uniteam.classes.History
@@ -104,6 +105,7 @@ import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.MemberIcon
 import it.polito.uniteam.classes.Status
 import it.polito.uniteam.classes.Team
+import it.polito.uniteam.classes.permissionRole
 import it.polito.uniteam.gui.showtaskdetails.CommentsView
 import it.polito.uniteam.gui.showtaskdetails.CustomDatePickerPreview
 import it.polito.uniteam.gui.showtaskdetails.Demo_ExposedDropdownMenuBox
@@ -126,19 +128,30 @@ import java.util.concurrent.ExecutorService
 class TeamDetailsViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHandle): ViewModel() {
     // from model
     val member = model.loggedMember
-    var selectedTeam = mutableStateOf( model.selectedTeam)
     val teamId = checkNotNull(savedStateHandle["teamId"]).toString().toInt()
+    val isAdmin = member.value.teamsInfo?.get(teamId)?.permissionrole == permissionRole.ADMIN
+    var editing by mutableStateOf(false)
+    var newTeam by mutableStateOf(false)
+    var selectedTeam = mutableStateOf(
+        if (teamId == 0){
+            changeEditing()
+            onNew()
+        } else {
+            model.selectTeam(teamId)
+            model.getTeam(teamId)
+        }
+    )
+    var beforeSelectedTeam = selectedTeam.value
     var history = if (teamId == 0) mutableListOf() else model.getTeam(teamId).teamHistory
     fun addTeamHistory(teamId: Int, history: History){
         model.addTeamHistory(teamId, history)
     }
+    fun addTeam(team: Team) = model.addTeam(team)
     // internal
     var teamNameError by mutableStateOf("")
         private set
     fun changeTeamName(s: String) {
         selectedTeam.value = selectedTeam.value.copy(name = s)
-        checkTeamName()
-        Log.d("Deb", selectedTeam.value.name)
     }
 
     private fun checkTeamName() {
@@ -153,7 +166,7 @@ class TeamDetailsViewModel(val model: UniTeamModel, val savedStateHandle: SavedS
 
     fun changeDescription(s: String) {
         selectedTeam.value = selectedTeam.value.copy(description = s)
-        checkDescription()    }
+    }
     fun setUri(uri: Uri) {
         selectedTeam.value.image = uri
     }
@@ -180,18 +193,14 @@ class TeamDetailsViewModel(val model: UniTeamModel, val savedStateHandle: SavedS
         }
 
     }
-
-    var editing by mutableStateOf(false)
-    var newTeam by mutableStateOf(false)
     fun changeEditing() {
         if(editing == true){
-            selectedTeam = mutableStateOf(model.selectedTeam)
-            teamMembersBeforeEditing = model.selectedTeam.members.toList()
-            teamImageBeforeEditing = model.selectedTeam.image
-
+            selectedTeam.value = beforeSelectedTeam
+            teamMembersBeforeEditing = selectedTeam.value.members.toList()
+            teamImageBeforeEditing = selectedTeam.value.image
         }
-        selectedTeam = mutableStateOf(model.selectedTeam)
-        Log.d("model", model.selectedTeam.name)
+        //selectedTeam.value = model.selectedTeam
+        //Log.d("model", model.selectedTeam.toString())
         editing = !editing
     }
 
@@ -200,23 +209,26 @@ class TeamDetailsViewModel(val model: UniTeamModel, val savedStateHandle: SavedS
     }
 
     fun onCancel(){
-        Log.d("view", selectedTeam.value.members.size.toString())
+        Log.d("oncancel", teamMembersBeforeEditing.toString())
 
-        model.changeSelectedTeamMembers(teamMembersBeforeEditing)
-        model.changeSelectedTeamImage(teamImageBeforeEditing)
+        selectedTeam.value.members = teamMembersBeforeEditing.toMutableList()
+        selectedTeam.value.image = teamImageBeforeEditing
+        /*model.changeSelectedTeamMembers(teamMembersBeforeEditing)
+        model.changeSelectedTeamImage(teamImageBeforeEditing)*/
     }
 
-    fun onNew(){
-        model.newTeam()
+    fun onNew(): Team {
+        val x = model.newTeam()
         teamCreation(true)
+        return x
     }
 
     var openAssignDialog = mutableStateOf(false)
 
     var possibleMembers = model.getAllMembers()
 
-    var teamMembersBeforeEditing = model.selectedTeam.members.toList()
-    var teamImageBeforeEditing = model.selectedTeam.image
+    var teamMembersBeforeEditing = selectedTeam.value.members.toList()
+    var teamImageBeforeEditing = selectedTeam.value.image
 
 
 
@@ -326,7 +338,7 @@ fun TeamViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalC
                             }
                             //Spacer(modifier = Modifier.height(0.dp))
 
-                            TeamDetailsView(customHeightForHistory = 0.3f)
+                            TeamDetailsView(customHeightForHistory = 0.41f)
 
                         }
                     } else {
@@ -667,18 +679,13 @@ fun TeamDetailsView(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
         .verticalScroll(rememberScrollState())) {
         Spacer(modifier = Modifier.padding(10.dp))
         Row(modifier = Modifier.fillMaxWidth(0.95f), horizontalArrangement = Arrangement.End) {
-            IconButton(onClick = {
-                vm.onNew()
-                vm.changeEditing()
-
-            }) {
-                Icon(Icons.Default.Add, contentDescription = "New team ")
-            }
-            IconButton(onClick = {
-                vm.changeEditing()
-                //vm.enterEditingMode()
-            }) {
-                Icon(Icons.Default.Edit, contentDescription = "Edit ")
+            if (vm.isAdmin) {
+                IconButton(onClick = {
+                    vm.changeEditing()
+                    //vm.enterEditingMode()
+                }) {
+                    Icon(Icons.Default.Edit, contentDescription = "Edit ")
+                }
             }
         }
 
@@ -714,7 +721,8 @@ fun TeamDetailsView(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
 @Preview
 @Composable
 fun TeamDetailsEdit(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalContext.current.applicationContext))){
-val selectedTeam = vm.selectedTeam.value
+    val controller = NavControllerManager.getNavController()
+    val selectedTeam = vm.selectedTeam.value
     Row(){
         Column(modifier = Modifier.fillMaxSize(),  verticalArrangement = Arrangement.Bottom) {
             Row(modifier = Modifier.fillMaxHeight(0.9f)) {
@@ -748,7 +756,13 @@ val selectedTeam = vm.selectedTeam.value
                         errorText = vm.descriptionError,
                         onChange = vm::changeDescription
                     )
-
+                    if (!vm.newTeam) {
+                        TeamMembersDropdownMenuBox(
+                            vm,
+                            "Manage Members",
+                            selectedTeam.members
+                        )
+                    }
                     Spacer(modifier = Modifier.height(10.dp))
 
                     if(!isVertical()){
@@ -764,13 +778,14 @@ val selectedTeam = vm.selectedTeam.value
                                         launchSingleTop = true
                                         restoreState = true
                                     }*/
-                                    vm.onCancel()
-                                    if(vm.newTeam){
-                                        //TODO("Navigate to team list")
-                                    }
-                                    vm.teamCreation(false)
 
-                                    vm.changeEditing()
+                                    if(vm.newTeam){
+                                        controller.navigate("Teams")
+                                    } else {
+                                        vm.onCancel()
+                                        vm.teamCreation(false)
+                                        vm.changeEditing()
+                                    }
                                 }, modifier = Modifier.fillMaxWidth()) {
                                     Text(text = "Cancel", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
                                 }
@@ -782,7 +797,7 @@ val selectedTeam = vm.selectedTeam.value
                                     vm.validate()
                                     if (vm.teamNameError == "" && vm.descriptionError == "") {
                                         if(vm.newTeam){
-                                            vm.addTeamHistory(vm.teamId, History(comment = "Team created successfully", date = LocalDate.now().toString(), user = vm.member.value))
+                                            vm.addTeamHistory(selectedTeam.id, History(comment = "Team created successfully", date = LocalDate.now().toString(), user = vm.member.value))
                                             vm.teamCreation(false)
                                         }else{
                                             vm.addTeamHistory(vm.teamId, History(comment = "Team details updated", date = LocalDate.now().toString(), user = vm.member.value))
@@ -826,12 +841,13 @@ val selectedTeam = vm.selectedTeam.value
                     ) {
                         Box(modifier = Modifier.weight(1f)) {
                             Button(colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
-                                vm.onCancel()
                                 if(vm.newTeam){
-                                    //TODO("Navigate to team list")
+                                    controller.navigate("Teams")
+                                } else {
+                                    vm.onCancel()
+                                    vm.teamCreation(false)
+                                    vm.changeEditing()
                                 }
-                                vm.teamCreation(false)
-                                vm.changeEditing()
                                 /*navController.navigate("Tasks"){
                                     popUpTo(navController.graph.findStartDestination().id) {
                                         saveState = true
@@ -858,7 +874,7 @@ val selectedTeam = vm.selectedTeam.value
                                 vm.validate()
                                 if (vm.teamNameError == "" && vm.descriptionError == "" ) {
                                     if(vm.newTeam){
-                                        vm.addTeamHistory(vm.teamId, History(comment = "Team created successfully", date = LocalDate.now().toString(), user = vm.member.value))
+                                        vm.addTeamHistory(selectedTeam.id, History(comment = "Team created successfully", date = LocalDate.now().toString(), user = vm.member.value))
                                         vm.teamCreation(false)
                                     }else{
                                         vm.addTeamHistory(vm.teamId, History(comment = "Team details updated", date = LocalDate.now().toString(), user = vm.member.value))
@@ -866,7 +882,8 @@ val selectedTeam = vm.selectedTeam.value
 
 
                                     vm.changeEditing()
-
+                                    vm.teamMembersBeforeEditing = selectedTeam.members
+                                    vm.teamImageBeforeEditing = selectedTeam.image
                                     /*navController.navigate("Tasks"){
                                         popUpTo(navController.graph.findStartDestination().id) {
                                             saveState = true
@@ -944,7 +961,7 @@ fun TeamMembersDropdownMenuBox(
                             .padding(0.dp, 0.dp, 5.dp, 0.dp)
                     ) {
                         currentMembers.forEachIndexed { index, member ->
-                            MemberIcon(member = member, modifierScale = Modifier.scale(0.65f), modifierPadding = Modifier.padding(start = if (index == 0) 12.dp else 0.dp))
+                            MemberIcon(member = member, modifierScale = Modifier.scale(0.65f), modifierPadding = Modifier.padding(start = if (index == 0) 12.dp else 0.dp), enableNavigation = false)
                             Text(
                                 text = member.username.toString() + if (index < currentMembers.size - 1) {
                                     ", "

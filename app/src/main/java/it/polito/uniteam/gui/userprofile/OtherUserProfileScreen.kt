@@ -3,6 +3,7 @@ package it.polito.uniteam.gui.userprofile
 import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -47,6 +48,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import it.polito.uniteam.Factory
+import it.polito.uniteam.NavControllerManager
 import it.polito.uniteam.UniTeamModel
 import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.Team
@@ -168,7 +170,8 @@ fun OtherUserProfile(vm: OtherUserProfileScreen = viewModel(factory = Factory(Lo
 
 @Composable
 fun RowTeamItem(modifier: Modifier = Modifier, team: Team, role: String, member: Member) {
-    Column {
+    val controller = NavControllerManager.getNavController()
+    Column(modifier = Modifier.fillMaxWidth().clickable { controller.navigate("Team/${team.id}") }) {
         Row(
             modifier = Modifier.padding(6.dp, 0.dp, 0.dp, 0.dp)
         ) {
@@ -183,33 +186,9 @@ fun RowTeamItem(modifier: Modifier = Modifier, team: Team, role: String, member:
 
 
         }
-        // not good to visualize
-        if(role != "null"){
-            Row {
-                Text(
-                    " Role: " + role ,
-                    modifier = Modifier
-                        .padding(8.dp, 0.dp, 0.dp,5.dp).fillMaxWidth(),
-                    style = MaterialTheme.typography.bodySmall,
-                    textAlign = TextAlign.Start,
-                )
-            }
-        }
-        if(member.teamsInfo?.get(team.id)?.weeklyAvailabilityHours?.first != null){
-            Row {
-                Text(
-                    " Availability hours: " + member.teamsInfo?.get(team.id)?.weeklyAvailabilityHours?.first + "," + member.teamsInfo?.get(team.id)?.weeklyAvailabilityHours?.second + "h" ,
-                    modifier = Modifier
-                        .padding(8.dp, 0.dp, 0.dp,5.dp).fillMaxWidth(),
-                    style = MaterialTheme.typography.bodySmall,
-                    textAlign = TextAlign.Start,
-                )
-            }
-        }
-
     }
 
-    Spacer(modifier = Modifier.padding(5.dp))
+    Spacer(modifier = Modifier.padding(15.dp))
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

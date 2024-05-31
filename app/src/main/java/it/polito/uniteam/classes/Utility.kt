@@ -36,10 +36,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.intl.LocaleList
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.toUpperCase
-import java.util.Locale
 import it.polito.uniteam.NavControllerManager
 import it.polito.uniteam.R
 
@@ -76,7 +73,7 @@ fun String.isRepetition(): Boolean{
 
 
 @Composable
-fun MemberIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: Modifier = Modifier.padding(0.dp, 0.dp, 20.dp, 0.dp), member: Member ) {
+fun MemberIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: Modifier = Modifier.padding(0.dp, 0.dp, 20.dp, 0.dp), member: Member, enableNavigation: Boolean = true ) {
     val navController = NavControllerManager.getNavController()
 
     Box(modifier = modifierScale) {
@@ -87,7 +84,7 @@ fun MemberIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: 
                 modifier = Modifier
                     .size(22.dp)
                     .clip(CircleShape)
-                    .clickable(onClick = { navController.navigate("OtherUserProfile/${member.id}") }),
+                    .clickable(onClick = { if(enableNavigation) navController.navigate("OtherUserProfile/${member.id}") }),
                 contentScale = ContentScale.Crop
             )
         } else {
@@ -110,7 +107,7 @@ fun MemberIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: 
                             radius = this.size.maxDimension
                         )
                     }
-                    .clickable(onClick = { navController.navigate("OtherUserProfile/${member.id}") })
+                    .clickable(onClick = { if(enableNavigation) navController.navigate("OtherUserProfile/${member.id}") })
             ) {
                 Text(
                     text = initialsValue,
