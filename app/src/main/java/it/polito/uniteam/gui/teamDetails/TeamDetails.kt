@@ -69,6 +69,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -318,151 +319,6 @@ class TeamDetailsViewModel(val model: UniTeamModel, val savedStateHandle: SavedS
 fun TeamViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalContext.current.applicationContext)),
                    outputDirectory: File,
                    cameraExecutor: ExecutorService){
-    if(vm.editing){
-        TeamEditViewScreen(vm, outputDirectory, cameraExecutor)
-
-    }else{
-        if (isVertical() && vm.isAdmin) {
-            Box(
-                contentAlignment = Alignment.TopEnd,
-                modifier = Modifier.fillMaxSize()
-            ) {
-                Column {
-                    FloatingActionButton(
-                        onClick = { vm.changeEditing() },
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = "Edit",
-                            tint = MaterialTheme.colorScheme.onSecondary,
-                            modifier = Modifier.size(30.dp)
-                        )
-                    }
-                    FloatingActionButton(
-                        onClick = { vm.openDeleteTeamDialog = true },
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = "Delete",
-                            tint = MaterialTheme.colorScheme.onSecondary,
-                            modifier = Modifier.size(30.dp)
-                        )
-                    }
-                }
-            }
-        }
-
-        BoxWithConstraints {
-
-            Box(modifier = Modifier.fillMaxSize()) {
-                // Image at the top
-                /*
-                Image(
-                    painter = rememberAsyncImagePainter(vm.selectedTeam.value.image),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight(0.9f)
-                        .align(Alignment.TopCenter),
-                )*/
-
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                //
-                BoxWithConstraints {
-                    if (this.maxHeight > this.maxWidth) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth(0.8f)
-                                    .padding(0.dp, 20.dp, 0.dp, 0.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-
-                                DefaultImageForTeamScreen(vm)
-                            }
-                            //Spacer(modifier = Modifier.height(0.dp))
-
-                            TeamDetailsView(customHeightForHistory = 0.41f)
-
-                        }
-                    } else {
-                        Row(
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth(0.4f)
-                                    .fillMaxHeight()
-                                    .padding(10.dp, 0.dp, 10.dp, 0.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Row {
-                                    Column(modifier = Modifier.fillMaxHeight(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                                        DefaultImageForTeamScreen(vm)
-                                    }
-                                    Column(modifier = Modifier.fillMaxHeight(), verticalArrangement = Arrangement.Top, horizontalAlignment = Alignment.CenterHorizontally) {
-                                        if (vm.isAdmin) {
-                                            FloatingActionButton(
-                                                onClick = { vm.changeEditing() },
-                                                containerColor = MaterialTheme.colorScheme.primary,
-                                                modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp)
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Default.Edit,
-                                                    contentDescription = "Edit",
-                                                    tint = MaterialTheme.colorScheme.onSecondary,
-                                                    modifier = Modifier.size(30.dp)
-                                                )
-                                            }
-                                            FloatingActionButton(
-                                                onClick = { vm.openDeleteTeamDialog = true },
-                                                containerColor = MaterialTheme.colorScheme.primary,
-                                                modifier = Modifier.padding(16.dp)
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Default.Delete,
-                                                    contentDescription = "Delete",
-                                                    tint = MaterialTheme.colorScheme.onSecondary,
-                                                    modifier = Modifier.size(30.dp)
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(30.dp))
-                            TeamDetailsView()
-
-                        }
-                    }
-                }
-            }
-        }
-    }
-    //Dialog per la delete del team
-    when {
-        vm.openDeleteTeamDialog -> {
-            DeleteTeamDialog(vm)
-        }
-    }
-}
-
-@Composable
-fun TeamEditViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalContext.current.applicationContext)), outputDirectory: File,
-                       cameraExecutor: ExecutorService
-){
     val controller = NavControllerManager.getNavController()
     // Handle Back Button
     BackHandler(onBack = {
@@ -647,7 +503,184 @@ fun TeamEditViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(Lo
                 }
             }
         }
-    } else {
+    }else{
+
+
+
+
+        BoxWithConstraints {
+
+            Box(modifier = Modifier.fillMaxSize()) {
+                // Image at the top
+                /*
+                Image(
+                    painter = rememberAsyncImagePainter(vm.selectedTeam.value.image),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.9f)
+                        .align(Alignment.TopCenter),
+                )*/
+
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                //
+                BoxWithConstraints {
+                    if (this.maxHeight > this.maxWidth) {
+                        if (!vm.editing && vm.isAdmin) {
+                        Box(
+                            contentAlignment = Alignment.TopEnd,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Column {
+                                FloatingActionButton(
+                                    onClick = { vm.changeEditing() },
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(
+                                        start = 16.dp,
+                                        top = 16.dp,
+                                        end = 16.dp
+                                    )
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Edit,
+                                        contentDescription = "Edit",
+                                        tint = MaterialTheme.colorScheme.onSecondary,
+                                        modifier = Modifier.size(30.dp)
+                                    )
+                                }
+                                FloatingActionButton(
+                                    onClick = { vm.openDeleteTeamDialog = true },
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(16.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = "Delete",
+                                        tint = MaterialTheme.colorScheme.onSecondary,
+                                        modifier = Modifier.size(30.dp)
+                                    )
+                                }
+                            }
+                        }}
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth(0.8f)
+                                    .padding(0.dp, 20.dp, 0.dp, 0.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+
+                                    DefaultImageForEditingTeam()
+
+
+
+                            }
+                            if(vm.editing){
+                                TeamDetailsEdit()
+                            }else{
+                                TeamDetailsView(customHeightForHistory = 0.41f)
+
+                            }
+                            //Spacer(modifier = Modifier.height(0.dp))
+
+
+                        }
+                    } else {
+                        Row(
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth(0.4f)
+                                    .fillMaxHeight()
+                                    .padding(10.dp, 0.dp, 10.dp, 0.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Row {
+                                    Column(
+                                        modifier = Modifier.fillMaxHeight(),
+                                        verticalArrangement = Arrangement.Center,
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        key(vm.selectedTeam.value.image){
+                                            DefaultImageForTeamScreen(vm)
+
+                                        }
+                                    }
+                                    Column(
+                                        modifier = Modifier.fillMaxHeight(),
+                                        verticalArrangement = Arrangement.Top,
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        if (vm.isAdmin) {
+                                            FloatingActionButton(
+                                                onClick = { vm.changeEditing() },
+                                                containerColor = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.padding(
+                                                    start = 16.dp,
+                                                    top = 16.dp,
+                                                    end = 16.dp
+                                                )
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Edit,
+                                                    contentDescription = "Edit",
+                                                    tint = MaterialTheme.colorScheme.onSecondary,
+                                                    modifier = Modifier.size(30.dp)
+                                                )
+                                            }
+                                            FloatingActionButton(
+                                                onClick = { vm.openDeleteTeamDialog = true },
+                                                containerColor = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.padding(16.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Delete,
+                                                    contentDescription = "Delete",
+                                                    tint = MaterialTheme.colorScheme.onSecondary,
+                                                    modifier = Modifier.size(30.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(30.dp))
+                            if(vm.editing){
+                                TeamDetailsEdit()
+                            }else{
+                                TeamDetailsView(customHeightForHistory = 0.41f)
+
+                            }
+
+                        }
+                    }
+                }
+            }
+        }
+
+
+    //Dialog per la delete del team
+    when {
+        vm.openDeleteTeamDialog -> {
+            DeleteTeamDialog(vm)
+        }
+    }
+}}
+
+@Composable
+fun TeamEditViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalContext.current.applicationContext)), outputDirectory: File,
+                       cameraExecutor: ExecutorService
+){
+
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
@@ -700,7 +733,7 @@ fun TeamEditViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(Lo
         }
     }
 
-}
+
 
 
 @Composable
@@ -1262,7 +1295,8 @@ fun DefaultImageForEditingTeam(vm: TeamDetailsViewModel = viewModel(factory = Fa
                                         start = 0.dp,
                                         top = 0.dp,
                                         end = 35.dp,
-                                        bottom = 15.dp)
+                                        bottom = 15.dp
+                                    )
                                     .size(160.dp)
                                     .clip(CircleShape) // Clip the image into a circular shape
                             } else {
@@ -1271,7 +1305,8 @@ fun DefaultImageForEditingTeam(vm: TeamDetailsViewModel = viewModel(factory = Fa
                                         start = 0.dp,
                                         top = 8.dp,
                                         end = 0.dp,
-                                        bottom = 0.dp)
+                                        bottom = 0.dp
+                                    )
                                     .size(160.dp)
                                     .clip(CircleShape) // Clip the image into a circular shape
                             },
@@ -1319,7 +1354,7 @@ fun DefaultImageForEditingTeam(vm: TeamDetailsViewModel = viewModel(factory = Fa
                                 .drawBehind {
                                     drawCircle(
                                         color = Orange,
-                                        radius = this.size.minDimension/2f
+                                        radius = this.size.minDimension / 2f
                                     )
                                 }
                                 .scale(1.5f)
@@ -1409,7 +1444,7 @@ fun DefaultImageForEditingTeam(vm: TeamDetailsViewModel = viewModel(factory = Fa
                     .drawBehind {
                         drawCircle(
                             color = Orange,
-                            radius = this.size.minDimension/2f
+                            radius = this.size.minDimension / 2f
                         )
                     }
                     .scale(0.7f)
