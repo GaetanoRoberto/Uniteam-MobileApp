@@ -577,7 +577,10 @@ fun TeamViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalC
                                 horizontalArrangement = Arrangement.Center
                             ) {
 
-                                    DefaultImageForEditingTeam()
+                                key(vm.selectedTeam.value.image){
+                                    DefaultImageForEditingTeam(vm)
+
+                                }
 
 
 
@@ -610,8 +613,8 @@ fun TeamViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalC
                                         verticalArrangement = Arrangement.Center,
                                         horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
-                                        key(vm.selectedTeam.value.image){
-                                            DefaultImageForTeamScreen(vm)
+                                        key(vm.selectedTeam){
+                                            DefaultImageForEditingTeam(vm)
 
                                         }
                                     }
@@ -620,7 +623,7 @@ fun TeamViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalC
                                         verticalArrangement = Arrangement.Top,
                                         horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
-                                        if (vm.isAdmin) {
+                                        if (!vm.editing && vm.isAdmin) {
                                             FloatingActionButton(
                                                 onClick = { vm.changeEditing() },
                                                 containerColor = MaterialTheme.colorScheme.primary,
