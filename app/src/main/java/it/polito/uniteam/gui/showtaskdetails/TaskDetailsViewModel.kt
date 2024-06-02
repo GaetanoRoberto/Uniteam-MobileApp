@@ -314,9 +314,14 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
             entryToAdd.forEach{ entry->
                 history.add(entry)
             }
+        } else {
+            // add creation task history
+            history.add(History(
+                comment = "Task ${taskName} created.",
+                date = LocalDate.now().toString(),
+                user = member
+            ))
         }
-
-
     }
 
     fun validate() {
