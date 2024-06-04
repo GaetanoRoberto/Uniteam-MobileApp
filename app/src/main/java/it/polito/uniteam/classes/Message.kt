@@ -13,6 +13,15 @@ data class Message (
     var status: messageStatus = messageStatus.UNREAD
     )
 
+data class MessageDB (
+    var id: String = "",
+    var senderId : String,
+    var message: String = "",
+    var creationDate: LocalDateTime = LocalDateTime.now(),
+    var membersUnread: MutableList<String> = mutableStateListOf(),
+    var status: messageStatus = messageStatus.UNREAD
+)
+
 enum class messageStatus {
     READ,UNREAD
 }

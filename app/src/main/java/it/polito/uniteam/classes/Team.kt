@@ -22,7 +22,7 @@ data class TeamDB (
     var image: Uri = Uri.EMPTY,
     var creationDate: LocalDate = LocalDate.now(),
     var members: MutableList<MemberDB> = mutableListOf(),
-    var tasks: MutableList<Task> = mutableListOf(),
-    var teamHistory: MutableList<History> = mutableListOf(),
-    var chat: Chat? = null
+    var tasks: MutableList<TaskDB> = mutableListOf(),
+    var teamHistory: MutableList<HistoryDB> = mutableListOf(),
+    var chat: ChatDB? = null
 )

@@ -14,12 +14,12 @@ data class Chat (
 )
 
 data class ChatDB (
-    val id: String = "",
-    val sender: Member = Member(),
+    var id: String = "",
+    var sender: MemberDB? = null,
     // null if team chat
-    val receiver: Member? = null,
+    var receiver: MemberDB? = null,
     // null if personal chat
-    val teamId: String? = null,
+    var teamId: String? = null,
     //var messages: List<Message> = emptyList()
-    var messages : MutableList<Message> = mutableStateListOf()
+    var messages : MutableList<MessageDB> = mutableStateListOf()
 )

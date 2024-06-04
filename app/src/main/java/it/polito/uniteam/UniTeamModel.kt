@@ -3,47 +3,59 @@ package it.polito.uniteam
 import android.content.Context
 import android.net.Uri
 import android.util.Log
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import com.google.firebase.FirebaseApp
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import it.polito.uniteam.classes.Category
 import it.polito.uniteam.classes.Chat
 import it.polito.uniteam.classes.ChatDB
 import it.polito.uniteam.classes.Comment
+import it.polito.uniteam.classes.CommentDB
 import it.polito.uniteam.classes.DummyDataProvider
 import it.polito.uniteam.classes.File
+import it.polito.uniteam.classes.FileDB
 import it.polito.uniteam.classes.History
+import it.polito.uniteam.classes.HistoryDB
 import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.MemberDB
 import it.polito.uniteam.classes.MemberTeamInfo
 import it.polito.uniteam.classes.Message
+import it.polito.uniteam.classes.MessageDB
+import it.polito.uniteam.classes.Priority
+import it.polito.uniteam.classes.Repetition
+import it.polito.uniteam.classes.Status
 import it.polito.uniteam.classes.Task
+import it.polito.uniteam.classes.TaskDB
 import it.polito.uniteam.classes.Team
 import it.polito.uniteam.classes.TeamDB
 import it.polito.uniteam.classes.messageStatus
 import it.polito.uniteam.classes.parseReturnType
 import it.polito.uniteam.classes.parseToLocalDate
+import it.polito.uniteam.firebase.getChatById
+import it.polito.uniteam.firebase.getHistoryById
+import it.polito.uniteam.firebase.getMemberById
+import it.polito.uniteam.firebase.getTaskById
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
-import java.util.HashMap
-import kotlin.math.log
+import java.time.LocalDateTime
+import kotlin.collections.HashMap
 
 
 class UniTeamModel(val context: Context) {
@@ -56,131 +68,11 @@ class UniTeamModel(val context: Context) {
         }
     }
     val db = Firebase.firestore
+    val coroutineScope = CoroutineScope(Dispatchers.IO)
     lateinit var user : FirebaseUser
-    fun getTeams(): Flow<List<TeamDB>> = callbackFlow {
-        // flow which provide in his lambda with the receiver a couple of method
-        // try send that produce a value
-        // await close so if nobody more interested in the flow perform an action(cancel subsription)
-        val listener = db.collection("Team").addSnapshotListener {
-            // whenever there is a change in this collection give me data (r query result, e error)
-                r, e ->
-            if(r!=null) {
-                // try to map the result into user class
-                val teams = mutableListOf<TeamDB>()
-                val teamsJobs = r.map { entry->
-                    this.async {
-                        val t = TeamDB()
-                        t.id = entry.id
-                        t.name = entry.getString("name") ?: ""
-                        t.description = entry.getString("description") ?: ""
-                        t.image = Uri.EMPTY
-                        t.creationDate = entry.getTimestamp("creationDate") ?.let { parseToLocalDate(it.toDate(),parseReturnType.DATE) } as LocalDate
-                        val membersId = entry.get("members") as List<String>
-                        val jobs = membersId.map { memberId ->
-                            this.async {
-                                val member = db.collection("Member")
-                                    .document(memberId)
-                                    .get()
-                                    .await()
-                                Log.i("team",member.toString())
-                                val m = MemberDB()
-                                m.id = member.getString("id") ?: ""
-                                m.fullName = member.getString("fullName") ?: ""
-                                m.username = member.getString("username") ?: ""
-                                m.email = member.getString("email") ?: ""
-                                m.location = member.getString("location") ?: ""
-                                m.description = member.getString("description") ?: ""
-                                m.kpi = member.getString("kpi") ?: ""
-                                m.profileImage = Uri.EMPTY
-                                m.teamsInfo = null//member.get("teamsInfo") as HashMap<String, MemberTeamInfo>?
-                                /*val chatsId = member.get("chats") as List<String>
-                                chatsId.forEach { chatId->
-                                    db.collection("Member")
-                                        .document(memberId)
-                                        .get()
-                                        .addOnSuccessListener { member ->
 
-                                        }
-                                }*/
-                                m.chats = mutableListOf()//member.get("chats") as MutableList<ChatDB>?
-                                m
-                            }
-                            /*db.collection("Member")
-                                .document(memberId)
-                                .get()
-                                .await()
-                                .addOnSuccessListener { member ->
-                                    if (member != null) {
-                                        val m = MemberDB()
-                                        m.id = member.getString("id") ?: ""
-                                        m.fullName = member.getString("fullName") ?: ""
-                                        m.username = member.getString("username") ?: ""
-                                        m.email = member.getString("email") ?: ""
-                                        m.location = member.getString("location") ?: ""
-                                        m.description = member.getString("description") ?: ""
-                                        m.kpi = member.getString("kpi") ?: ""
-                                        m.profileImage = Uri.EMPTY
-                                        m.teamsInfo = null//member.get("teamsInfo") as HashMap<String, MemberTeamInfo>?
-                                        /*val chatsId = member.get("chats") as List<String>
-                                        chatsId.forEach { chatId->
-                                            db.collection("Member")
-                                                .document(memberId)
-                                                .get()
-                                                .addOnSuccessListener { member ->
+    fun getTeams(): Flow<List<TeamDB>> = it.polito.uniteam.firebase.getTeams(db,coroutineScope)
 
-                                                }
-                                        }*/
-                                        m.chats = mutableListOf()//member.get("chats") as MutableList<ChatDB>?
-                                        t.members.add(m)
-                                    }
-                                }
-                                .addOnFailureListener { exception ->
-                                    Log.d("DB", "get failed with ", exception)
-                                }*/
-                        }
-                        var tasks = entry.get("tasks") as List<String>
-                        var teamHistory =  entry.get("teamHistory") as List<String>
-                        var chat: String = entry.getString("chat") ?: ""
-                        this.launch {
-                            jobs.awaitAll().forEach { m ->
-                                t.members.add(m)
-                            }
-                            //teams.add(t)
-                            //trySend(teams)
-                        }
-                        t
-                    }
-                }
-                this.launch {
-                    teamsJobs.awaitAll().forEach {
-                        teams.add(it)
-                    }
-                    trySend(teams)
-                }
-                /*trySend(teams)
-                var res = ""
-                r.forEach { entry->
-                    res+=entry.toString() + "\n\n\n\n"
-                }
-                db.collection("Chat")
-                    .document("/rlWwSVD9DMSHG41OxtTc").get()
-                    .addOnSuccessListener {
-                        Log.i("diooo",it.toString())
-                        res+=it.toString()
-                        trySend(res)
-                    }*/
-                //val users = r.toObjects(Task::class.java)
-                // send the retrieved data
-            } else {
-                // send empty list
-                trySend(listOf())
-            }
-        }
-        awaitClose {
-            // when nobody more interested remove the listener, so remove database connection
-            listener.remove()
-        }
-    }
     var membersList = mutableListOf<Member>(
         Member().apply {
             id = 1

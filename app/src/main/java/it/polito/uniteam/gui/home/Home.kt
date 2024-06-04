@@ -104,16 +104,18 @@ class HomeViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHan
     val selectedMembers = mutableStateMapOf<Member, Boolean>()
     val radioOptions = listOf("Name", "Creation date")
     var selectedChip by mutableStateOf("First")
-    fun getTeams() = model.getTeams()
+    val teams = model.getTeams()
 }
 
 @Preview
 @Composable
 fun Db(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current))) {
-    val teams by vm.getTeams().collectAsState(initial = listOf())
-    teams.forEach {
-        Log.i("team",it.toString())
-        Text(text = it.toString(), modifier = Modifier.verticalScroll(rememberScrollState()))
+    val teams by vm.teams.collectAsState(initial = listOf())
+    LazyColumn(modifier = Modifier.fillMaxSize()) {
+        items(teams) {
+            Text(text = it.toString())
+            Spacer(modifier = Modifier.height(8.dp))
+        }
     }
 }
 

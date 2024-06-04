@@ -9,11 +9,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -38,11 +41,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import it.polito.uniteam.NavControllerManager
 import it.polito.uniteam.R
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.util.Calendar
 import java.util.Date
 
 
@@ -82,17 +87,22 @@ enum class parseReturnType {
 
 
 fun parseToLocalDate(date: Date, returnType: parseReturnType = parseReturnType.DATETIME): Any {
-    // Extract the LocalDate
+    val calendar = Calendar.getInstance().apply { time = date }
+
     return when (returnType) {
         parseReturnType.TIME -> {
-            val period = if (date.hours > 12) "PM" else "AM"
-            "${date.hours}:${date.minutes} ${period}"
+            val period = if (calendar.get(Calendar.HOUR_OF_DAY) > 12) "PM" else "AM"
+            "${calendar.get(Calendar.HOUR)}:${calendar.get(Calendar.MINUTE)} ${period}"
         }
         parseReturnType.DATETIME -> {
-            Instant.ofEpochMilli(date.getTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
+            Instant.ofEpochMilli(date.time).atZone(ZoneId.systemDefault()).toLocalDateTime()
         }
         parseReturnType.DATE -> {
-            LocalDate.of(date.year,date.month,date.day)
+            LocalDate.of(
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH) + 1, // Months are 0-based in Calendar
+                calendar.get(Calendar.DAY_OF_MONTH)
+            )
         }
     }
 }
@@ -120,7 +130,7 @@ fun MemberIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: 
                     .scale(2f)
                     .size(22.dp)
                     .clip(CircleShape)
-                    .clickable(onClick = { if(enableNavigation) navController.navigate("OtherUserProfile/${member.id}") }),
+                    .clickable(onClick = { if (enableNavigation) navController.navigate("OtherUserProfile/${member.id}") }),
                 contentScale = ContentScale.Crop
             )
         } else {
@@ -143,7 +153,7 @@ fun MemberIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: 
                             radius = this.size.maxDimension
                         )
                     }
-                    .clickable(onClick = { if(enableNavigation) navController.navigate("OtherUserProfile/${member.id}") })
+                    .clickable(onClick = { if (enableNavigation) navController.navigate("OtherUserProfile/${member.id}") })
             ) {
                 Text(
                     text = initialsValue,
@@ -261,5 +271,19 @@ fun HourMinutesPicker(
             if (errorMsg.value.isNotEmpty())
                 Text(errorMsg.value, color = MaterialTheme.colorScheme.error)
         }
+    }
+}
+
+@Preview
+@Composable
+fun LoadingSpinner() {
+    Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Top) {
+        Text(text = "Loading...", style = MaterialTheme.typography.headlineMedium)
+        CircularProgressIndicator(
+            modifier = Modifier
+                .fillMaxSize(0.6f),
+            color = MaterialTheme.colorScheme.secondary,
+            trackColor = MaterialTheme.colorScheme.surfaceVariant,
+        )
     }
 }
