@@ -14,6 +14,7 @@ import it.polito.uniteam.classes.DummyDataProvider
 import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.Message
 import it.polito.uniteam.classes.Team
+import it.polito.uniteam.classes.handleInputString
 import it.polito.uniteam.classes.messageStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.time.LocalDateTime
@@ -44,7 +45,7 @@ class ChatViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHan
 
     fun addMessage(message: Message) {
         //messages.add(message)
-        chat.messages.add(message)
+        chat.messages.add(message.copy(message = handleInputString(message.message)))
         chat.messages[chat.messages.size - 1].status = messageStatus.UNREAD
     }
     fun addTeamMessage(senderId: Int, messageText: String, teamId: Int) {

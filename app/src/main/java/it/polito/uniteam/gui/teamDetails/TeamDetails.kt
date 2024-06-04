@@ -114,6 +114,7 @@ import it.polito.uniteam.classes.MemberTeamInfo
 import it.polito.uniteam.classes.Status
 import it.polito.uniteam.classes.Team
 import it.polito.uniteam.classes.TeamIcon
+import it.polito.uniteam.classes.handleInputString
 import it.polito.uniteam.classes.permissionRole
 import it.polito.uniteam.gui.showtaskdetails.CommentsView
 import it.polito.uniteam.gui.showtaskdetails.CustomDatePickerPreview
@@ -163,7 +164,7 @@ class TeamDetailsViewModel(val model: UniTeamModel, val savedStateHandle: SavedS
     var teamNameError by mutableStateOf("")
         private set
     fun changeTeamName(s: String) {
-        selectedTeam.value = selectedTeam.value.copy(name = s)
+        selectedTeam.value = selectedTeam.value.copy(name = handleInputString(s))
     }
 
     private fun checkTeamName() {
@@ -177,7 +178,7 @@ class TeamDetailsViewModel(val model: UniTeamModel, val savedStateHandle: SavedS
         private set
 
     fun changeDescription(s: String) {
-        selectedTeam.value = selectedTeam.value.copy(description = s)
+        selectedTeam.value = selectedTeam.value.copy(description = handleInputString(s))
     }
     fun setUri(uri: Uri) {
         selectedTeam.value.image = uri

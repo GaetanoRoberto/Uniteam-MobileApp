@@ -22,6 +22,7 @@ import it.polito.uniteam.classes.Repetition
 import it.polito.uniteam.classes.Status
 import it.polito.uniteam.classes.isRepetition
 import it.polito.uniteam.classes.DummyDataProvider
+import it.polito.uniteam.classes.handleInputString
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalTime
@@ -42,7 +43,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
         private set
 
     fun changeTaskName(s: String) {
-        taskName = s
+        taskName = handleInputString(s)
     }
 
     private fun checkTaskName() {
@@ -59,7 +60,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
         private set
 
     fun changeDescription(s: String) {
-        description = s
+        description = handleInputString(s)
     }
 
     private fun checkDescription() {
@@ -430,7 +431,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
 
     fun addNewComment() {
         if (addComment.commentValue.trim() != "") {
-            addComment.commentValue = addComment.commentValue.replace(Regex("\\n+"), "\n")
+            addComment.commentValue = handleInputString(addComment.commentValue)
             comments.add(addComment)
         }
         addComment = Comment(

@@ -1,6 +1,7 @@
 package it.polito.uniteam.classes
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -39,6 +40,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import it.polito.uniteam.NavControllerManager
 import it.polito.uniteam.R
+import java.time.Instant
+import java.time.ZoneId
+import java.util.Date
 
 
 enum class Repetition{
@@ -71,6 +75,32 @@ fun String.isRepetition(): Boolean{
     }
 }
 
+enum class parseReturnType {
+    TIME,DATETIME
+}
+
+
+fun parseToLocalDate(date: Date, returnType: parseReturnType = parseReturnType.DATETIME): Any {
+    // Extract the LocalDate
+    return when (returnType) {
+        parseReturnType.TIME -> {
+            val period = if (date.hours > 12) "PM" else "AM"
+            "${date.hours}:${date.minutes} ${period}"
+        }
+        parseReturnType.DATETIME -> {
+            Instant.ofEpochMilli(date.getTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
+        }
+    }
+}
+
+fun handleInputString(input: String): String {
+    Log.i("trim",input)
+    var output = input.trim().replace(Regex("\\n+"), "\n\n")
+    Log.i("trim",output)
+    output = output.trim('\n')
+    Log.i("trim",output)
+    return output
+}
 
 @Composable
 fun MemberIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: Modifier = Modifier.padding(0.dp, 0.dp, 20.dp, 0.dp), member: Member, enableNavigation: Boolean = true ) {
