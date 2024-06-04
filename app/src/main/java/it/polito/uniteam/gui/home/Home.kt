@@ -2,6 +2,7 @@ package it.polito.uniteam.gui.home
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import android.view.inputmethod.InputMethodManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -53,6 +54,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -70,6 +72,8 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.SavedStateHandle
@@ -100,7 +104,19 @@ class HomeViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHan
     val selectedMembers = mutableStateMapOf<Member, Boolean>()
     val radioOptions = listOf("Name", "Creation date")
     var selectedChip by mutableStateOf("First")
+    fun getTeams() = model.getTeams()
 }
+
+@Preview
+@Composable
+fun Db(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current))) {
+    val teams by vm.getTeams().collectAsState(initial = listOf())
+    teams.forEach {
+        Log.i("team",it.toString())
+        Text(text = it.toString(), modifier = Modifier.verticalScroll(rememberScrollState()))
+    }
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -388,7 +404,10 @@ fun Home(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current)))
                             }
                         },
                         content = { paddingValue ->
-                            Column(modifier = Modifier.fillMaxSize().padding(5.dp).padding(paddingValue)) {
+                            Column(modifier = Modifier
+                                .fillMaxSize()
+                                .padding(5.dp)
+                                .padding(paddingValue)) {
                                 //Row per searchbar e filtri
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),

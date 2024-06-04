@@ -1,6 +1,8 @@
 package it.polito.uniteam.classes
 
 import android.net.Uri
+import java.math.BigInteger
+import java.security.MessageDigest
 
 data class Member (
     var id: Int = 0,
@@ -34,4 +36,32 @@ data class MemberTeamInfo (
     )
 enum class permissionRole {
     ADMIN, USER
+}
+
+data class MemberDB (
+    var id: String = "",
+    var fullName: String = "",
+    var username: String = "",
+    var email: String = "",
+    var location: String = "",
+    var description: String = "",
+    var kpi: String = "",
+    var profileImage: Uri = Uri.EMPTY,
+    // key teamId value role inside it
+    var teamsInfo: HashMap<String,MemberTeamInfo>? = null,
+    var chats: MutableList<ChatDB> = mutableListOf()
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Member) return false
+        return id == other.id.toString()
+    }
+
+    override fun hashCode(): Int {
+        val digest = MessageDigest.getInstance("SHA-256")
+        val hashBytes = digest.digest(id.toByteArray(Charsets.UTF_8))
+
+        // Convert the first 4 bytes of the hash to an integer
+        return BigInteger(1, hashBytes.sliceArray(0..3)).toInt()
+    }
 }

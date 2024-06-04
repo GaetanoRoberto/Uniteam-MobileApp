@@ -41,6 +41,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import it.polito.uniteam.NavControllerManager
 import it.polito.uniteam.R
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Date
 
@@ -76,7 +77,7 @@ fun String.isRepetition(): Boolean{
 }
 
 enum class parseReturnType {
-    TIME,DATETIME
+    TIME,DATETIME,DATE
 }
 
 
@@ -89,6 +90,9 @@ fun parseToLocalDate(date: Date, returnType: parseReturnType = parseReturnType.D
         }
         parseReturnType.DATETIME -> {
             Instant.ofEpochMilli(date.getTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
+        }
+        parseReturnType.DATE -> {
+            LocalDate.of(date.year,date.month,date.day)
         }
     }
 }
