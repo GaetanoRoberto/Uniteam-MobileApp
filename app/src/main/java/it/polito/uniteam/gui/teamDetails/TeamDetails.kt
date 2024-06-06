@@ -1094,7 +1094,7 @@ fun TeamMembersDropdownMenuBox(
                             .padding(0.dp, 0.dp, 5.dp, 0.dp)
                     ) {
                         currentMembers.forEachIndexed { index, member ->
-                            MemberIcon(member = member, modifierScale = Modifier.scale(0.65f), modifierPadding = Modifier.padding(start = if (index == 0) 12.dp else 0.dp), enableNavigation = false)
+//                            MemberIcon(member = member, modifierScale = Modifier.scale(0.65f), modifierPadding = Modifier.padding(start = if (index == 0) 12.dp else 0.dp), enableNavigation = false)
                             Text(
                                 text = member.username.toString() + if (index < currentMembers.size - 1) {
                                     ", "

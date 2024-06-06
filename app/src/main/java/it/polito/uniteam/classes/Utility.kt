@@ -117,7 +117,7 @@ fun handleInputString(input: String): String {
 }
 
 @Composable
-fun MemberIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: Modifier = Modifier.padding(0.dp, 0.dp, 20.dp, 0.dp), member: Member, enableNavigation: Boolean = true ) {
+fun MemberIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: Modifier = Modifier.padding(0.dp, 0.dp, 20.dp, 0.dp), member: MemberDB, enableNavigation: Boolean = true ) {
     val navController = NavControllerManager.getNavController()
 
     Box(modifier = modifierScale) {
@@ -172,7 +172,7 @@ fun MemberIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: 
 }
 @Composable
 fun TeamIcon(
-    team: Team,
+    team: TeamDB,
     modifierPadding: Modifier = Modifier.padding(0.dp, 0.dp, 20.dp, 0.dp),
     modifierScale: Modifier = if (team.image != Uri.EMPTY) Modifier.scale(1.7f) else Modifier.scale(0.8f)
 ) {
@@ -278,11 +278,13 @@ fun HourMinutesPicker(
 @Composable
 fun LoadingSpinner() {
     Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Top) {
-        Text(text = "Loading...", style = MaterialTheme.typography.headlineMedium)
+        Spacer(modifier = Modifier.padding(5.dp))
+        Text(text = "Loading teams...", style = MaterialTheme.typography.headlineSmall)
+        Spacer(modifier = Modifier.padding(5.dp))
         CircularProgressIndicator(
             modifier = Modifier
-                .fillMaxSize(0.6f),
-            color = MaterialTheme.colorScheme.secondary,
+                .fillMaxSize(0.2f),
+            color = Color.White,
             trackColor = MaterialTheme.colorScheme.surfaceVariant,
         )
     }

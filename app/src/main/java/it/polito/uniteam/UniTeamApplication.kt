@@ -40,7 +40,8 @@ class Factory(context: Context): ViewModelProvider.Factory {
         AvailabilityViewModel::class.java,
         JoinViewModel::class.java,
         TeamDetailsViewModel::class.java,
-        HomeViewModel::class.java
+        HomeViewModel::class.java,
+        GeneralViewModel::class.java
     )
 
     override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {

@@ -1,14 +1,18 @@
 package it.polito.uniteam.firebase
 
 import android.net.Uri
+import android.util.Log
+import androidx.compose.runtime.MutableState
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import it.polito.uniteam.classes.Category
+import it.polito.uniteam.classes.CategoryRole
 import it.polito.uniteam.classes.ChatDB
 import it.polito.uniteam.classes.CommentDB
 import it.polito.uniteam.classes.FileDB
 import it.polito.uniteam.classes.HistoryDB
 import it.polito.uniteam.classes.MemberDB
+import it.polito.uniteam.classes.MemberTeamInfo
 import it.polito.uniteam.classes.MessageDB
 import it.polito.uniteam.classes.Priority
 import it.polito.uniteam.classes.Repetition
@@ -18,13 +22,17 @@ import it.polito.uniteam.classes.TeamDB
 import it.polito.uniteam.classes.messageStatus
 import it.polito.uniteam.classes.parseReturnType
 import it.polito.uniteam.classes.parseToLocalDate
+import it.polito.uniteam.classes.permissionRole
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.channels.onSuccess
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
@@ -111,7 +119,7 @@ fun getTaskById(db: FirebaseFirestore, coroutineScope: CoroutineScope, taskId: S
         spentTimeMap.forEach { memberTimeMap ->
             var memberId: String = ""
             var spentTime: Pair<Int,Int> = Pair(0,0)
-            memberTimeMap.forEach { dbKey, dbValue ->
+            memberTimeMap.forEach { (dbKey, dbValue) ->
                 if(dbKey == "member") {
                     memberId = dbValue as String
                 } else {
@@ -136,10 +144,10 @@ fun getTaskById(db: FirebaseFirestore, coroutineScope: CoroutineScope, taskId: S
             var scheduleDate = LocalDate.now()
             var hours = 0
             var minutes = 0
-            scheduleInfoTimeMap.forEach { dbKey, dbValue ->
+            scheduleInfoTimeMap.forEach { (dbKey, dbValue) ->
                 if(dbKey == "scheduleInfo") {
                     val memberIdTimestampMap = dbValue as HashMap<String,Any>
-                    memberIdTimestampMap.forEach { innerDBKey, innerDbValue ->
+                    memberIdTimestampMap.forEach { (innerDBKey, innerDbValue) ->
                         if(innerDBKey == "member") {
                             memberId = innerDbValue as String
                         } else {
@@ -152,7 +160,7 @@ fun getTaskById(db: FirebaseFirestore, coroutineScope: CoroutineScope, taskId: S
                 } else {
                     // scheduleTime key
                     val hoursMinutesMap = dbValue as HashMap<String,Long>
-                    hoursMinutesMap.forEach { dbKey, dbValue ->
+                    hoursMinutesMap.forEach { (dbKey, dbValue) ->
                         if(dbKey == "hours") {
                             hours = dbValue.toInt()
                         } else {
@@ -236,7 +244,35 @@ fun getMemberById(db: FirebaseFirestore, coroutineScope: CoroutineScope, memberI
         m.description = member.getString("description") ?: ""
         m.kpi = member.getString("kpi") ?: ""
         m.profileImage = Uri.EMPTY
-        m.teamsInfo = null//member.get("teamsInfo") as HashMap<String, MemberTeamInfo>?
+        val teamsInfo = member.get("teamsInfo")
+        if (teamsInfo is List<*>) {
+            m.teamsInfo = hashMapOf()
+            (teamsInfo as List<HashMap<String, Any>>).forEach { teamInfoMap ->
+                val teamId = teamInfoMap["teamId"] as String ?: return@forEach
+                val role = teamInfoMap["role"] as String ?: "NONE"
+                val weeklyAvailabilityTimes = (teamInfoMap["weeklyAvailabilityTimes"] as Number).toInt() ?: 0
+                val weeklyAvailabilityHoursMap = teamInfoMap["weeklyAvailabilityHours"] as HashMap<String, Number>
+                var hours = 0
+                var minutes = 0
+                weeklyAvailabilityHoursMap.forEach { (dbKey, dbValue) ->
+                    if(dbKey == "hours")
+                        hours = dbValue.toInt()
+                    else
+                        minutes = dbValue.toInt()
+                }
+                val weeklyAvailabilityHours = Pair(hours, minutes)
+                val permissionrole = teamInfoMap["permissionRole"] as? String ?: "USER"
+
+                m.teamsInfo?.put(teamId, MemberTeamInfo(
+                    role = CategoryRole.valueOf(role),
+                    weeklyAvailabilityTimes = weeklyAvailabilityTimes,
+                    weeklyAvailabilityHours = weeklyAvailabilityHours,
+                    permissionrole = permissionRole.valueOf(permissionrole)
+                ))
+            }
+        } else {
+            m.teamsInfo = hashMapOf()
+        }
         val chatsId = member.get("chats") as List<String>
         val jobs = chatsId.map { chatId ->
             getChatById(db,coroutineScope,chatId)
@@ -245,50 +281,54 @@ fun getMemberById(db: FirebaseFirestore, coroutineScope: CoroutineScope, memberI
             m.chats.add(chat)
         }
         //m.chats = mutableListOf()//member.get("chats") as MutableList<ChatDB>?
+        Log.d("MemberDB", m.toString())
         m
     }
 }
 
-fun getTeamById(db: FirebaseFirestore, coroutineScope: CoroutineScope, teamId: String): Deferred<TeamDB> {
-    return coroutineScope.async {
-        val team = db.collection("Team")
-            .document(teamId)
-            .get()
-            .await()
-        val t = TeamDB()
-        t.id = team.id
-        t.name = team.getString("name") ?: ""
-        t.description = team.getString("description") ?: ""
-        t.image = Uri.EMPTY
-        t.creationDate = team.getTimestamp("creationDate") ?.let { parseToLocalDate(it.toDate(),parseReturnType.DATE) } as LocalDate
-        val membersId = team.get("members") as List<String>
-        val membersJobs = membersId.map { memberId ->
-            getMemberById(db,coroutineScope,memberId)
+fun getTeamById(db: FirebaseFirestore, coroutineScope: CoroutineScope, teamId: String): Flow<TeamDB> = flow {
+    val team = db.collection("Team").document(teamId).get().await()
+
+    val t = TeamDB().apply {
+        id = team.id
+        name = team.getString("name") ?: ""
+        description = team.getString("description") ?: ""
+        image = Uri.EMPTY
+        creationDate = team.getTimestamp("creationDate")?.let { parseToLocalDate(it.toDate(), parseReturnType.DATE) } as LocalDate
+    }
+
+    val membersId = team.get("members") as List<String>
+    val tasksId = team.get("tasks") as List<String>
+//    val teamHistories = team.get("teamHistory") as List<String>
+//    val chatId: String = team.getString("chat") ?: ""
+
+    coroutineScope {
+        // Fetch members, tasks, histories, and chat in parallel
+        val membersDeferred = membersId.map { memberId ->
+            async { getMemberById(db, coroutineScope, memberId).await() }
         }
-        val tasksId = team.get("tasks") as List<String>
-        val tasksJobs = tasksId.map { taskId ->
-            getTaskById(db,coroutineScope,taskId)
+        val tasksDeferred = tasksId.map { taskId ->
+            async { getTaskById(db, coroutineScope, taskId).await() }
         }
-        tasksJobs.awaitAll().forEach { task ->
-            t.tasks.add(task)
-        }
-        val teamHistories =  team.get("teamHistory") as List<String>
-        val historiesJobs = teamHistories.map { historyId->
-            getHistoryById(db,coroutineScope,historyId)
-        }
-        val chatId: String = team.getString("chat") ?: ""
-        t.chat = getChatById(db,coroutineScope,chatId).await()
-        membersJobs.awaitAll().forEach { m ->
-            t.members.add(m)
-        }
-        historiesJobs.awaitAll().forEach { h->
-            t.teamHistory.add(h)
-        }
-        t
+//        val historiesDeferred = teamHistories.map { historyId ->
+//            async { getHistoryById(db, coroutineScope,  historyId).await() }
+//        }
+//        val chatDeferred = async {
+//            getChatById(db, coroutineScope, chatId).await()
+//        }
+
+        // Await all parallel operations
+        t.members.addAll(membersDeferred.awaitAll())
+        t.tasks.addAll(tasksDeferred.awaitAll())
+//        t.teamHistory.addAll(historiesDeferred.awaitAll())
+//        t.chat = chatDeferred.await()
+
+        emit(t)
     }
 }
 
-fun getTeams(db: FirebaseFirestore, coroutineScope: CoroutineScope): Flow<List<TeamDB>> = callbackFlow {
+
+fun getTeams(db: FirebaseFirestore, coroutineScope: CoroutineScope, loggedUser: Deferred<MemberDB>, isLoading: MutableState<Boolean>): Flow<List<TeamDB>> = callbackFlow {
     // flow which provide in his lambda with the receiver a couple of method
     // try send that produce a value
     // await close so if nobody more interested in the flow perform an action(cancel subsription)
@@ -298,53 +338,83 @@ fun getTeams(db: FirebaseFirestore, coroutineScope: CoroutineScope): Flow<List<T
         if(r!=null) {
             // try to map the result into user class
             val teams = mutableListOf<TeamDB>()
-            val teamsJobs = r.map { entry->
+            val teamsJobs = r.map { entry ->
                 this.async {
-                    val t = TeamDB()
-                    t.id = entry.id
-                    t.name = entry.getString("name") ?: ""
-                    t.description = entry.getString("description") ?: ""
-                    t.image = Uri.EMPTY
-                    t.creationDate = entry.getTimestamp("creationDate") ?.let { parseToLocalDate(it.toDate(),parseReturnType.DATE) } as LocalDate
                     val membersId = entry.get("members") as List<String>
-                    val membersJobs = membersId.map { memberId ->
-                        getMemberById(db,coroutineScope,memberId)
-                    }
-                    val tasksId = entry.get("tasks") as List<String>
-                    val tasksJobs = tasksId.map { taskId ->
-                        getTaskById(db,coroutineScope,taskId)
-                    }
-                    tasksJobs.awaitAll().forEach { task ->
-                        t.tasks.add(task)
-                    }
-                    val teamHistories =  entry.get("teamHistory") as List<String>
-                    val historiesJobs = teamHistories.map { historyId->
-                        getHistoryById(db,coroutineScope,historyId)
-                    }
-                    val chatId: String = entry.getString("chat") ?: ""
-                    t.chat = getChatById(db,coroutineScope,chatId).await()
-                    membersJobs.awaitAll().forEach { m ->
-                        t.members.add(m)
-                    }
-                    historiesJobs.awaitAll().forEach { h->
-                        t.teamHistory.add(h)
-                    }
-                    t
+                    if (membersId.contains(loggedUser.await().id)) {
+                        val t = TeamDB()
+                        t.id = entry.id
+                        t.name = entry.getString("name") ?: ""
+                        t.description = entry.getString("description") ?: ""
+                        t.image = Uri.EMPTY
+                        t.creationDate = entry.getTimestamp("creationDate") ?.let { parseToLocalDate(it.toDate(),parseReturnType.DATE) } as LocalDate
+                        val membersJobs = membersId.map { memberId ->
+                            getMemberById(db,coroutineScope,memberId)
+                        }
+                        val tasksId = entry.get("tasks") as List<String>
+                        val tasksJobs = tasksId.map { taskId ->
+                            getTaskById(db,coroutineScope,taskId)
+                        }
+                        tasksJobs.awaitAll().forEach { task ->
+                            t.tasks.add(task)
+                        }
+                        val teamHistories =  entry.get("teamHistory") as List<String>
+                        val historiesJobs = teamHistories.map { historyId->
+                            getHistoryById(db,coroutineScope,historyId)
+                        }
+                        val chatId: String = entry.getString("chat") ?: ""
+                        t.chat = getChatById(db,coroutineScope,chatId).await()
+                        membersJobs.awaitAll().forEach { m ->
+                            t.members.add(m)
+                        }
+                        historiesJobs.awaitAll().forEach { h->
+                            t.teamHistory.add(h)
+                        }
+                        t
+                    } else null
                 }
             }
             this.launch {
                 teamsJobs.awaitAll().forEach {
-                    teams.add(it)
+                    if (it != null)
+                        teams.add(it)
                 }
-                trySend(teams)
+                trySend(teams).onSuccess {
+                    //Stato di caricamento dati dal db
+                    isLoading.value = false
+                }
             }
         } else {
             // send empty list
-            trySend(listOf())
+            trySend(listOf()).onSuccess {
+                //Stato di caricamento dati dal db
+                isLoading.value = false
+            }
         }
     }
     awaitClose {
         // when nobody more interested remove the listener, so remove database connection
         listener.remove()
     }
+}
+
+fun getMembersExcludingLoggedUser(teams: List<TeamDB>, loggedUser: MemberDB): List<MemberDB> {
+    val members = mutableSetOf<MemberDB>()
+    teams.forEach { team ->
+        team.members.filter { it.id != loggedUser.id }.forEach { member ->
+            members.add(member)
+        }
+    }
+    return members.toList()
+}
+
+fun getAllTeamsMembersHome(db: FirebaseFirestore, coroutineScope: CoroutineScope, loggedUser: Deferred<MemberDB>, isLoading: MutableState<Boolean>): Flow<List<MemberDB>> = callbackFlow {
+    val teamsFlow = getTeams(db, coroutineScope, loggedUser, isLoading)
+    coroutineScope.launch {
+        teamsFlow.collect { teams ->
+            val members = getMembersExcludingLoggedUser(teams, loggedUser.await())
+            trySend(members).isSuccess
+        }
+    }
+    awaitClose {}
 }

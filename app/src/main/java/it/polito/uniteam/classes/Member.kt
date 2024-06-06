@@ -53,8 +53,8 @@ data class MemberDB (
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is Member) return false
-        return id == other.id.toString()
+        if (other !is MemberDB) return false
+        return id == other.id
     }
 
     override fun hashCode(): Int {

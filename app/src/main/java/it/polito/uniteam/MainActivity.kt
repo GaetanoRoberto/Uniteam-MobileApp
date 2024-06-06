@@ -55,6 +55,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -137,7 +138,11 @@ class MainActivity : ComponentActivity() {
             val theme = isSystemInDarkTheme()
 
 
-            UniTeamTheme(darkTheme = theme) {
+            UniTeamTheme(darkTheme = theme, vm = viewModel(factory = Factory(LocalContext.current))) {
+                // Stati da passare per le queries che non vanno rieseguite ad ogni recomposition
+                val teamsList = it.getTeams().collectAsState(initial = emptyList())
+                val membersList = it.getAllTeamsMembersHome().collectAsState(initial = emptyList())
+                //
                 val items = listOf(
                     BottomNavigationItem(
                         title = "Teams",
@@ -328,7 +333,9 @@ class MainActivity : ComponentActivity() {
                                                         Home(
                                                             vm = viewModel(
                                                                 factory = Factory(LocalContext.current)
-                                                            )
+                                                            ),
+                                                            teamsList = teamsList.value,
+                                                            membersList = membersList.value
                                                         )
                                                     }
                                                     composable("Team/{teamId}", arguments = listOf(navArgument("teamId") { type = NavType.StringType })) {

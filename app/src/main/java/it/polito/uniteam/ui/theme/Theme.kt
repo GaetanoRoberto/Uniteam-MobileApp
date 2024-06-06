@@ -15,6 +15,11 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import it.polito.uniteam.Factory
+import it.polito.uniteam.GeneralViewModel
+import it.polito.uniteam.gui.home.HomeViewModel
 
 private val DarkColorScheme = darkColorScheme(
     primary = Orange,
@@ -54,9 +59,10 @@ private val LightColorScheme = lightColorScheme(
 @Composable
 fun UniTeamTheme(
     darkTheme: Boolean = isSystemInDarkTheme() ,
+    vm: GeneralViewModel = viewModel(factory = Factory(LocalContext.current)),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = false,
-    content: @Composable () -> Unit
+    content: @Composable (GeneralViewModel) -> Unit
 ) {
     /*val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
@@ -82,7 +88,7 @@ fun UniTeamTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
-        content = content
+        content = { content(vm) }
     )
 
 

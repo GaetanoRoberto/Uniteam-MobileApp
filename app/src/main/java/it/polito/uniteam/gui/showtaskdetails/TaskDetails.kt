@@ -590,7 +590,7 @@ fun RowMemberItem( modifier: Modifier = Modifier, title: String, value: List<Mem
         modifier = modifier.horizontalScroll(rememberScrollState()),
     ) {
         for ((i, member) in value.withIndex()) {
-            MemberIcon(member = member, modifierScale = Modifier.scale(0.65f), modifierPadding = Modifier.padding(start = if (i == 0) 16.dp else 0.dp, top = 8.dp))
+//            MemberIcon(member = member, modifierScale = Modifier.scale(0.65f), modifierPadding = Modifier.padding(start = if (i == 0) 16.dp else 0.dp, top = 8.dp))
             Text(
                 member.username.toString() + if (i < value.size - 1) {
                     ", "
@@ -690,7 +690,7 @@ fun MembersDropdownMenuBox(
                             .padding(0.dp, 0.dp, 5.dp, 0.dp)
                     ) {
                         currentMembers.forEachIndexed { index, member ->
-                            MemberIcon(member = member, modifierScale = Modifier.scale(0.65f), modifierPadding = Modifier.padding(start = if (index == 0) 12.dp else 0.dp), enableNavigation = false)
+//                            MemberIcon(member = member, modifierScale = Modifier.scale(0.65f), modifierPadding = Modifier.padding(start = if (index == 0) 12.dp else 0.dp), enableNavigation = false)
                             Text(
                                 text = member.username.toString() + if (index < currentMembers.size - 1) {
                                     ", "

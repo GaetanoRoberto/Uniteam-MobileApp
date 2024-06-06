@@ -176,7 +176,7 @@ fun RowTeamItem(modifier: Modifier = Modifier, team: Team, role: String, member:
             modifier = Modifier.padding(6.dp, 0.dp, 0.dp, 0.dp)
         ) {
 
-            TeamIcon(team = team, modifierScale = Modifier.scale(0.65f),)
+            /*TeamIcon(team = team, modifierScale = Modifier.scale(0.65f),)*/
             Text(
                 team.name.toString() ,
                 modifier = Modifier

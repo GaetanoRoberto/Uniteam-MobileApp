@@ -4,57 +4,33 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.toMutableStateList
 import com.google.firebase.FirebaseApp
-import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import it.polito.uniteam.classes.Category
 import it.polito.uniteam.classes.Chat
-import it.polito.uniteam.classes.ChatDB
 import it.polito.uniteam.classes.Comment
-import it.polito.uniteam.classes.CommentDB
 import it.polito.uniteam.classes.DummyDataProvider
 import it.polito.uniteam.classes.File
-import it.polito.uniteam.classes.FileDB
 import it.polito.uniteam.classes.History
-import it.polito.uniteam.classes.HistoryDB
 import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.MemberDB
 import it.polito.uniteam.classes.MemberTeamInfo
 import it.polito.uniteam.classes.Message
-import it.polito.uniteam.classes.MessageDB
-import it.polito.uniteam.classes.Priority
-import it.polito.uniteam.classes.Repetition
-import it.polito.uniteam.classes.Status
 import it.polito.uniteam.classes.Task
-import it.polito.uniteam.classes.TaskDB
 import it.polito.uniteam.classes.Team
 import it.polito.uniteam.classes.TeamDB
 import it.polito.uniteam.classes.messageStatus
-import it.polito.uniteam.classes.parseReturnType
-import it.polito.uniteam.classes.parseToLocalDate
-import it.polito.uniteam.firebase.getChatById
-import it.polito.uniteam.firebase.getHistoryById
 import it.polito.uniteam.firebase.getMemberById
-import it.polito.uniteam.firebase.getTaskById
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
-import java.time.LocalDate
-import java.time.LocalDateTime
 import kotlin.collections.HashMap
 
 
@@ -71,7 +47,13 @@ class UniTeamModel(val context: Context) {
     val coroutineScope = CoroutineScope(Dispatchers.IO)
     lateinit var user : FirebaseUser
 
-    fun getTeams(): Flow<List<TeamDB>> = it.polito.uniteam.firebase.getTeams(db,coroutineScope)
+    //Stato di caricamento dati dal db
+    var isLoading = mutableStateOf(true)
+
+    var loggedUser = getMemberById(db, coroutineScope, "2nm8PdGbk5CaROcyWjq7")
+    fun getTeams(): Flow<List<TeamDB>> = it.polito.uniteam.firebase.getTeams(db,coroutineScope,loggedUser,isLoading)
+    fun getAllTeamsMembersHome(): Flow<List<MemberDB>> = it.polito.uniteam.firebase.getAllTeamsMembersHome(db,coroutineScope,loggedUser,isLoading)
+    fun getTeamById(id: String): Flow<TeamDB> = it.polito.uniteam.firebase.getTeamById(db,coroutineScope,id)
 
     var membersList = mutableListOf<Member>(
         Member().apply {
