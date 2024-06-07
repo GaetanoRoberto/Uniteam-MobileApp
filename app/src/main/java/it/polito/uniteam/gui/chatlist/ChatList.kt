@@ -101,11 +101,11 @@ fun TeamRow(team: Team,vm: ChatListViewModel) {
         ,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        /*TeamIcon(
+        TeamIcon(
             team = team,
             modifierPadding = if(team.image != Uri.EMPTY) Modifier.padding(6.dp, 8.dp, 12.dp, 7.dp) else Modifier.padding(4.dp, 0.dp, 12.dp, 0.dp),
             modifierScale = if(team.image != Uri.EMPTY) Modifier.scale(2f) else Modifier.scale(1f)
-        )*/
+        )
         Spacer(modifier = Modifier.width(10.dp))
         Column(
             modifier = Modifier
@@ -183,7 +183,7 @@ fun UserItem(member: Member,vm : ChatListViewModel) {
         ,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        //MemberIcon(modifierScale= Modifier.scale(1f), modifierPadding = Modifier.padding(4.dp, 0.dp, 15.dp, 0.dp),member = member)
+        MemberIcon(modifierScale= Modifier.scale(1f), modifierPadding = Modifier.padding(4.dp, 0.dp, 15.dp, 0.dp),member = member)
         Spacer(modifier = Modifier.width(10.dp))
         Column(
             modifier = Modifier

@@ -4,7 +4,6 @@ import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.MutableState
 import com.google.firebase.Timestamp
-import com.google.firebase.firestore.Filter
 import com.google.firebase.firestore.FirebaseFirestore
 import it.polito.uniteam.classes.Category
 import it.polito.uniteam.classes.CategoryRole

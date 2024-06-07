@@ -80,25 +80,19 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.toObject
 import it.polito.uniteam.Factory
 import it.polito.uniteam.NavControllerManager
 import it.polito.uniteam.R
 import it.polito.uniteam.UniTeamModel
-import it.polito.uniteam.classes.ChatDB
 import it.polito.uniteam.classes.LoadingSpinner
 import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.MemberDB
-import it.polito.uniteam.classes.MessageDB
 import it.polito.uniteam.classes.Team
 import it.polito.uniteam.classes.TeamDB
 import it.polito.uniteam.classes.TeamIcon
 import it.polito.uniteam.isVertical
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 
 
 class HomeViewModel (val model: UniTeamModel, val savedStateHandle: SavedStateHandle): ViewModel() {
@@ -117,35 +111,19 @@ class HomeViewModel (val model: UniTeamModel, val savedStateHandle: SavedStateHa
     val radioOptions = listOf("Name", "Creation date")
     var selectedChip by mutableStateOf("First")
 //    val teams = model.getTeams()
-var message: MessageDB? = null
-    private set
-
-    private val db = FirebaseFirestore.getInstance()
-
-    fun getChatByIdTest(chatId: String)  {
-        viewModelScope.launch {
-            try {
-                val chatSnapshot = db.collection("Message").document(chatId).get().await()
-                message = chatSnapshot.toObject<MessageDB>()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
 }
 
-
-@Preview
-@Composable
-fun Db(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current))) {
-    val message = vm.message
-    LaunchedEffect(Unit) {
-        vm.getChatByIdTest("6mA3IcVzcO2vaTR5WSll")
-    }
-    Text(text = "Runned")
-    Text(text = message?.message ?: "No message")
-}
-
+//@Preview
+//@Composable
+//fun Db(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current))) {
+//    val teams by vm.teams.collectAsState(initial = listOf())
+//    LazyColumn(modifier = Modifier.fillMaxSize()) {
+//        items(teams) {
+//            Text(text = it.toString())
+//            Spacer(modifier = Modifier.height(8.dp))
+//        }
+//    }
+//}
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -165,7 +143,7 @@ fun Home(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current)),
         vm.loaded.value = true
         filteredTeamsList.value = teamsList.sortedByDescending { it.creationDate }
     }
-    Db()
+
     //Drawer dei filtri
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         ModalNavigationDrawer(

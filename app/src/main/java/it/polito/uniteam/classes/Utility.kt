@@ -42,10 +42,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import it.polito.uniteam.GeneralViewModel
 import it.polito.uniteam.NavControllerManager
 import it.polito.uniteam.R
-import it.polito.uniteam.UniTeamModel
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -275,7 +273,6 @@ fun HourMinutesPicker(
         }
     }
 }
-
 
 @Preview
 @Composable
