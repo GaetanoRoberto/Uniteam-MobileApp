@@ -12,17 +12,25 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import it.polito.uniteam.classes.Chat
+import it.polito.uniteam.classes.ChatDBFinal
 import it.polito.uniteam.classes.Comment
+import it.polito.uniteam.classes.CommentDBFinal
 import it.polito.uniteam.classes.DummyDataProvider
 import it.polito.uniteam.classes.File
+import it.polito.uniteam.classes.FileDBFinal
 import it.polito.uniteam.classes.History
+import it.polito.uniteam.classes.HistoryDBFinal
 import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.MemberDB
+import it.polito.uniteam.classes.MemberDBFinal
 import it.polito.uniteam.classes.MemberTeamInfo
 import it.polito.uniteam.classes.Message
+import it.polito.uniteam.classes.MessageDB
 import it.polito.uniteam.classes.Task
+import it.polito.uniteam.classes.TaskDBFinal
 import it.polito.uniteam.classes.Team
 import it.polito.uniteam.classes.TeamDB
+import it.polito.uniteam.classes.TeamDBFinal
 import it.polito.uniteam.classes.messageStatus
 import it.polito.uniteam.firebase.getMemberById
 import kotlinx.coroutines.CoroutineScope
@@ -54,6 +62,19 @@ class UniTeamModel(val context: Context) {
     fun getTeams(): Flow<List<TeamDB>> = it.polito.uniteam.firebase.getTeams(db,coroutineScope,loggedUser,isLoading)
     fun getAllTeamsMembersHome(): Flow<List<MemberDB>> = it.polito.uniteam.firebase.getAllTeamsMembersHome(db,coroutineScope,loggedUser,isLoading)
     fun getTeamById(id: String): Flow<TeamDB> = it.polito.uniteam.firebase.getTeamById(db,coroutineScope,id)
+
+    fun getAllTeams2(): Flow<List<TeamDBFinal>> = it.polito.uniteam.firebase.getAllTeams(db,coroutineScope,loggedUser,isLoading)
+    fun getAllMembers2(): Flow<List<MemberDBFinal>> = it.polito.uniteam.firebase.getAllMembers(db)
+
+    fun getAllTasks2(): Flow<List<TaskDBFinal>> = it.polito.uniteam.firebase.getAllTasks(db)
+
+    fun getAllHistories2() : Flow<List<HistoryDBFinal>> = it.polito.uniteam.firebase.getAllHistoriesFinal(db)
+    fun getAllChats2() : Flow<List<ChatDBFinal>> = it.polito.uniteam.firebase.getAllChats(db)
+
+    fun getAllFiles2() : Flow<List<FileDBFinal>> = it.polito.uniteam.firebase.getAllFiles(db)
+    fun getAllComments2() : Flow<List<CommentDBFinal>> = it.polito.uniteam.firebase.getAllComments(db)
+
+    fun getAllMessages2() : Flow<List<MessageDB>> = it.polito.uniteam.firebase.getAllMessages(db)
 
     var membersList = mutableListOf<Member>(
         Member().apply {

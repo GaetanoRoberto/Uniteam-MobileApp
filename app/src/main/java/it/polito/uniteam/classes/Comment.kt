@@ -17,3 +17,10 @@ data class CommentDB(
     var date: LocalDate,
     var hour: String
 )
+data class CommentDBFinal(
+    var id: String = "",
+    var user: String,
+    var commentValue: String,
+    var date: LocalDate,
+    var hour: String
+)

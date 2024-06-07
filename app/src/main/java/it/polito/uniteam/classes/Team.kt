@@ -26,3 +26,14 @@ data class TeamDB (
     var teamHistory: MutableList<HistoryDB> = mutableListOf(),
     var chat: ChatDB? = null
 )
+data class TeamDBFinal (
+    var id: String = "",
+    var name: String = "",
+    var description: String = "",
+    var image: Uri = Uri.EMPTY,
+    var creationDate: LocalDate = LocalDate.now(),
+    var members: MutableList<String> = mutableListOf(),
+    var tasks: MutableList<String> = mutableListOf(),
+    var teamHistory: MutableList<String> = mutableListOf(),
+    var chat: String? = null
+)

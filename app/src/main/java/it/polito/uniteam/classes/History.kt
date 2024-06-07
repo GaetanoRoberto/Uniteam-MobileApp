@@ -15,3 +15,9 @@ data class HistoryDB (
     var date: LocalDate,
     var user: MemberDB
 )
+data class HistoryDBFinal (
+    var id: String = "",
+    var comment: String,
+    var date: LocalDate,
+    var user: String
+)

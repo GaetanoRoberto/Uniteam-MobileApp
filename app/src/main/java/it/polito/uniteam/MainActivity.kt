@@ -142,7 +142,17 @@ class MainActivity : ComponentActivity() {
                 // Stati da passare per le queries che non vanno rieseguite ad ogni recomposition
                 val teamsList = it.getTeams().collectAsState(initial = emptyList())
                 val membersList = it.getAllTeamsMembersHome().collectAsState(initial = emptyList())
-                //
+
+                val teams = it.teams.collectAsState(initial = emptyList())
+                val tasks = it.tasks.collectAsState(initial = emptyList())
+                val messages = it.messages.collectAsState(initial = emptyList())
+                val members = it.members.collectAsState(initial = emptyList())
+                val histories = it.histories.collectAsState(initial = emptyList())
+                val files = it.files.collectAsState(initial = emptyList())
+                val comments = it.comments.collectAsState(initial = emptyList())
+                val chats = it.chats.collectAsState(initial = emptyList())
+
+
                 val items = listOf(
                     BottomNavigationItem(
                         title = "Teams",
@@ -384,7 +394,10 @@ class MainActivity : ComponentActivity() {
                                                         ChatListScreen(
                                                             vm = viewModel(
                                                                 factory = Factory(LocalContext.current)
-                                                            )
+                                                            )/*,
+                                                            chatList = chats.value,
+                                                            members = members.value,
+                                                            teams = teams.value*/
                                                         )
                                                     }
                                                     composable("Profile") {

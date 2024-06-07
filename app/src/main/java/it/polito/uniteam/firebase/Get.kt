@@ -8,17 +8,24 @@ import com.google.firebase.firestore.FirebaseFirestore
 import it.polito.uniteam.classes.Category
 import it.polito.uniteam.classes.CategoryRole
 import it.polito.uniteam.classes.ChatDB
+import it.polito.uniteam.classes.ChatDBFinal
 import it.polito.uniteam.classes.CommentDB
+import it.polito.uniteam.classes.CommentDBFinal
 import it.polito.uniteam.classes.FileDB
+import it.polito.uniteam.classes.FileDBFinal
 import it.polito.uniteam.classes.HistoryDB
+import it.polito.uniteam.classes.HistoryDBFinal
 import it.polito.uniteam.classes.MemberDB
+import it.polito.uniteam.classes.MemberDBFinal
 import it.polito.uniteam.classes.MemberTeamInfo
 import it.polito.uniteam.classes.MessageDB
 import it.polito.uniteam.classes.Priority
 import it.polito.uniteam.classes.Repetition
 import it.polito.uniteam.classes.Status
 import it.polito.uniteam.classes.TaskDB
+import it.polito.uniteam.classes.TaskDBFinal
 import it.polito.uniteam.classes.TeamDB
+import it.polito.uniteam.classes.TeamDBFinal
 import it.polito.uniteam.classes.messageStatus
 import it.polito.uniteam.classes.parseReturnType
 import it.polito.uniteam.classes.parseToLocalDate
@@ -37,6 +44,357 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
 import java.time.LocalDateTime
+fun getAllTeams(db: FirebaseFirestore, coroutineScope: CoroutineScope, loggedUser: Deferred<MemberDB>, isLoading: MutableState<Boolean>): Flow<List<TeamDBFinal>> = callbackFlow {
+    val listener = db.collection("Team").addSnapshotListener {
+        // whenever there is a change in this collection give me data (r query result, e error)
+            r, e ->
+        if (r != null) {
+            var teams = mutableListOf<TeamDBFinal>()
+            r.forEach{
+                val t = TeamDBFinal()
+                t.id = it.id
+                t.name = it.getString("name") ?: ""
+                t.description = it.getString("description") ?: ""
+                t.image = Uri.EMPTY
+                t.creationDate = it.getTimestamp("creationDate") ?.let { parseToLocalDate(it.toDate(),parseReturnType.DATE) } as LocalDate
+                t.chat = it.getString("chat")
+                t.tasks = it.get("tasks") as MutableList<String>
+                t.members = it.get("members") as MutableList<String>
+                t.teamHistory = it.get("teamHistory") as MutableList<String>
+
+                teams.add(t)
+            }
+
+            //val teams = r.toObjects(TeamDBFinal::class.java)
+            trySend(teams)
+        }else{
+            trySend(listOf()).onSuccess {
+                isLoading.value = false
+            }
+
+        }
+    }
+        awaitClose {
+            listener.remove()
+        }
+    }
+fun getAllMembers(db: FirebaseFirestore): Flow<List<MemberDBFinal>> = callbackFlow {
+    val listener = db.collection("Member").addSnapshotListener {
+        // whenever there is a change in this collection give me data (r query result, e error)
+            r, e ->
+        if (r != null) {
+            var members = mutableListOf<MemberDBFinal>()
+            r.forEach{
+                val m = MemberDBFinal()
+                m.id = it.id
+                m.fullName = it.getString("fullName") ?: ""
+                m.username = it.getString("username") ?: ""
+                m.email = it.getString("email") ?: ""
+                m.location = it.getString("location") ?: ""
+                m.description = it.getString("description") ?: ""
+                m.kpi = it.getString("kpi") ?: ""
+                m.profileImage = Uri.EMPTY
+                val teamsInfo = it.get("teamsInfo")
+                if (teamsInfo is List<*>) {
+                    m.teamsInfo = hashMapOf()
+                    (teamsInfo as List<HashMap<String, Any>>).forEach { teamInfoMap ->
+                        val teamId = teamInfoMap["teamId"] as String ?: return@forEach
+                        val role = teamInfoMap["role"] as String ?: "NONE"
+                        val weeklyAvailabilityTimes = (teamInfoMap["weeklyAvailabilityTimes"] as Number).toInt() ?: 0
+                        val weeklyAvailabilityHoursMap = teamInfoMap["weeklyAvailabilityHours"] as HashMap<String, Number>
+                        var hours = 0
+                        var minutes = 0
+                        weeklyAvailabilityHoursMap.forEach { (dbKey, dbValue) ->
+                            if(dbKey == "hours")
+                                hours = dbValue.toInt()
+                            else
+                                minutes = dbValue.toInt()
+                        }
+                        val weeklyAvailabilityHours = Pair(hours, minutes)
+                        val permissionrole = teamInfoMap["permissionRole"] as? String ?: "USER"
+
+                        m.teamsInfo?.put(teamId, MemberTeamInfo(
+                            role = CategoryRole.valueOf(role),
+                            weeklyAvailabilityTimes = weeklyAvailabilityTimes,
+                            weeklyAvailabilityHours = weeklyAvailabilityHours,
+                            permissionrole = permissionRole.valueOf(permissionrole)
+                        ))
+                    }
+                } else {
+                    m.teamsInfo = hashMapOf()
+                }
+                m.chats = it.get("chats") as MutableList<String>
+
+                members.add(m)
+            }
+
+            //val teams = r.toObjects(TeamDBFinal::class.java)
+            trySend(members)
+        }else{
+            trySend(listOf()).onSuccess {
+                //isLoading.value = false
+            }
+
+        }
+    }
+    awaitClose {
+        listener.remove()
+    }
+}
+fun getAllTasks(db: FirebaseFirestore): Flow<List<TaskDBFinal>> = callbackFlow {
+    val listener = db.collection("Task").addSnapshotListener { r, e ->
+
+        if (r != null) {
+            val tasks = mutableListOf<TaskDBFinal>()
+            r.forEach { task ->
+                val t = TaskDBFinal()
+                t.id = task.id
+                t.name = task.getString("name") ?: ""
+                t.description = task.getString("description")
+                val category = task.getString("category") ?: ""
+                t.category =
+                    if (category.isNotEmpty()) Category.valueOf(category) else Category.NONE
+                val priority = task.getString("priority") ?: ""
+                t.priority = if (priority.isNotEmpty()) Priority.valueOf(priority) else Priority.LOW
+                t.creationDate = task.getTimestamp("creationDate")?.let {
+                    parseToLocalDate(
+                        it.toDate(),
+                        parseReturnType.DATE
+                    )
+                } as LocalDate
+                t.deadline = task.getTimestamp("deadline")?.let {
+                    parseToLocalDate(
+                        it.toDate(),
+                        parseReturnType.DATE
+                    )
+                } as LocalDate
+                val estimatedTime =
+                    (task.data?.get("estimatedTime") as HashMap<String, Int>).values.toList()
+                t.estimatedTime = Pair(estimatedTime[0], estimatedTime[1])
+                val spentTimeMap = task.data?.get("spentTime") as List<HashMap<String, Any>>
+                spentTimeMap.forEach { memberTimeMap ->
+                    var memberId: String = ""
+                    var spentTime: Pair<Int, Int> = Pair(0, 0)
+                    memberTimeMap.forEach { (dbKey, dbValue) ->
+                        if (dbKey == "member") {
+                            memberId = dbValue as String
+                        } else {
+                            // spentTime key
+                            val timeKeyValue = (dbValue as HashMap<String, Int>).values.toList()
+                            spentTime = Pair(timeKeyValue[0], timeKeyValue[1])
+                        }
+                    }
+                    t.spentTime.put(memberId, spentTime)
+                }
+                val status = task.getString("status") ?: ""
+                t.status = if (status.isNotEmpty()) Status.valueOf(status) else Status.TODO
+                val repetition = task.getString("repetition") ?: ""
+                t.repetition =
+                    if (repetition.isNotEmpty()) Repetition.valueOf(repetition) else Repetition.NONE
+                val membersId = task.get("members") as List<String>
+                membersId.forEach { memberId ->
+                    t.members.add(memberId)
+                }
+                val schedules =
+                    task.data?.get("schedules") as List<HashMap<String, HashMap<String, Any>>>
+                schedules.forEach { scheduleInfoTimeMap ->
+                    var memberId = ""
+                    var scheduleDate = LocalDate.now()
+                    var hours = 0
+                    var minutes = 0
+                    scheduleInfoTimeMap.forEach { (dbKey, dbValue) ->
+                        if (dbKey == "scheduleInfo") {
+                            val memberIdTimestampMap = dbValue as HashMap<String, Any>
+                            memberIdTimestampMap.forEach { (innerDBKey, innerDbValue) ->
+                                if (innerDBKey == "member") {
+                                    memberId = innerDbValue as String
+                                } else {
+                                    // scheduleDate key
+                                    val timestamp = innerDbValue as Timestamp
+                                    scheduleDate = parseToLocalDate(
+                                        timestamp.toDate(),
+                                        parseReturnType.DATE
+                                    ) as LocalDate
+                                }
+                            }
+                        } else {
+                            // scheduleTime key
+                            val hoursMinutesMap = dbValue as HashMap<String, Long>
+                            hoursMinutesMap.forEach { (dbKey, dbValue) ->
+                                if (dbKey == "hours") {
+                                    hours = dbValue.toInt()
+                                } else {
+                                    // minutes key
+                                    minutes = dbValue.toInt()
+                                }
+                            }
+                        }
+                    }
+                    //Pair<MemberDB, LocalDate>, Pair<Int, Int>
+                    t.schedules.put(Pair(memberId, scheduleDate), Pair(hours, minutes))
+                }
+                val taskFilesId = task.get("taskFiles") as List<String>
+                taskFilesId.forEach { taskFileId ->
+                    t.taskFiles.add(taskFileId)
+                }
+                val taskCommentsId = task.get("taskComments") as List<String>
+                taskCommentsId.forEach { taskCommentId ->
+                    t.taskComments.add(taskCommentId)
+                }
+                val taskHistoriesId = task.get("taskHistory") as List<String>
+                taskHistoriesId.forEach { taskHistoryId ->
+                    t.taskHistory.add(taskHistoryId)
+                }
+                tasks.add(t)
+            }
+            trySend(tasks)
+        } else {
+            trySend(listOf())
+        }
+    }
+    awaitClose {
+        listener.remove()
+    }
+}
+fun getAllHistories(db: FirebaseFirestore): Flow<List<HistoryDBFinal>> = callbackFlow {
+    val listener = db.collection("History").addSnapshotListener { r, e ->
+        if (r != null) {
+            val histories = mutableListOf<HistoryDBFinal>()
+            r.forEach { history ->
+                val userId = history.getString("user") ?: ""
+                val h = HistoryDBFinal(
+                    id = history.id,
+                    comment = history.getString("comment") ?: "",
+                    date = history.getTimestamp("date") ?.let { parseToLocalDate(it.toDate(),
+                        parseReturnType.DATE) } as LocalDate,
+                    user = userId
+                )
+                histories.add(h)
+            }
+            trySend(histories)
+        } else {
+            trySend(listOf())
+        }
+    }
+    awaitClose {
+        listener.remove()
+    }
+}
+fun getAllHistoriesFinal(db: FirebaseFirestore): Flow<List<HistoryDBFinal>> = callbackFlow {
+    val listener = db.collection("History").addSnapshotListener { r, e ->
+        if (r != null) {
+            val histories = mutableListOf<HistoryDBFinal>()
+            r.forEach { history ->
+                val userId = history.getString("user") ?: ""
+                val h = HistoryDBFinal(
+                    id = history.id,
+                    comment = history.getString("comment") ?: "",
+                    date = history.getTimestamp("date") ?.let { parseToLocalDate(it.toDate(),
+                        parseReturnType.DATE) } as LocalDate,
+                    user = userId
+                )
+                histories.add(h)
+            }
+            trySend(histories)
+        } else {
+            trySend(listOf())
+        }
+    }
+    awaitClose {
+        listener.remove()
+    }
+}
+fun getAllChats(db: FirebaseFirestore): Flow<List<ChatDBFinal>> = callbackFlow {
+    val listener = db.collection("Chat").addSnapshotListener { r, e ->
+        if (r != null) {
+            val chats = r.toObjects(ChatDBFinal::class.java)
+            trySend(chats)
+        } else {
+            trySend(listOf())
+        }
+    }
+    awaitClose {
+        listener.remove()
+    }
+}
+fun getAllFiles(db: FirebaseFirestore): Flow<List<FileDBFinal>> = callbackFlow {
+    val listener = db.collection("File").addSnapshotListener { r, e ->
+        if(r != null) {
+            val files = mutableListOf<FileDBFinal>()
+            r.forEach { file ->
+                val memberId = file.getString("user") ?: ""
+                val f = FileDBFinal(
+                    id = file.id,
+                    user = memberId,
+                    filename = file.getString("filename") ?: "",
+                    date = file.getTimestamp("date") ?.let { parseToLocalDate(it.toDate(),
+                        parseReturnType.DATE) } as LocalDate,
+                    uri = Uri.EMPTY
+                )
+                files.add(f)
+            }
+            trySend(files)
+        } else {
+            trySend(listOf())
+        }
+    }
+    awaitClose {
+        listener.remove()
+    }
+}
+fun getAllComments(db: FirebaseFirestore): Flow<List<CommentDBFinal>> = callbackFlow {
+    val listener = db.collection("Comment").addSnapshotListener{ r,e ->
+        if(r != null) {
+            val comments = mutableListOf<CommentDBFinal>()
+            r.forEach { comment ->
+                val memberId = comment.getString("user") ?: ""
+                val c = CommentDBFinal(
+                    id = comment.id,
+                    user = memberId,
+                    commentValue = comment.getString("commentValue") ?: "",
+                    date = comment.getTimestamp("date") ?.let { parseToLocalDate(it.toDate(),
+                        parseReturnType.DATE) } as LocalDate,
+                    hour = comment.getTimestamp("date") ?.let { parseToLocalDate(it.toDate(),
+                        parseReturnType.TIME) } as String,
+                )
+                comments.add(c)
+            }
+            trySend(comments)
+        } else {
+            trySend(listOf())
+        }
+    }
+    awaitClose {
+        listener.remove()
+    }
+}
+fun getAllMessages(db: FirebaseFirestore): Flow<List<MessageDB>> = callbackFlow {
+    val listener = db.collection("Message").addSnapshotListener { r,e  ->
+        if(r != null) {
+            val messages = mutableListOf<MessageDB>()
+            r.forEach {message ->
+                val status = message.getString("status") ?: ""
+                val m = MessageDB(
+                    id = message.id,
+                    senderId = message.getString("senderId") ?: "",
+                    message = message.getString("message") ?: "",
+                    creationDate = message.getTimestamp("creationDate") ?.let { parseToLocalDate(it.toDate(),
+                        parseReturnType.DATETIME) } as LocalDateTime,
+                    membersUnread = message.get("membersUnread") as MutableList<String>,
+                    status = if(status.isNotEmpty()) messageStatus.valueOf(status) else messageStatus.UNREAD
+                )
+                messages.add(m)
+            }
+            trySend(messages)
+        } else {
+            trySend(listOf())
+        }
+    }
+    awaitClose {
+        listener.remove()
+    }
+}
+
 
 fun getCommentById(db: FirebaseFirestore, coroutineScope: CoroutineScope, commentId: String): Deferred<CommentDB> {
     return coroutineScope.async {

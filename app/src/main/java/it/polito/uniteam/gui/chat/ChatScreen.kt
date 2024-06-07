@@ -181,7 +181,7 @@ fun ChatRowTeam(
         Row(modifier = Modifier.padding(all = 8.dp)) {
             if (!isSender){
                 if (member != null) {
-                    MemberIcon(modifierScale= Modifier.scale(0.9f), modifierPadding = Modifier.padding(4.dp, 12.dp, 15.dp, 0.dp),member = member)
+                    //MemberIcon(modifierScale= Modifier.scale(0.9f), modifierPadding = Modifier.padding(4.dp, 12.dp, 15.dp, 0.dp),member = member)
                 }
             }
             Column {
@@ -235,14 +235,14 @@ fun ChatHeader(
             .padding(16.dp),
         horizontalArrangement = Arrangement.Start
     ) {
-        if (vm.chat.teamId == null) {
+        /*if (vm.chat.teamId == null) {
             vm.chat.receiver?.let { MemberIcon(member = it) }
         } else {
             TeamIcon(
                 team = vm.getTeam(vm.chat.teamId),
                 modifierPadding = if(vm.getTeam(vm.chat.teamId).image != Uri.EMPTY) Modifier.padding(6.dp, 4.dp, 12.dp, 7.dp) else Modifier.padding(4.dp, 0.dp, 12.dp, 0.dp),
                 modifierScale = if(vm.getTeam(vm.chat.teamId).image != Uri.EMPTY) Modifier.scale(2f) else Modifier.scale(1f))
-        }
+        }*/
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text =  text ?: "Unknown",

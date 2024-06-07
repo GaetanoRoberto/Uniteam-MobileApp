@@ -111,19 +111,27 @@ class HomeViewModel (val model: UniTeamModel, val savedStateHandle: SavedStateHa
     val radioOptions = listOf("Name", "Creation date")
     var selectedChip by mutableStateOf("First")
 //    val teams = model.getTeams()
+    val teams = model.getAllTeams2()
+    val members = model.getAllMembers2()
+    val tasks = model.getAllTasks2()
+    val histories = model.getAllHistories2()
+    val chats = model.getAllChats2()
+    val files = model.getAllFiles2()
+    val comments = model.getAllComments2()
+    val messages = model.getAllMessages2()
+
 }
 
-//@Preview
-//@Composable
-//fun Db(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current))) {
-//    val teams by vm.teams.collectAsState(initial = listOf())
-//    LazyColumn(modifier = Modifier.fillMaxSize()) {
-//        items(teams) {
-//            Text(text = it.toString())
-//            Spacer(modifier = Modifier.height(8.dp))
-//        }
-//    }
-//}
+@Preview
+@Composable
+fun Db(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current))) {
+    val comments by vm.messages.collectAsState(initial = listOf())
+    LazyColumn(modifier = Modifier.fillMaxSize()) {
+        items(comments) {
+            Text(text = it.toString())
+            Spacer(modifier = Modifier.height(8.dp))
+}    }
+}
 
 
 @OptIn(ExperimentalMaterial3Api::class)

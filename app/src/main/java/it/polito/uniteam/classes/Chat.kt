@@ -23,3 +23,13 @@ data class ChatDB (
     //var messages: List<Message> = emptyList()
     var messages : MutableList<MessageDB> = mutableStateListOf()
 )
+data class ChatDBFinal (
+    var id: String = "",
+    var sender: String? = null,
+    // null if team chat
+    var receiver: String? = null,
+    // null if personal chat
+    var teamId: String? = null,
+    //var messages: List<Message> = emptyList()
+    var messages : MutableList<String> = mutableStateListOf()
+)

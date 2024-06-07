@@ -18,3 +18,10 @@ data class FileDB (
     var date: LocalDate,
     var uri: Uri
 )
+data class FileDBFinal (
+    var id: String = "",
+    var user: String,
+    var filename: String,
+    var date: LocalDate,
+    var uri: Uri
+)

@@ -43,6 +43,24 @@ data class TaskDB (
     var taskComments: MutableList<CommentDB> = mutableListOf(),
     var taskHistory: MutableList<HistoryDB> = mutableListOf()
 )
+data class TaskDBFinal (
+    var id: String = "",
+    var name: String = "",
+    var description: String? = null,
+    var category: Category = Category.NONE,
+    var priority: Priority = Priority.LOW,
+    var creationDate: LocalDate = LocalDate.now(),
+    var deadline: LocalDate = LocalDate.now(),
+    var estimatedTime: Pair<Int,Int> = Pair(0,0),
+    var spentTime: HashMap<String,Pair<Int,Int>> = hashMapOf(),
+    var status: Status = Status.TODO,
+    var repetition: Repetition = Repetition.NONE,
+    var members: MutableList<String> = mutableListOf(),
+    var schedules: HashMap<Pair<String,LocalDate>,Pair<Int,Int>> = hashMapOf(),
+    var taskFiles: MutableList<String> = mutableListOf(),
+    var taskComments: MutableList<String> = mutableListOf(),
+    var taskHistory: MutableList<String> = mutableListOf()
+)
 
 data class TaskForCalendar(
     val id: Int,
