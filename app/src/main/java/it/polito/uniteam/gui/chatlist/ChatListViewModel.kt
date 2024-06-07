@@ -15,8 +15,8 @@ import java.time.LocalDateTime
 class ChatListViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
     val loggedMember = model.loggedMember
     val teamId: String = checkNotNull(savedStateHandle["teamId"])
-    fun getTeam(teamId: String) = model.getTeam(teamId.toInt())
-    val team = getTeam(teamId)
+    fun getTeam(teamId: Int) = model.getTeam(teamId)
+    val team = getTeam(1)
     fun getMembers() = team.members
 
     /*val messages = mutableStateListOf<Message>(

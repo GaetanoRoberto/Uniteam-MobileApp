@@ -10,8 +10,10 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.toObject
 import com.google.firebase.ktx.Firebase
 import it.polito.uniteam.classes.Chat
+import it.polito.uniteam.classes.ChatDB
 import it.polito.uniteam.classes.Comment
 import it.polito.uniteam.classes.DummyDataProvider
 import it.polito.uniteam.classes.File
@@ -20,10 +22,12 @@ import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.MemberDB
 import it.polito.uniteam.classes.MemberTeamInfo
 import it.polito.uniteam.classes.Message
+import it.polito.uniteam.classes.MessageDB
 import it.polito.uniteam.classes.Task
 import it.polito.uniteam.classes.Team
 import it.polito.uniteam.classes.TeamDB
 import it.polito.uniteam.classes.messageStatus
+import it.polito.uniteam.firebase.getChatById
 import it.polito.uniteam.firebase.getMemberById
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -31,6 +35,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.tasks.await
 import kotlin.collections.HashMap
 
 
@@ -51,10 +58,36 @@ class UniTeamModel(val context: Context) {
     var isLoading = mutableStateOf(true)
 
     var loggedUser = getMemberById(db, coroutineScope, "2nm8PdGbk5CaROcyWjq7")
+
     fun getTeams(): Flow<List<TeamDB>> = it.polito.uniteam.firebase.getTeams(db,coroutineScope,loggedUser,isLoading)
     fun getAllTeamsMembersHome(): Flow<List<MemberDB>> = it.polito.uniteam.firebase.getAllTeamsMembersHome(db,coroutineScope,loggedUser,isLoading)
     fun getTeamById(id: String): Flow<TeamDB> = it.polito.uniteam.firebase.getTeamById(db,coroutineScope,id)
 
+    fun getChatById(chatId: String): ChatDB {
+        val chatDeferred: Deferred<ChatDB> = getChatById(db, coroutineScope, chatId)
+        return runBlocking {
+            chatDeferred.await()
+        }
+    }
+
+     fun getChatByIdTest(chatId: String): ChatDB? {
+         var chat: ChatDB? = null
+         coroutineScope.launch {
+             val chatSnapshot = db.collection("Chat").document(chatId).get().await()
+             chat = chatSnapshot.toObject<ChatDB>()
+         }
+            return chat
+    }
+    suspend fun getMessagesFromChat(chatId: String): List<MessageDB> {
+        val messagesSnapshot = db.collection("Chat").document(chatId)
+            .collection("Message").get().await()
+        return messagesSnapshot.documents.mapNotNull { it.toObject<MessageDB>() }
+    }
+    // GET: Get a member by ID
+    suspend fun getMemberByIdTest(memberId: String): MemberDB? {
+        val memberSnapshot = db.collection("Member").document(memberId).get().await()
+        return memberSnapshot.toObject<MemberDB>()
+    }
     var membersList = mutableListOf<Member>(
         Member().apply {
             id = 1
@@ -336,8 +369,9 @@ class UniTeamModel(val context: Context) {
     }
 
     fun getTeam(teamId: Int): Team {
-        return _teams.value.filter { it.id == teamId }[0]
+        return _teams.value.find { it.id == teamId }!!
     }
+
 
     fun getAllTeamsMembers(): List<Member> {
         val uniqueMembers = mutableSetOf<Member>()
