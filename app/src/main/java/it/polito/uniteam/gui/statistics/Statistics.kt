@@ -1,5 +1,6 @@
 package it.polito.uniteam.gui.statistics
 
+import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -64,8 +65,11 @@ import com.maxkeppeler.sheets.calendar.models.CalendarStyle
 import it.polito.uniteam.Factory
 import it.polito.uniteam.R
 import it.polito.uniteam.classes.Category
+import it.polito.uniteam.classes.MemberDBFinal
 import it.polito.uniteam.classes.Priority
 import it.polito.uniteam.classes.Status
+import it.polito.uniteam.classes.TaskDBFinal
+import it.polito.uniteam.classes.TeamDBFinal
 import it.polito.uniteam.gui.showtaskdetails.Demo_ExposedDropdownMenuBox
 import it.polito.uniteam.gui.teamScreen.ExpandableRow
 import it.polito.uniteam.isVertical
@@ -75,12 +79,22 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+@SuppressLint("UnrememberedMutableState")
+@Composable
+fun SetUpStatisticsData(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContext.current)),teams: List<TeamDBFinal>, members: List<MemberDBFinal>, tasks: List<TaskDBFinal>) {
+    val team = teams.find { it.id == vm.teamId }!!
+    vm.initialTeamTasks = team.tasks.map { taskId -> tasks.find { it.id == taskId }!! }
+    vm.initialTeamMembers = team.members.map { memberId-> members.find { it.id == memberId }!! }
+    vm.teamTasks = mutableStateOf(vm.initialTeamTasks.map { it.copy() })
+    vm.teamMembers = mutableStateOf(vm.initialTeamMembers.map { it.copy() })
+}
 
 @Composable
-fun Statistics(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContext.current))) {
+fun Statistics(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContext.current)),teams: List<TeamDBFinal>, members: List<MemberDBFinal>, tasks: List<TaskDBFinal>) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
+    SetUpStatisticsData(vm = vm, teams = teams, members = members, tasks = tasks)
 
     //Drawer dei filtri
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
@@ -500,6 +514,9 @@ fun Statistics(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContex
                                     vm.teamMembers.value = vm.initialTeamMembers.filter { member ->
                                         vm.applyMembersFilters(member, vm.lastAppliedFilters.value)
                                     }
+
+                                    Log.i("prova",vm.teamMembers.toString())
+                                    Log.i("prova",vm.teamTasks.toString())
                                     vm.selectedChartValue = ""
                                     scope.launch { drawerState.close() }
                                 }) {
@@ -692,7 +709,7 @@ fun SingleLegend(config: LegendsConfig, legendLabel: LegendLabel) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(0.dp,10.dp,0.dp,0.dp),
+            .padding(0.dp, 10.dp, 0.dp, 0.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
     ) {
