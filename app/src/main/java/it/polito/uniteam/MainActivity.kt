@@ -9,6 +9,7 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -112,6 +113,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.listSaver
+import androidx.lifecycle.ViewModel
 import it.polito.uniteam.classes.ChatDBFinal
 import it.polito.uniteam.classes.MessageDB
 
@@ -153,6 +155,7 @@ class MainActivity : ComponentActivity() {
                 darkTheme = theme,
                 vm = viewModel(factory = Factory(LocalContext.current))
             ) {
+
                 AppStateManager.ProvideLocalAppState(it) {
 
                     val items = listOf(
@@ -349,13 +352,13 @@ class MainActivity : ComponentActivity() {
                                                             startDestination = "Teams"
                                                         ) {
                                                             composable("Teams") {
-                                                                /*Home(
-                                                                vm = viewModel(
-                                                                    factory = Factory(LocalContext.current)
-                                                                ),
-                                                                teamsList = AppStateManager.getTeams(),
-                                                                membersList = AppStateManager.getMembers()
-                                                            )*/
+                                                                CalendarAppContainer(
+                                                                    vm = viewModel(
+                                                                        factory = Factory(
+                                                                            LocalContext.current
+                                                                        )
+                                                                    )
+                                                                )
                                                             }
                                                             composable(
                                                                 "Team/{teamId}",
@@ -386,10 +389,7 @@ class MainActivity : ComponentActivity() {
                                                                         factory = Factory(
                                                                             LocalContext.current
                                                                         )
-                                                                    ),
-                                                                    teams = AppStateManager.getTeams(),
-                                                                    tasks = AppStateManager.getTasks(),
-                                                                    members = AppStateManager.getMembers()
+                                                                    )
                                                                 )
                                                             }
                                                             composable("Notifications") {
@@ -852,7 +852,13 @@ class AppStateManager {
                 LocalChats provides chats.value,
                 LocalMessages provides messages.value
             ) {
-                content()
+                if (teams.value.isNotEmpty() && tasks.value.isNotEmpty() && members.value.isNotEmpty()
+                    && histories.value.isNotEmpty() && files.value.isNotEmpty() && comments.value.isNotEmpty()
+                    && chats.value.isNotEmpty() && messages.value.isNotEmpty()) {
+                    content()
+                }/* else {
+                    LoadingSpinner()
+                }*/
             }
         }
 
