@@ -62,6 +62,7 @@ import com.maxkeppeler.sheets.calendar.CalendarDialog
 import com.maxkeppeler.sheets.calendar.models.CalendarConfig
 import com.maxkeppeler.sheets.calendar.models.CalendarSelection
 import com.maxkeppeler.sheets.calendar.models.CalendarStyle
+import it.polito.uniteam.AppStateManager
 import it.polito.uniteam.Factory
 import it.polito.uniteam.R
 import it.polito.uniteam.classes.Category
@@ -81,20 +82,20 @@ import java.util.Locale
 
 @SuppressLint("UnrememberedMutableState")
 @Composable
-fun SetUpStatisticsData(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContext.current)),teams: List<TeamDBFinal>, members: List<MemberDBFinal>, tasks: List<TaskDBFinal>) {
-    val team = teams.find { it.id == vm.teamId }!!
-    vm.initialTeamTasks = team.tasks.map { taskId -> tasks.find { it.id == taskId }!! }
-    vm.initialTeamMembers = team.members.map { memberId-> members.find { it.id == memberId }!! }
+fun SetUpStatisticsData(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContext.current))) {
+    val team = AppStateManager.getTeams().find { it.id == vm.teamId }!!
+    vm.initialTeamTasks = team.tasks.map { taskId -> AppStateManager.getTasks().find { it.id == taskId }!! }
+    vm.initialTeamMembers = team.members.map { memberId-> AppStateManager.getMembers().find { it.id == memberId }!! }
     vm.teamTasks = mutableStateOf(vm.initialTeamTasks.map { it.copy() })
     vm.teamMembers = mutableStateOf(vm.initialTeamMembers.map { it.copy() })
 }
 
 @Composable
-fun Statistics(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContext.current)),teams: List<TeamDBFinal>, members: List<MemberDBFinal>, tasks: List<TaskDBFinal>) {
+fun Statistics(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContext.current))) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
-    SetUpStatisticsData(vm = vm, teams = teams, members = members, tasks = tasks)
+    SetUpStatisticsData(vm = vm)
 
     //Drawer dei filtri
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
