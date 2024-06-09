@@ -51,7 +51,7 @@ fun messageUnreadCountForBottomBar(vm : NotificationsViewModel = viewModel(facto
     val teams = AppStateManager.getTeams()
 
     val directChats = chats.filter { chat -> chat.sender == loggedMember.id || chat.receiver == loggedMember.id }
-    val teamChats = chats.filter { chat -> teams.any { team -> team.id == chat.teamId } }
+    val teamChats = chats.filter { chat -> teams.any { team -> team.id == chat.teamId && team.members.contains(loggedMember.id) } }
     val directMessages = messages.filter { message ->
         directChats.any { chat -> chat.messages.contains(message.id) }
     }
