@@ -1,10 +1,8 @@
 package it.polito.uniteam.gui.calendar
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -16,25 +14,21 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.viewmodel.compose.viewModel
+import it.polito.uniteam.AppStateManager
 import it.polito.uniteam.Factory
 import it.polito.uniteam.classes.HourMinutesPicker
+import it.polito.uniteam.classes.MemberDBFinal
 import it.polito.uniteam.classes.Status
-import it.polito.uniteam.classes.Task
 import it.polito.uniteam.gui.showtaskdetails.RowItem
 import it.polito.uniteam.gui.showtaskdetails.RowMemberItem
 import it.polito.uniteam.isVertical
-import java.time.LocalDate
 
 @Composable
 fun ScheduleTaskDialog(
@@ -170,7 +164,7 @@ fun ScheduleBackInTimeDialog(vm: Calendar = viewModel(factory = Factory(LocalCon
                     val (task,oldDate,newDate) = vm.taskToSchedule!!
                     if (oldDate != null) {
                         // old data passed from the state, so move from 1 day to another
-                        val hoursToSchedule = task.schedules.get(Pair(vm.memberProfile,oldDate))
+                        val hoursToSchedule = task.schedules.get(Pair(vm.memberId,oldDate))
                         // remove the old day scheduled and add the new one
                         vm.unScheduleTask(task, oldDate)
                         if (hoursToSchedule != null) {
@@ -227,7 +221,7 @@ fun ScheduleAfterDeadlineDialog(vm: Calendar = viewModel(factory = Factory(Local
                     val (task,oldDate,newDate) = vm.taskToSchedule!!
                     if (oldDate != null) {
                         // old data passed from the state, so move from 1 day to another
-                        val hoursToSchedule = task.schedules.get(Pair(vm.memberProfile,oldDate))
+                        val hoursToSchedule = task.schedules.get(Pair(vm.memberId,oldDate))
                         // remove the old day scheduled and add the new one
                         vm.unScheduleTask(task, oldDate)
                         if (hoursToSchedule != null) {
@@ -276,14 +270,16 @@ fun TaskDetailDialog(vm: Calendar = viewModel(factory = Factory(LocalContext.cur
             Text(text = "Task Info")
         },
         text = {
-            Column(modifier = Modifier.fillMaxHeight(0.6f).verticalScroll(rememberScrollState())) {
+            Column(modifier = Modifier
+                .fillMaxHeight(0.6f)
+                .verticalScroll(rememberScrollState())) {
                 RowItem(title = "Name:", value = task.name)
                 RowItem(title = "Description:", value = task.description ?: "")
                 RowItem(title = "Category:", value = task.category ?: "")
                 RowItem(title = "Priority:", value = task.priority)
                 RowItem(title = "Deadline:", value = task.deadline.toString())
                 RowItem(title = "Repeatable:", value = task.repetition)
-                RowMemberItem(title = "Members:", value = task.members)
+                RowMemberItem(title = "Members:", value = AppStateManager.getMembers().filter { task.members.contains(it.id) })
                 RowItem(title = "Status:", value = if(task.status==Status.IN_PROGRESS) "IN PROGRESS" else task.status)
             }
         },

@@ -1,5 +1,7 @@
 package it.polito.uniteam.gui.calendar
 
+import android.util.Log
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -37,12 +39,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mohamedrejeb.compose.dnd.DragAndDropContainer
@@ -50,18 +55,30 @@ import com.mohamedrejeb.compose.dnd.DragAndDropState
 import com.mohamedrejeb.compose.dnd.drag.DraggableItem
 import com.mohamedrejeb.compose.dnd.drop.dropTarget
 import com.mohamedrejeb.compose.dnd.rememberDragAndDropState
+import it.polito.uniteam.AppStateManager
 import it.polito.uniteam.Factory
-import it.polito.uniteam.classes.Member
+import it.polito.uniteam.classes.MemberDBFinal
 import it.polito.uniteam.classes.MemberIcon
-import it.polito.uniteam.classes.Task
+import it.polito.uniteam.classes.Status
+import it.polito.uniteam.classes.TaskDBFinal
+import it.polito.uniteam.classes.TeamDBFinal
 import it.polito.uniteam.classes.TextTrim
 import it.polito.uniteam.isVertical
 import java.time.LocalDate
 
-@Preview(showSystemUi = true)
+@Composable
+fun SetupCalendarData(vm: Calendar = viewModel(factory = Factory(LocalContext.current))) {
+    val teamTasks = AppStateManager.getTeams().find { it.id == vm.teamId }?.tasks
+    val teamTasksFull = AppStateManager.getTasks().filter { teamTasks?.contains(it.id) == true }
+    vm.tasksToAssign = teamTasksFull.filter { it.members.contains(vm.memberId) && it.status != Status.COMPLETED }.toMutableStateList()
+    vm.allScheduledTasks = teamTasksFull.toMutableStateList()
+    vm.viewedScheduledTasks = teamTasksFull.toMutableStateList()
+}
+
 @Composable
 fun CalendarAppContainer(vm: Calendar = viewModel(factory = Factory(LocalContext.current))) {
-    val dragAndDropState = rememberDragAndDropState<Pair<Task, LocalDate?>>()
+    val dragAndDropState = rememberDragAndDropState<Pair<TaskDBFinal, LocalDate?>>()
+    SetupCalendarData(vm = vm)
     DragAndDropContainer(
         state = dragAndDropState,
     ) {
@@ -104,9 +121,10 @@ fun CalendarAppContainer(vm: Calendar = viewModel(factory = Factory(LocalContext
 @Composable
 fun VerticalCalendarApp(
     modifier: Modifier = Modifier,
-    dragAndDropState: DragAndDropState<Pair<Task, LocalDate?>>,
-    vm: Calendar = viewModel(factory = Factory(LocalContext.current))
+    dragAndDropState: DragAndDropState<Pair<TaskDBFinal, LocalDate?>>,
+    vm: Calendar = viewModel(factory = Factory(LocalContext.current)),
 ) {
+    val team = AppStateManager.getTeams().find { it.id == vm.teamId }!!
     // get CalendarUiModel from CalendarDataSource, and the lastSelectedDate is Today.
     var calendarUiModel by remember { mutableStateOf(vm.calendarUiModel) }
     Column(
@@ -114,7 +132,7 @@ fun VerticalCalendarApp(
             .fillMaxSize()
 
     ) {
-        VerticalHeader(vm = vm, startDate = calendarUiModel.startDate, endDate = calendarUiModel.endDate,
+        VerticalHeader(teamName = team.name, vm = vm, startDate = calendarUiModel.startDate, endDate = calendarUiModel.endDate,
             onPrevClickListener = { startDate ->
                 // refresh the CalendarUiModel with new data
                 // by get data with new Start Date (which is the startDate-1 from the visibleDates)
@@ -154,6 +172,7 @@ fun VerticalCalendarApp(
 
 @Composable
 fun VerticalHeader(
+    teamName: String,
     vm: Calendar = viewModel(factory = Factory(LocalContext.current)),
     startDate: CalendarUiModel.Date, endDate: CalendarUiModel.Date,
     onPrevClickListener: (LocalDate) -> Unit,
@@ -172,15 +191,31 @@ fun VerticalHeader(
     } else {
         startDate.date.year.toString()
     }
+    var textExpanded by remember { mutableStateOf(false) }
+    var isTextOverflowing by remember { mutableStateOf(false) }
     Column(
     ) {
         Row {
-            TextTrim(
-                inputText = "${vm.teamName} - Tasks",
-                desiredLength = 20,
-                modifier = Modifier
-                    .align(Alignment.CenterVertically)
-                    .padding(start = 10.dp),
+            Text(
+                text = teamName,
+                maxLines = if (textExpanded) Int.MAX_VALUE else 1,
+                overflow = if (textExpanded) TextOverflow.Clip else TextOverflow.Ellipsis,
+                onTextLayout = { textLayoutResult: TextLayoutResult ->
+                    if (textLayoutResult.hasVisualOverflow) isTextOverflowing = true
+                },
+                modifier =
+                if (isTextOverflowing)
+                    Modifier
+                        .weight(5f)
+                        .clickable { textExpanded = !textExpanded }
+                        .animateContentSize()
+                        .align(Alignment.CenterVertically)
+                        .padding(end = 10.dp)
+                else
+                    Modifier
+                        .weight(5f)
+                        .align(Alignment.CenterVertically)
+                        .padding(end = 10.dp)
             )
             Spacer(modifier = Modifier.weight(1f)) // Spazio flessibile per allineare la checkbox e il testo "My Tasks" alla fine
             Checkbox(
@@ -188,7 +223,10 @@ fun VerticalHeader(
                 onCheckedChange = { filterByMyTask ->
                     vm.filterScheduledTasks(filterByMyTask)
                     isCheched.value = filterByMyTask
-                }
+                },
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+                    .padding(end = 10.dp)
             )
             Text(
                 text = "My Tasks",
@@ -240,10 +278,10 @@ fun VerticalHeader(
 
 //OGGETTO TASK
 @Composable
-fun EventItem(vm: Calendar = viewModel(factory = Factory(LocalContext.current)), task: Task, scheduleEntry: Map.Entry<Pair<Member, LocalDate>, Pair<Int, Int>>? = null, date: LocalDate? = null, isScheduled: Boolean) {
+fun EventItem(vm: Calendar = viewModel(factory = Factory(LocalContext.current)), task: TaskDBFinal, scheduleEntry: Map.Entry<Pair<String, LocalDate>, Pair<Int, Int>>? = null, date: LocalDate? = null, isScheduled: Boolean) {
     var isOverSchedule = false
     // if scheduled assign memberTime otherwise not scheduled so no member/date provided
-    var memberTime: Map.Entry<Pair<Member, LocalDate>, Pair<Int, Int>>? = null;
+    var memberTime: Map.Entry<Pair<String, LocalDate>, Pair<Int, Int>>? = null;
     var time: Pair<Int,Int> = Pair(0,0);
     if (isScheduled) {
         memberTime = scheduleEntry
@@ -313,19 +351,19 @@ fun EventItem(vm: Calendar = viewModel(factory = Factory(LocalContext.current)),
         ) {
             if (memberTime!=null) {
                 // get scheduled member
-                /*MemberIcon(
+                MemberIcon(
                     modifierScale = Modifier.scale(0.6f),
                     modifierPadding = Modifier.padding(0.dp, 0.dp, 8.dp, 8.dp),
-                    member = memberTime.key.first,
-                )*/
+                    member = AppStateManager.getMembers().find{it.id == memberTime.key.first}!!,
+                )
             } else {
                 // are not scheduled, so taskstoassign use the logged member
-                /*MemberIcon(
+                MemberIcon(
                     modifierScale = Modifier.scale(0.6f),
                     modifierPadding = Modifier.padding(0.dp, 0.dp, 8.dp, 8.dp),
-                    member = vm.memberProfile!!,
+                    member = AppStateManager.getMembers().find{it.id == vm.memberId}!!,
 
-                )*/
+                )
             }
         }
     }
@@ -365,7 +403,7 @@ fun DayItem(date: CalendarUiModel.Date) {
 @Composable
 fun VerticalDayEventScheduler(
     data: CalendarUiModel,
-    dragAndDropState: DragAndDropState<Pair<Task, LocalDate?>>,
+    dragAndDropState: DragAndDropState<Pair<TaskDBFinal, LocalDate?>>,
     vm: Calendar = viewModel(factory = Factory(LocalContext.current))
 ) {
     Box(modifier = Modifier.fillMaxHeight(0.8f)) {
@@ -428,7 +466,8 @@ fun VerticalDayEventScheduler(
                                             // data passed from the DraggableItem, so move from 1 day to another
                                             val task = state.data.first
                                             val oldDate = state.data.second
-                                            val hoursToSchedule = task.schedules.get(Pair(vm.memberProfile,oldDate))
+                                            val hoursToSchedule =
+                                                task.schedules.get(Pair(vm.memberId, oldDate))
                                             // remove the old day scheduled and add the new one
                                             vm.unScheduleTask(task, oldDate!!)
                                             if (hoursToSchedule != null) {
@@ -449,7 +488,7 @@ fun VerticalDayEventScheduler(
                             item(1) {
                                 vm.viewedScheduledTasks.filter { it.schedules.any { it.key.second == date.date } }.forEach { task ->
                                     task.schedules.filter { it.key.second == date.date }.forEach { it ->
-                                        val memberId = it.key.first.id
+                                        val memberId = it.key.first
                                         DraggableItem(
                                             state = dragAndDropState,
                                             key = task.id + memberId + date.hashCode(),// + task.schedules.keys.filter { it.second==date.date }[0].first.hashCode(), // Unique key for each draggable item
@@ -480,7 +519,7 @@ fun VerticalDayEventScheduler(
 
 @Composable
 fun VerticalTasksToAssign(
-    dragAndDropState: DragAndDropState<Pair<Task, LocalDate?>>,
+    dragAndDropState: DragAndDropState<Pair<TaskDBFinal, LocalDate?>>,
     vm: Calendar = viewModel(factory = Factory(LocalContext.current))
 ) {
     Row(
@@ -507,7 +546,11 @@ fun VerticalTasksToAssign(
                         onDrop = { state -> // Data passed from the draggable item
                             // Unschedule only if the data was passed, otherwise already unscheduled
                             if (state.data.second != null) {
-                                vm.checkDialogs(state.data.first, state.data.second!!, LocalDate.now())
+                                vm.checkDialogs(
+                                    state.data.first,
+                                    state.data.second!!,
+                                    LocalDate.now()
+                                )
                                 // Unschedule only if i have the permission to do it
                                 if (vm.selectedShowDialog != showDialog.no_permission) {
                                     vm.unScheduleTask(state.data.first, state.data.second!!)

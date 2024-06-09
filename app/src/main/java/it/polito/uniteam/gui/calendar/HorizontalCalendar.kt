@@ -41,13 +41,13 @@ import com.mohamedrejeb.compose.dnd.DragAndDropState
 import com.mohamedrejeb.compose.dnd.drag.DraggableItem
 import com.mohamedrejeb.compose.dnd.drop.dropTarget
 import it.polito.uniteam.Factory
-import it.polito.uniteam.classes.Task
+import it.polito.uniteam.classes.TaskDBFinal
 import java.time.LocalDate
 
 @Composable
 fun HorizontalCalendarApp(
     modifier: Modifier = Modifier,
-    dragAndDropState: DragAndDropState<Pair<Task, LocalDate?>>,
+    dragAndDropState: DragAndDropState<Pair<TaskDBFinal, LocalDate?>>,
     vm: Calendar = viewModel(factory = Factory(LocalContext.current))
 ) {
     // get CalendarUiModel from CalendarDataSource, and the lastSelectedDate is Today.
@@ -165,9 +165,10 @@ fun HorizontalHeader(
 }
 
 @Composable
-fun HorizontalDayEventScheduler(data: CalendarUiModel,
-                                dragAndDropState: DragAndDropState<Pair<Task, LocalDate?>>,
-                                vm: Calendar = viewModel(factory = Factory(LocalContext.current))) {
+fun HorizontalDayEventScheduler(
+    data: CalendarUiModel,
+    dragAndDropState: DragAndDropState<Pair<TaskDBFinal, LocalDate?>>,
+    vm: Calendar = viewModel(factory = Factory(LocalContext.current))) {
     Box(modifier = Modifier.fillMaxHeight()) {
         LazyColumn {
             items(items = data.visibleDates) { date ->
@@ -228,7 +229,7 @@ fun HorizontalDayEventScheduler(data: CalendarUiModel,
                                             // data passed from the DraggableItem, so move from 1 day to another
                                             val task = state.data.first
                                             val oldDate = state.data.second
-                                            val hoursToSchedule = task.schedules.get(Pair(vm.memberProfile,oldDate))
+                                            val hoursToSchedule = task.schedules.get(Pair(vm.memberId,oldDate))
                                             // remove the old day scheduled and add the new one
                                             vm.unScheduleTask(task, oldDate!!)
                                             if (hoursToSchedule != null) {
@@ -249,7 +250,7 @@ fun HorizontalDayEventScheduler(data: CalendarUiModel,
                             item(1) {
                                 vm.viewedScheduledTasks.filter { it.schedules.any { it.key.second == date.date } }.forEach { task ->
                                     task.schedules.filter { it.key.second == date.date }.forEach { it ->
-                                        val memberId = it.key.first.id
+                                        val memberId = it.key.first
                                         DraggableItem(
                                             state = dragAndDropState,
                                             key = task.id + memberId + date.hashCode(),// + task.schedules.keys.filter { it.second==date.date }[0].first.hashCode(), // Unique key for each draggable item
@@ -281,7 +282,7 @@ fun HorizontalDayEventScheduler(data: CalendarUiModel,
 
 @Composable
 fun HorizontalTasksToAssign(
-    dragAndDropState: DragAndDropState<Pair<Task, LocalDate?>>,
+    dragAndDropState: DragAndDropState<Pair<TaskDBFinal, LocalDate?>>,
     vm: Calendar = viewModel(factory = Factory(LocalContext.current))
 ) {
     Column(

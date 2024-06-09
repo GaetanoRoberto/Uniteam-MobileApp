@@ -9,9 +9,7 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import it.polito.uniteam.UniTeamModel
-import it.polito.uniteam.classes.DummyDataProvider
-import it.polito.uniteam.classes.Status
-import it.polito.uniteam.classes.Task
+import it.polito.uniteam.classes.TaskDBFinal
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -20,13 +18,14 @@ import java.util.stream.Stream
 
 class Calendar(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
 
-    private val teamId: String = checkNotNull(savedStateHandle["teamId"])
-    fun getTeam(teamId: Int) = model.getTeam(teamId)
-    val teamName = getTeam(teamId.toInt()).name
-
-    var memberProfile = model.loggedMember.value
+    val teamId: String = "8Kil7wNz6eF1ZD2Lf19K"//checkNotNull(savedStateHandle["teamId"])
+    //fun getTeam(teamId: Int) = model.getTeam(teamId)
+    //val teamName = getTeam(teamId.toInt()).name
+    var memberId = "d67br0MqJf6Qs1tzKHhm" // TODO hardcoded
         private set
 
+    fun scheduleTask(task: TaskDBFinal, scheduleDate: LocalDate, hoursToSchedule: Pair<Int,Int>) = model.scheduleTask(task, scheduleDate, hoursToSchedule)
+    fun unScheduleTask(task: TaskDBFinal, scheduleDate: LocalDate) = model.unscheduleTask(task,scheduleDate)
     var selectedShowDialog by mutableStateOf(showDialog.none)
         private set
 
@@ -38,10 +37,10 @@ class Calendar(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) 
         selectedShowDialog = showDialog.none
     }
 
-    fun checkDialogs(task: Task, sourceDate:LocalDate? = null, targetDate: LocalDate, isNewSchedule: Boolean = true) {
+    fun checkDialogs(task: TaskDBFinal, sourceDate:LocalDate? = null, targetDate: LocalDate, isNewSchedule: Boolean = true) {
         // check permissions
-        Log.i("diooo",task.schedules.keys.contains(Pair(memberProfile,targetDate)).toString())
-        if ((task.schedules.keys.contains(Pair(memberProfile,sourceDate)) &&!isNewSchedule) || isNewSchedule) {
+        Log.i("diooo",task.schedules.keys.contains(Pair(memberId,targetDate)).toString())
+        if ((task.schedules.keys.contains(Pair(memberId,sourceDate)) &&!isNewSchedule) || isNewSchedule) {
             // if permissions, check if back in time
             if(targetDate.isBefore(LocalDate.now())) {
                 selectedShowDialog = showDialog.schedule_in_past
@@ -58,42 +57,25 @@ class Calendar(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) 
     }
 
     // task to schedule, old date (if moving from an already scheduled), new date
-    var taskToSchedule by mutableStateOf<Triple<Task, LocalDate?, LocalDate>?>(null)
+    var taskToSchedule by mutableStateOf<Triple<TaskDBFinal, LocalDate?, LocalDate>?>(null)
         private set
 
-    fun assignTaskToSchedule(task: Triple<Task, LocalDate?, LocalDate>?) {
+    fun assignTaskToSchedule(task: Triple<TaskDBFinal, LocalDate?, LocalDate>?) {
         taskToSchedule = task
     }
 
-    var tasksToAssign = mutableStateListOf<Task>()
-        private set
+    var tasksToAssign = mutableStateListOf<TaskDBFinal>()
 
-    var allScheduledTasks = mutableStateListOf<Task>()
-        private set
+    var allScheduledTasks = mutableStateListOf<TaskDBFinal>()
 
-    var viewedScheduledTasks = mutableStateListOf<Task>()
-        private set
+    var viewedScheduledTasks = mutableStateListOf<TaskDBFinal>()
 
     fun filterScheduledTasks(filterByMyTask: Boolean) {
         if (filterByMyTask) {
-            viewedScheduledTasks.removeIf { !it.members.contains(memberProfile) }
+            viewedScheduledTasks.removeIf { !it.members.contains(memberId) }
         } else {
             viewedScheduledTasks.clear()
             viewedScheduledTasks.addAll(allScheduledTasks)
-        }
-    }
-
-    init {
-        // get logged in user
-        memberProfile = model.loggedMember.value
-        // get task to assign and filter them based on the user
-        val teamTasks = getTeam(teamId.toInt()).tasks
-        tasksToAssign = teamTasks.toMutableStateList()
-        tasksToAssign = tasksToAssign.filter { it.members.contains(memberProfile) && it.status != Status.COMPLETED }.toMutableStateList()
-        //val tasks = DummyDataProvider.getScheduledTasks()
-        teamTasks.forEach { task ->
-            allScheduledTasks.add(task)
-            viewedScheduledTasks.add(task)
         }
     }
 
@@ -109,9 +91,10 @@ class Calendar(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) 
     }
 
 
-    fun scheduleTask(task: Task, scheduleDate: LocalDate, hoursToSchedule: Pair<Int,Int>) {
+    /*fun scheduleTask(task: TaskDBFinal, scheduleDate: LocalDate, hoursToSchedule: Pair<Int,Int>) {
         // schedule task on scheduleDate with hoursToSchedule
         // initialize this variable to then store the updated version of this task
+        updateTask(task,scheduleDate,hoursToSchedule)
         var updated_task = task;
         // get the list from the state
         var viewedTask = viewedScheduledTasks.toMutableList()
@@ -119,13 +102,13 @@ class Calendar(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) 
             // if task already present, update it with the new schedule
             viewedTask = viewedTask.map {
                 if(it.id == task.id) {
-                    if (it.schedules.containsKey(Pair(memberProfile,scheduleDate))) {
-                        val prevHours = it.schedules.remove(Pair(memberProfile,scheduleDate))
+                    if (it.schedules.containsKey(Pair(memberId,scheduleDate))) {
+                        val prevHours = it.schedules.remove(Pair(memberId,scheduleDate))
                         if (prevHours != null) {
-                            it.schedules.put(Pair(memberProfile!!,scheduleDate), model.sumTimes(prevHours,hoursToSchedule))
+                            it.schedules.put(Pair(memberId!!,scheduleDate), model.sumTimes(prevHours,hoursToSchedule))
                         }
                     } else {
-                        it.schedules.put(Pair(memberProfile!!,scheduleDate), hoursToSchedule)
+                        it.schedules.put(Pair(memberId!!,scheduleDate), hoursToSchedule)
                     }
                     // get the updated instance for this task
                     updated_task = it.copy()
@@ -136,13 +119,13 @@ class Calendar(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) 
             }.toMutableList()
         } else {
             // if task not present, add it with the new schedule
-            if (task.schedules.containsKey(Pair(memberProfile,scheduleDate))) {
-                val prevHours = task.schedules.remove(Pair(memberProfile,scheduleDate))
+            if (task.schedules.containsKey(Pair(memberId,scheduleDate))) {
+                val prevHours = task.schedules.remove(Pair(memberId,scheduleDate))
                 if (prevHours != null) {
-                    task.schedules.put(Pair(memberProfile!!,scheduleDate), model.sumTimes(prevHours,hoursToSchedule))
+                    task.schedules.put(Pair(memberId!!,scheduleDate), model.sumTimes(prevHours,hoursToSchedule))
                 }
             } else {
-                task.schedules.put(Pair(memberProfile!!,scheduleDate), hoursToSchedule)
+                task.schedules.put(Pair(memberId!!,scheduleDate), hoursToSchedule)
             }
             // get the updated instance for this task
             updated_task = task.copy()
@@ -165,9 +148,9 @@ class Calendar(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) 
         }.toMutableStateList()
         tasksToAssign.clear()
         tasksToAssign.addAll(taskToAssignList)
-    }
+    }*/
 
-    fun unScheduleTask(task: Task, scheduleDate: LocalDate) {
+    /*fun unScheduleTask(task: TaskDBFinal, scheduleDate: LocalDate) {
         // remove the specific instance of the task from the scheduled ones
         // get the list from the state
         var viewedTask = viewedScheduledTasks.toMutableList()
@@ -176,7 +159,7 @@ class Calendar(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) 
             // after also filter by number of schedules (if task after unscheduling has no more schedule remove it)
             viewedTask = viewedTask.map {
                 if(it.id == task.id) {
-                    it.schedules.remove(Pair(memberProfile,scheduleDate))
+                    it.schedules.remove(Pair(memberId,scheduleDate))
                     it
                 } else {
                     it
@@ -193,7 +176,7 @@ class Calendar(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) 
         taskToAssignList = taskToAssignList.map {
             if(it.id == task.id) {
                 // here we can remove 2 times since it works anyway idempotent
-                it.schedules.remove(Pair(memberProfile,scheduleDate))
+                it.schedules.remove(Pair(memberId,scheduleDate))
                 it
             } else {
                 it
@@ -201,7 +184,7 @@ class Calendar(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) 
         }.toMutableStateList()
         tasksToAssign.clear()
         tasksToAssign.addAll(taskToAssignList)
-    }
+    }*/
 
     var calendarUiModel by mutableStateOf<CalendarUiModel>(getData(lastSelectedDate = today))
     val today: LocalDate
