@@ -1,5 +1,6 @@
 package it.polito.uniteam.gui.yourTasksCalendar
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -36,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import it.polito.uniteam.AppStateManager
 import it.polito.uniteam.Factory
 import it.polito.uniteam.NavControllerManager
 import it.polito.uniteam.UniTeamModel
@@ -46,37 +48,22 @@ import it.polito.uniteam.classes.TextTrim
 import java.time.LocalDate
 
 class YourTasksCalendarViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHandle): ViewModel() {
-    val tasks = model.getAllTasks().filter { it.members.contains(model.loggedMember.value) }
-    val loggedMember = model.loggedMember.value
-    fun getAllTeams() = model.getAllTeams()
+    var memberId = "d67br0MqJf6Qs1tzKHhm" // TODO hardcoded
+        private set
 }
-@Preview
-@Composable
-fun YourTasksCalendarViewScreen(vm: YourTasksCalendarViewModel = viewModel(factory = Factory(LocalContext.current.applicationContext))){
-    YourTasksCalendarView()
-}
+
 @Composable
 fun YourTasksCalendarView(vm: YourTasksCalendarViewModel = viewModel(factory = Factory(LocalContext.current.applicationContext))){
     var initialDate = ""
+    val userTasks = AppStateManager.getTasks().filter { it.members.contains(vm.memberId) }
     val taskOrdered:MutableList<TaskForCalendar> = mutableListOf()
-    for(team in vm.getAllTeams()){
-        if(team.members.contains(vm.loggedMember)){
-            //member is part of the team
-            for (task in team.tasks){
-                if(task.members.contains(vm.loggedMember)){
-                    //task is assigned to the member
-                    for((k,v) in task.schedules){
-                        if(k.first == vm.loggedMember)
-                            taskOrdered.add(TaskForCalendar(id = task.id, team = team.name, name=task.name, date = k.second, scheduledTime = v, deadline = task.deadline!!))
-                    }
-                }else{
-                    //task is not assigned to the member
-                    continue
-                }
-            }
-        }else{
-            //member is not part of the team
-            continue
+    for(task in userTasks) {
+        // get team name for that task
+        val teamName = AppStateManager.getTeams().find { it.tasks.contains(task.id) }?.name
+        for((k,v) in task.schedules){
+            // filter schedules of that member and >= today
+            if(k.first == vm.memberId && k.second.isAfter(LocalDate.now().minusDays(1)))
+                taskOrdered.add(TaskForCalendar(id = task.id, team = teamName!!, name=task.name, date = k.second, scheduledTime = v, deadline = task.deadline))
         }
     }
     taskOrdered.sortBy { it.date }
@@ -86,6 +73,13 @@ fun YourTasksCalendarView(vm: YourTasksCalendarViewModel = viewModel(factory = F
             .fillMaxSize(),
         contentAlignment = Alignment.TopCenter
     ) {
+        if (taskOrdered.isEmpty()) {
+            Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                Spacer(modifier = Modifier.height(100.dp))
+                Text(text = "No Task scheduled from now on.", textAlign = TextAlign.Center)
+            }
+        }
+
         key(taskOrdered.size) {
             Column(
                 modifier = Modifier
@@ -93,7 +87,7 @@ fun YourTasksCalendarView(vm: YourTasksCalendarViewModel = viewModel(factory = F
                     .padding(0.dp, 10.dp, 0.dp, 0.dp)
                     .verticalScroll(rememberScrollState()),
             ) {
-                taskOrdered.filter { it.date.isAfter(LocalDate.now().minusDays(1)) }.forEachIndexed { index, task ->
+                taskOrdered.forEachIndexed { index, task ->
 
                     if (task.date.toString() != initialDate) {
                         Row(modifier = Modifier.fillMaxWidth()) {

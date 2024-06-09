@@ -12,11 +12,11 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import it.polito.uniteam.UniTeamModel
 import it.polito.uniteam.classes.Category
-import it.polito.uniteam.classes.Member
+import it.polito.uniteam.classes.MemberDBFinal
 import it.polito.uniteam.classes.Priority
 import it.polito.uniteam.classes.Repetition
 import it.polito.uniteam.classes.Status
-import it.polito.uniteam.classes.Task
+import it.polito.uniteam.classes.TaskDBFinal
 import java.time.LocalDate
 import kotlin.math.roundToInt
 import kotlin.random.Random
@@ -39,10 +39,12 @@ class StatisticsViewModel(val model: UniTeamModel, val savedStateHandle: SavedSt
 
     val teamId: String = checkNotNull(savedStateHandle["teamId"])
 
-    val initialTeamTasks = getTeam(teamId.toInt()).tasks.filter { it.status!=Status.TODO }.toList()
-    val initialTeamMembers = getTeam(teamId.toInt()).members.toList()
-    val teamTasks = mutableStateOf(initialTeamTasks.map { it.copy() })
-    val teamMembers = mutableStateOf(initialTeamMembers.map { it.copy() })
+
+    var initialTeamTasks: List<TaskDBFinal> = listOf()//getTeam(teamId.toInt()).tasks.filter { it.status!=Status.TODO }.toList()
+    var initialTeamMembers: List<MemberDBFinal> = listOf()// getTeam(teamId.toInt()).members.toList()
+    var teamTasks = mutableStateOf(initialTeamTasks.map { it.copy() })
+    var teamMembers = mutableStateOf(initialTeamMembers.map { it.copy() })
+    // Update teamTasks and teamMembers when initial lists change
     //Stati per la gestione degli ExpandableRow
     val assigneeExpanded = mutableStateOf(false)
     val tasksExpanded = mutableStateOf(false)
@@ -52,8 +54,8 @@ class StatisticsViewModel(val model: UniTeamModel, val savedStateHandle: SavedSt
     val datesExpanded = mutableStateOf(false)
     //Stati per la gestione dei filtri
     var lastAppliedFilters = mutableStateOf<Map<String, Any>>(mapOf())
-    val selectedMembers = mutableStateMapOf<Member, Boolean>()
-    val selectedTasks = mutableStateMapOf<Task, Boolean>()
+    val selectedMembers = mutableStateMapOf<MemberDBFinal, Boolean>()
+    val selectedTasks = mutableStateMapOf<TaskDBFinal, Boolean>()
     val selectedCategory = mutableStateMapOf<Category, Boolean>()
     val selectedPriority = mutableStateMapOf<Priority, Boolean>()
     val selectedStatus = mutableStateMapOf<Status, Boolean>()
@@ -63,19 +65,21 @@ class StatisticsViewModel(val model: UniTeamModel, val savedStateHandle: SavedSt
     fun isFiltersApplied(): Boolean {
         return lastAppliedFilters.value.isNotEmpty() || selectedStart.value!=null || selectedEnd.value!=null
     }
-    fun applyTasksFilters(task: Task, lastAppliedFilters: Map<String, Any>): Boolean {
+    fun applyTasksFilters(task: TaskDBFinal, lastAppliedFilters: Map<String, Any>): Boolean {
         var keep = true
 
-        val selectedTasks = lastAppliedFilters["selectedTasks"] as? Map<*, *> ?: emptyMap<Task, Boolean>()
-        val selectedMembers = lastAppliedFilters["selectedMembers"] as? Map<*, *> ?: emptyMap<Member, Boolean>()
+        val selectedTasks = lastAppliedFilters["selectedTasks"] as? Map<*, *> ?: emptyMap<TaskDBFinal, Boolean>()
+        val selectedMembers = lastAppliedFilters["selectedMembers"] as? Map<*, *> ?: emptyMap<MemberDBFinal, Boolean>()
         val selectedCategory = lastAppliedFilters["selectedCategory"] as? Map<*, *> ?: emptyMap<Category, Boolean>()
         val selectedPriority = lastAppliedFilters["selectedPriority"] as? Map<*, *> ?: emptyMap<Priority, Boolean>()
         val selectedStatus = lastAppliedFilters["selectedStatus"] as? Map<*, *> ?: emptyMap<Status, Boolean>()
 
         if (selectedTasks.isNotEmpty())
             keep = keep && selectedTasks.filterValues{ it as Boolean }.keys.contains(task)
-        if (selectedMembers.isNotEmpty())
-            keep = keep && task.members.any { selectedMembers.containsKey(it) }
+        if (selectedMembers.isNotEmpty()) {
+            val selectedMembers2 = selectedMembers as Map<MemberDBFinal, Boolean>
+            keep = keep && task.members.any { memberId -> selectedMembers2.any { it.key.id == memberId } }
+        }
         if (selectedCategory.isNotEmpty())
             keep = keep && selectedCategory.filterValues{ it as Boolean }.keys.contains(task.category)
         if (selectedPriority.isNotEmpty())
@@ -83,12 +87,13 @@ class StatisticsViewModel(val model: UniTeamModel, val savedStateHandle: SavedSt
         if (selectedStatus.isNotEmpty())
             keep = keep && selectedStatus.filterValues{ it as Boolean }.keys.contains(task.status)
 
+        Log.i("prova",keep.toString())
         return keep
     }
-    fun applyMembersFilters(member: Member, lastAppliedFilters: Map<String, Any>): Boolean {
+    fun applyMembersFilters(member: MemberDBFinal, lastAppliedFilters: Map<String, Any>): Boolean {
         var keep = true
 
-        val selectedMembers = lastAppliedFilters["selectedMembers"] as? Map<*, *> ?: emptyMap<Member, Boolean>()
+        val selectedMembers = lastAppliedFilters["selectedMembers"] as? Map<*, *> ?: emptyMap<MemberDBFinal, Boolean>()
 
         if (selectedMembers.isNotEmpty())
             keep = keep && selectedMembers.filterValues{ it as Boolean }.keys.contains(member)
@@ -103,15 +108,16 @@ class StatisticsViewModel(val model: UniTeamModel, val savedStateHandle: SavedSt
         val memberPlannedSpent = mutableMapOf<String, Pair<Float, Float>>()
         teamTasks.value.forEach { task ->
             val n_members = task.members.size
-            task.members.forEach { member ->
-                if(teamMembers.value.contains(member)) {
+            task.members.forEach { memberId ->
+                val member = teamMembers.value.find{ it.id == memberId }
+                if(member != null) {
                     if(memberPlannedSpent.contains(member.username)) {
                         val plannedSpent = memberPlannedSpent.remove(member.username)!!
-                        val spentTime = task.spentTime.get(member)?: Pair(0f,0f)
+                        val spentTime = task.spentTime.get(member.id)?: Pair(0f,0f)
                         val sum = Pair(plannedSpent.first,(plannedSpent.second + pairToNumber(spentTime)))
                         memberPlannedSpent.put(member.username,sum)
                     } else {
-                        val spentTime = task.spentTime.get(member)?: Pair(0f,0f)
+                        val spentTime = task.spentTime.get(member.id)?: Pair(0f,0f)
                         memberPlannedSpent.put(member.username,Pair((pairToNumber(task.estimatedTime)/n_members).toFloat(),pairToNumber(spentTime)))
                     }
                 }
@@ -120,20 +126,30 @@ class StatisticsViewModel(val model: UniTeamModel, val savedStateHandle: SavedSt
         return memberPlannedSpent.toMap()
     }
 
-    val colorPaletteSpentHours = if(getOverallSpentHours()!=null) {
-        val memberHour = getOverallSpentHours()
-        val colors =generateDistinctColors(getOverallSpentHours()?.size!!)
-        memberHour?.entries?.withIndex()?.associate { (index,entry) ->
-            entry.key to colors[index]
-        }!!
-    } else mapOf()
-    val colorPaletteTeamKpi = if(getOverallTeamKPI()!=null){
-        val memberKpi = getOverallTeamKPI()
-        val colors = generateDistinctColors(getOverallTeamKPI()?.size!!)
-        memberKpi?.entries?.withIndex()?.associate { (index,entry) ->
-            entry.key to colors[index]
-        }!!
-    } else mapOf()
+
+    var colorPaletteSpentHours = mapOf<String, Color>()
+        private set
+    fun updateColorPaletteSpentHours(spentHours: Map<String, Float>?) {
+        colorPaletteSpentHours = if(spentHours!=null) {
+            val colors =generateDistinctColors(spentHours.size)
+            spentHours.entries.withIndex().associate { (index,entry) ->
+                entry.key to colors[index]
+            }
+        } else mapOf()
+    }
+
+    var colorPaletteTeamKpi = mapOf<String, Color>()
+        private set
+
+    fun updateColorPaletteTeamKPI(memberKPI: Map<String, Float>?) {
+        colorPaletteTeamKpi = if(memberKPI!=null) {
+            val colors =generateDistinctColors(memberKPI.size)
+            memberKPI.entries.withIndex().associate { (index,entry) ->
+                entry.key to colors[index]
+            }
+        } else mapOf()
+    }
+
     fun generateUniqueRandomColor(): Color {
         val random = Random.Default
         val red = random.nextInt(256)
@@ -176,9 +192,10 @@ class StatisticsViewModel(val model: UniTeamModel, val savedStateHandle: SavedSt
         var allSpentHours = 0f
         val overAllSpentHours = mutableMapOf<String,Float>()
         teamTasks.value.forEach { task ->
-            task.members.forEach { member ->
-                if(teamMembers.value.contains(member)) {
-                    allSpentHours+=pairToNumber(task.spentTime.get(member)?:Pair(0,0))
+            task.members.forEach { memberId ->
+                val member = teamMembers.value.find { it.id == memberId }
+                if(member != null) {
+                    allSpentHours+=pairToNumber(task.spentTime.get(member.id)?:Pair(0,0))
                 }
             }
         }
@@ -186,18 +203,19 @@ class StatisticsViewModel(val model: UniTeamModel, val savedStateHandle: SavedSt
             return null
         }
         teamTasks.value.forEach { task->
-            task.members.forEach { member->
-                if(teamMembers.value.contains(member)) {
+            task.members.forEach { memberId ->
+                val member = teamMembers.value.find { it.id == memberId }
+                if(member != null) {
                     if(overAllSpentHours.contains(member.username)) {
                         val prevSpentHours = overAllSpentHours.remove(member.username)!!
-                        val spentHours = task.spentTime.get(member)
+                        val spentHours = task.spentTime.get(member.id)
                         if (spentHours!=null) {
                             overAllSpentHours.put(member.username,100*(pairToNumber(spentHours)/allSpentHours) + prevSpentHours)
                         } else {
                             overAllSpentHours.put(member.username,prevSpentHours)
                         }
                     } else {
-                        val spentHours = task.spentTime.get(member)
+                        val spentHours = task.spentTime.get(member.id)
                         if (spentHours!=null) {
                             overAllSpentHours.put(member.username,100*(pairToNumber(spentHours)/allSpentHours))
                         } else {
@@ -207,6 +225,7 @@ class StatisticsViewModel(val model: UniTeamModel, val savedStateHandle: SavedSt
                 }
             }
         }
+        updateColorPaletteSpentHours(overAllSpentHours.toMap())
         return overAllSpentHours.toMap()
     }
 
@@ -215,8 +234,9 @@ class StatisticsViewModel(val model: UniTeamModel, val savedStateHandle: SavedSt
         var allTeamKPI = 0
         val overAllTeamKpi = mutableMapOf<String,Float>()
         teamTasks.value.forEach { task->
-            task.members.forEach { member->
-                if(teamMembers.value.contains(member)) {
+            task.members.forEach { memberId ->
+                val member = teamMembers.value.find { it.id == memberId }
+                if(member != null) {
                     allTeamKPI+= if(task.status==Status.COMPLETED) 1 else 0
                 }
             }
@@ -225,8 +245,9 @@ class StatisticsViewModel(val model: UniTeamModel, val savedStateHandle: SavedSt
             return null
         }
         teamTasks.value.forEach { task->
-            task.members.forEach { member->
-                if(teamMembers.value.contains(member)) {
+            task.members.forEach { memberId ->
+                val member = teamMembers.value.find { it.id == memberId }
+                if(member != null) {
                     if(overAllTeamKpi.contains(member.username)) {
                         val prevKPI = overAllTeamKpi.remove(member.username)
                         if(prevKPI!=null) {
@@ -246,6 +267,7 @@ class StatisticsViewModel(val model: UniTeamModel, val savedStateHandle: SavedSt
                 }
             }
         }
+        updateColorPaletteTeamKPI(overAllTeamKpi.toMap())
         return overAllTeamKpi.toMap()
     }
 }
