@@ -25,6 +25,7 @@ data class ChatDB (
 )
 data class ChatDBFinal (
     var id: String = "",
+    // null if team chat
     var sender: String? = null,
     // null if team chat
     var receiver: String? = null,

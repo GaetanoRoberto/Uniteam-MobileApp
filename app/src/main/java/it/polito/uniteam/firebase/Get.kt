@@ -307,7 +307,9 @@ fun getAllHistoriesFinal(db: FirebaseFirestore): Flow<List<HistoryDBFinal>> = ca
 fun getAllChats(db: FirebaseFirestore): Flow<List<ChatDBFinal>> = callbackFlow {
     val listener = db.collection("Chat").addSnapshotListener { r, e ->
         if (r != null) {
-            val chats = r.toObjects(ChatDBFinal::class.java)
+            val chats = r.documents.mapNotNull { document ->
+                document.toObject(ChatDBFinal::class.java)?.copy(id = document.id)
+            }
             trySend(chats)
         } else {
             trySend(listOf())
@@ -380,7 +382,7 @@ fun getAllMessages(db: FirebaseFirestore): Flow<List<MessageDB>> = callbackFlow 
                     message = message.getString("message") ?: "",
                     creationDate = message.getTimestamp("creationDate") ?.let { parseToLocalDate(it.toDate(),
                         parseReturnType.DATETIME) } as LocalDateTime,
-                    membersUnread = message.get("membersUnread") as MutableList<String>,
+                    membersUnread = (message.get("membersUnread") as? MutableList<String>) ?: mutableListOf(),
                     status = if(status.isNotEmpty()) messageStatus.valueOf(status) else messageStatus.UNREAD
                 )
                 messages.add(m)
@@ -395,7 +397,58 @@ fun getAllMessages(db: FirebaseFirestore): Flow<List<MessageDB>> = callbackFlow 
     }
 }
 
+fun getMemberFlowById(db: FirebaseFirestore, coroutineScope: CoroutineScope, memberId: String): Flow<MemberDBFinal> = flow {
+    val member = db.collection("Member")
+        .document(memberId)
+        .get()
+        .await()
+    val m = MemberDBFinal()
+    m.id = member.id ?: ""
+    m.fullName = member.getString("fullName") ?: ""
+    m.username = member.getString("username") ?: ""
+    m.email = member.getString("email") ?: ""
+    m.location = member.getString("location") ?: ""
+    m.description = member.getString("description") ?: ""
+    m.kpi = member.getString("kpi") ?: ""
+    m.profileImage = Uri.EMPTY
+    val teamsInfo = member.get("teamsInfo")
+    if (teamsInfo is List<*>) {
+        m.teamsInfo = hashMapOf()
+        (teamsInfo as List<HashMap<String, Any>>).forEach { teamInfoMap ->
+            val teamId = teamInfoMap["teamId"] as String ?: return@forEach
+            val role = teamInfoMap["role"] as String ?: "NONE"
+            val weeklyAvailabilityTimes = (teamInfoMap["weeklyAvailabilityTimes"] as Number).toInt() ?: 0
+            val weeklyAvailabilityHoursMap = teamInfoMap["weeklyAvailabilityHours"] as HashMap<String, Number>
+            var hours = 0
+            var minutes = 0
+            weeklyAvailabilityHoursMap.forEach { (dbKey, dbValue) ->
+                if(dbKey == "hours")
+                    hours = dbValue.toInt()
+                else
+                    minutes = dbValue.toInt()
+            }
+            val weeklyAvailabilityHours = Pair(hours, minutes)
+            val permissionrole = teamInfoMap["permissionRole"] as? String ?: "USER"
 
+            m.teamsInfo?.put(teamId, MemberTeamInfo(
+                role = CategoryRole.valueOf(role),
+                weeklyAvailabilityTimes = weeklyAvailabilityTimes,
+                weeklyAvailabilityHours = weeklyAvailabilityHours,
+                permissionrole = permissionRole.valueOf(permissionrole)
+            ))
+        }
+    } else {
+        m.teamsInfo = hashMapOf()
+    }
+    val chatsId = member.get("chats") as List<String>
+    val jobs = chatsId.map { chatId ->
+        getChatById(db,coroutineScope,chatId)
+    }
+    jobs.awaitAll().forEach { chat ->
+        m.chats.add(chat.id)
+    }
+    emit(m)
+}
 fun getCommentById(db: FirebaseFirestore, coroutineScope: CoroutineScope, commentId: String): Deferred<CommentDB> {
     return coroutineScope.async {
         val comment = db.collection("Comment")

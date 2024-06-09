@@ -2,7 +2,6 @@ package it.polito.uniteam.gui.home
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import android.view.inputmethod.InputMethodManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -74,7 +73,6 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -86,9 +84,7 @@ import it.polito.uniteam.NavControllerManager
 import it.polito.uniteam.R
 import it.polito.uniteam.UniTeamModel
 import it.polito.uniteam.classes.LoadingSpinner
-import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.MemberDB
-import it.polito.uniteam.classes.Team
 import it.polito.uniteam.classes.TeamDB
 import it.polito.uniteam.classes.TeamIcon
 import it.polito.uniteam.isVertical
@@ -554,7 +550,7 @@ fun Home(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current)),
                                                         )
                                                     },
                                                     leadingContent = {
-                                                        TeamIcon(team = team, modifierPadding = if(team.image != Uri.EMPTY) Modifier.padding(5.dp, 0.dp, 15.dp, 0.dp) else Modifier.padding(0.dp, 0.dp, 20.dp, 0.dp))
+                                                        //TeamIcon(team = team, modifierPadding = if(team.image != Uri.EMPTY) Modifier.padding(5.dp, 0.dp, 15.dp, 0.dp) else Modifier.padding(0.dp, 0.dp, 20.dp, 0.dp))
                                                     },
                                                     supportingContent = {
                                                         if (vm.descriptionSearched) {

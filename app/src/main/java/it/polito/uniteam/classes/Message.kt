@@ -19,7 +19,7 @@ data class MessageDB (
     var message: String = "",
     var creationDate: LocalDateTime = LocalDateTime.now(),
     var membersUnread: MutableList<String> = mutableStateListOf(),
-    var status: messageStatus = messageStatus.UNREAD
+    var status: messageStatus? = messageStatus.UNREAD
 )
 
 enum class messageStatus {

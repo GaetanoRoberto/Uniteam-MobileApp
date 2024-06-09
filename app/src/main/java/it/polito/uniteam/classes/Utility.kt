@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.CircularProgressIndicator
@@ -117,7 +116,7 @@ fun handleInputString(input: String): String {
 }
 
 @Composable
-fun MemberIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: Modifier = Modifier.padding(0.dp, 0.dp, 20.dp, 0.dp), member: MemberDB, enableNavigation: Boolean = true ) {
+fun MemberIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: Modifier = Modifier.padding(0.dp, 0.dp, 20.dp, 0.dp), member: MemberDBFinal, enableNavigation: Boolean = true ) {
     val navController = NavControllerManager.getNavController()
 
     Box(modifier = modifierScale) {
@@ -172,7 +171,7 @@ fun MemberIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: 
 }
 @Composable
 fun TeamIcon(
-    team: TeamDB,
+    team: TeamDBFinal,
     modifierPadding: Modifier = Modifier.padding(0.dp, 0.dp, 20.dp, 0.dp),
     modifierScale: Modifier = if (team.image != Uri.EMPTY) Modifier.scale(1.7f) else Modifier.scale(0.8f)
 ) {

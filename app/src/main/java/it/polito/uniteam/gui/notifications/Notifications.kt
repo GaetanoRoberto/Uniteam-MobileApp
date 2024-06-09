@@ -1,5 +1,6 @@
 package it.polito.uniteam.gui.notifications
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -34,15 +35,40 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.patrykandpatrick.vico.core.cartesian.data.ChartValues.Empty.model
+import it.polito.uniteam.AppStateManager
 import it.polito.uniteam.Factory
 import it.polito.uniteam.NavControllerManager
+import it.polito.uniteam.classes.messageStatus
 
 @Composable
 fun messageUnreadCountForBottomBar(vm : NotificationsViewModel = viewModel(factory = Factory(LocalContext.current))): Int{
-    var count = 0
-    vm.teamsMessages.forEach { (_,c) -> count += c }
-    vm.membersMessages.forEach { (_,c) -> count += c }
-    return count
+    val loggedMember = vm.loggedMember
+    /*vm.teamsMessages.forEach { (_,c) -> count += c }
+    vm.membersMessages.forEach { (_,c) -> count += c }*/
+    val messages = AppStateManager.getMessages()
+    val chats = AppStateManager.getChats()
+    val teams = AppStateManager.getTeams()
+
+    val directChats = chats.filter { chat -> chat.sender == loggedMember.id || chat.receiver == loggedMember.id }
+    val teamChats = chats.filter { chat -> teams.any { team -> team.id == chat.teamId } }
+    val directMessages = messages.filter { message ->
+        directChats.any { chat -> chat.messages.contains(message.id) }
+    }
+
+    val teamMessages = messages.filter { message ->
+        teamChats.any { chat -> chat.messages.contains(message.id) }
+    }
+
+    val unreadDirectMessages = directMessages.filter { message ->
+        message.status == messageStatus.UNREAD && message.senderId != loggedMember.id
+    }.size
+
+    val unreadTeamMessages = teamMessages.filter { message ->
+        message.membersUnread.contains(loggedMember.id)
+    }.size
+
+    return unreadTeamMessages + unreadDirectMessages
     }
 
 @Composable
@@ -89,16 +115,16 @@ fun Notifications(vm: NotificationsViewModel = viewModel(factory = Factory(Local
 
 @Composable
 fun MessagesSection(vm: NotificationsViewModel = viewModel(factory = Factory(LocalContext.current))) {
-    LazyColumn {
-        item(vm.teamsMessages.size + vm.membersMessages.size) {
-            vm.teamsMessages.forEach { (team,count) ->
-                MessageItem(teamMemberName = team.name, teamMemberChatId = team.chat?.id!!, nOfMessages = count)
-            }
-            vm.membersMessages.forEach { (member,count)->
-                MessageItem(teamMemberName = member.username, teamMemberChatId = vm.getUsersChat(member).id, nOfMessages = count)
-            }
-        }
-    }
+//    LazyColumn {
+//        item(vm.teamsMessages.size + vm.membersMessages.size) {
+//            vm.teamsMessages.forEach { (team,count) ->
+//                MessageItem(teamMemberName = team.name, teamMemberChatId = team.chat?.id!!, nOfMessages = count)
+//            }
+//            vm.membersMessages.forEach { (member,count)->
+//                MessageItem(teamMemberName = member.username, teamMemberChatId = vm.getUsersChat(member).id, nOfMessages = count)
+//            }
+//        }
+//    }
 }
 
 @Composable

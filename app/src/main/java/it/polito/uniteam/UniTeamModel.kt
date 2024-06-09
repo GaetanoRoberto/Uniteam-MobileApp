@@ -11,6 +11,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import it.polito.uniteam.classes.CategoryRole
 import it.polito.uniteam.classes.Chat
 import it.polito.uniteam.classes.ChatDBFinal
 import it.polito.uniteam.classes.Comment
@@ -32,7 +33,9 @@ import it.polito.uniteam.classes.Team
 import it.polito.uniteam.classes.TeamDB
 import it.polito.uniteam.classes.TeamDBFinal
 import it.polito.uniteam.classes.messageStatus
+import it.polito.uniteam.classes.permissionRole
 import it.polito.uniteam.firebase.getMemberById
+import it.polito.uniteam.firebase.getMemberFlowById
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -59,6 +62,30 @@ class UniTeamModel(val context: Context) {
     var isLoading = mutableStateOf(true)
 
     var loggedUser = getMemberById(db, coroutineScope, "2nm8PdGbk5CaROcyWjq7")
+    var loggedUserFlow = getMemberFlowById(db, coroutineScope, "tQLCfuconmcAxnoyMS6w")
+    val loggedMemberFinal = MemberDBFinal(
+        id = "2nm8PdGbk5CaROcyWjq7",
+        fullName = "Matteo Nicita",
+        username = "niciteo di prova",
+        email = "niciteo@gmail.com",
+        location = "Turin",
+        description = "Computer Engineer student at Polytechnic of Turin",
+        teamsInfo = hashMapOf(
+            "sok0izxut65rpQtTR8rO" to MemberTeamInfo(
+                role = CategoryRole.PROGRAMMER,
+                weeklyAvailabilityTimes = 3,
+                weeklyAvailabilityHours = Pair(2, 30),
+                permissionrole = permissionRole.ADMIN
+            ),
+            "WUdvXpDpgGqd2XPUV7Quh" to MemberTeamInfo(
+                role = CategoryRole.PROGRAMMER,
+                weeklyAvailabilityTimes = 1,
+                weeklyAvailabilityHours = Pair(1, 0),
+                permissionrole = permissionRole.USER
+            )
+        ),
+        chats = mutableListOf("xZCNWiCeTOvitmu4qygp")//TODO FORSE NON SERVE
+    )
     fun getTeams(): Flow<List<TeamDB>> = it.polito.uniteam.firebase.getTeams(db,coroutineScope,loggedUser,isLoading)
     fun getAllTeamsMembersHome(): Flow<List<MemberDB>> = it.polito.uniteam.firebase.getAllTeamsMembersHome(db,coroutineScope,loggedUser,isLoading)
     fun getTeamById(id: String): Flow<TeamDB> = it.polito.uniteam.firebase.getTeamById(db,coroutineScope,id)
@@ -181,6 +208,16 @@ class UniTeamModel(val context: Context) {
 
 
     // USER CHAT UNREAD
+    fun getUnreadMessagesUserDB(messages: List<MessageDB>, loggedMemberId: String): Int {
+        Log.i("getUnreadMessagesUserDB", messages.toString())
+        return messages.filter { it.status == messageStatus.UNREAD && it.senderId != loggedMemberId }.count()
+    }
+    fun getUnreadMessagesTeamDB(messages: List<MessageDB>, loggedMemberId: String): Int {
+        Log.i("getUnreadMessagesTeamDB", messages.toString())
+        return messages.filter { it.membersUnread.contains(loggedMemberId) }.count()
+    }
+
+    /*
     fun getUnreadMessagesUser(memberId: Int): Int {
         // Trova il membro con l'ID specificato
         val member = getMemberById(memberId).first
@@ -212,7 +249,7 @@ class UniTeamModel(val context: Context) {
         } else {
             0
         }
-    }
+    }*/
     fun selectTeam(id: Int){ // click on team to set the selected team to show
         val team = getTeam(id)
         if(team != null){
@@ -330,31 +367,31 @@ class UniTeamModel(val context: Context) {
         return null
     }
 
-    fun getAllTeamMessagesCount(): List<Pair<Team,Int>> {
-        val teams = mutableListOf<Pair<Team,Int>>()
-        _teams.value.filter { it.chat!=null }.forEach {
-            val count = getUnreadMessagesTeam(it.id)
-            if (count!= null && count > 0) {
-                teams.add(Pair(it,count))
-            }
-        }
-        return teams
-    }
-
-    fun getAllMembersMessagesCount(): List<Pair<Member,Int>> {
-        val members = getAllDistinctMembers()
-        val messages = mutableListOf<Pair<Member,Int>>()
-        members.forEach { member ->
-            val chat = getUsersChat(member)
-            if(chat!=null) {
-                val count = getUnreadMessagesCount(member.id,chat)
-                if (count > 0) {
-                    messages.add(Pair(member, count))
-                }
-            }
-        }
-        return messages
-    }
+//    fun getAllTeamMessagesCount(): List<Pair<Team,Int>> {
+//        val teams = mutableListOf<Pair<Team,Int>>()
+//        _teams.value.filter { it.chat!=null }.forEach {
+//            val count = getUnreadMessagesTeam(it.id)
+//            if (count!= null && count > 0) {
+//                teams.add(Pair(it,count))
+//            }
+//        }
+//        return teams
+//    }
+//
+//    fun getAllMembersMessagesCount(): List<Pair<Member,Int>> {
+//        val members = getAllDistinctMembers()
+//        val messages = mutableListOf<Pair<Member,Int>>()
+//        members.forEach { member ->
+//            val chat = getUsersChat(member)
+//            if(chat!=null) {
+//                val count = getUnreadMessagesCount(member.id,chat)
+//                if (count > 0) {
+//                    messages.add(Pair(member, count))
+//                }
+//            }
+//        }
+//        return messages
+//    }
 
     fun getTeam(teamId: Int): Team {
         return _teams.value.filter { it.id == teamId }[0]

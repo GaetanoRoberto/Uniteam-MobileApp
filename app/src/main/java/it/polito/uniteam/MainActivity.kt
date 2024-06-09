@@ -6,6 +6,17 @@ import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
+import it.polito.uniteam.classes.CommentDBFinal
+import it.polito.uniteam.classes.FileDBFinal
+import it.polito.uniteam.classes.HistoryDBFinal
+import it.polito.uniteam.classes.LoadingSpinner
+import it.polito.uniteam.classes.MemberDBFinal
+import it.polito.uniteam.classes.TaskDBFinal
+import it.polito.uniteam.classes.TeamDBFinal
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.listSaver
+import it.polito.uniteam.classes.ChatDBFinal
+import it.polito.uniteam.classes.MessageDB
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -33,6 +44,7 @@ import androidx.compose.material.icons.outlined.ManageAccounts
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -102,7 +114,9 @@ import java.io.File
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import okhttp3.internal.wait
 
 class MainActivity : ComponentActivity() {
 
@@ -138,10 +152,13 @@ class MainActivity : ComponentActivity() {
             val theme = isSystemInDarkTheme()
 
 
-            UniTeamTheme(darkTheme = theme, vm = viewModel(factory = Factory(LocalContext.current))) {
+            UniTeamTheme(
+                darkTheme = theme,
+                vm = viewModel(factory = Factory(LocalContext.current))
+            ) {
                 // Stati da passare per le queries che non vanno rieseguite ad ogni recomposition
-                val teamsList = it.getTeams().collectAsState(initial = emptyList())
-                val membersList = it.getAllTeamsMembersHome().collectAsState(initial = emptyList())
+                /*val teamsList = it.getTeams().collectAsState(initial = emptyList())
+                val membersList = it.getAllTeamsMembersHome().collectAsState(initial = emptyList())*/
 
                 val teams = it.teams.collectAsState(initial = emptyList())
                 val tasks = it.tasks.collectAsState(initial = emptyList())
@@ -151,150 +168,156 @@ class MainActivity : ComponentActivity() {
                 val files = it.files.collectAsState(initial = emptyList())
                 val comments = it.comments.collectAsState(initial = emptyList())
                 val chats = it.chats.collectAsState(initial = emptyList())
+                AppStateManager.ProvideLocalAppState(it) {
+                    val items = listOf(
+                        BottomNavigationItem(
+                            title = "Teams",
+                            selectedIcon = Icons.Filled.Diversity3,
+                            unselectedIcon = Icons.Outlined.Diversity3,
+                            hasNews = false,
+                        ),
+                        BottomNavigationItem(
+                            title = "Tasks",
+                            selectedIcon = Icons.Filled.ChecklistRtl,
+                            unselectedIcon = Icons.Outlined.ChecklistRtl,
+                            hasNews = false,//mette un pallino nuovo
+                        ),
+                        BottomNavigationItem(
+                            title = "Notifications",
+                            selectedIcon = Icons.Filled.Notifications,
+                            unselectedIcon = Icons.Outlined.Notifications,
+                            hasNews = false,
+                            badgeCount = messageUnreadCountForBottomBar()
+                        ),
 
+                        )
 
-                val items = listOf(
-                    BottomNavigationItem(
-                        title = "Teams",
-                        selectedIcon = Icons.Filled.Diversity3,
-                        unselectedIcon = Icons.Outlined.Diversity3,
-                        hasNews = false,
-                    ),
-                    BottomNavigationItem(
-                        title = "Tasks",
-                        selectedIcon = Icons.Filled.ChecklistRtl,
-                        unselectedIcon = Icons.Outlined.ChecklistRtl,
-                        hasNews = false,//mette un pallino nuovo
-                    ),
-                    BottomNavigationItem(
-                        title = "Notifications",
-                        selectedIcon = Icons.Filled.Notifications,
-                        unselectedIcon = Icons.Outlined.Notifications,
-                        hasNews = false,
-                        badgeCount = messageUnreadCountForBottomBar()
-                    ),
-
-                    )
-
-                var selectedItemIndex by rememberSaveable {
-                    mutableIntStateOf(0)
-                }
-                NavControllerManager.ProvideNavController {
-                    val navController = NavControllerManager.getNavController()
-                    val navBackStackEntry by navController.currentBackStackEntryAsState()
-                    val currentDestination = navBackStackEntry?.destination?.route
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            // remove the focus and the opened photo/gallery menu
-                            .pointerInput(Unit, interactionSource) {
-                                detectTapGestures(
-                                    onPress = {
-                                        focusManager.clearFocus()
-                                    }
-                                )
-                            },
-                        color = MaterialTheme.colorScheme.background
-                    ) {
-                        Column(
-                            modifier = Modifier.fillMaxSize()
+                    var selectedItemIndex by rememberSaveable {
+                        mutableIntStateOf(0)
+                    }
+                    NavControllerManager.ProvideNavController {
+                        val navController = NavControllerManager.getNavController()
+                        val navBackStackEntry by navController.currentBackStackEntryAsState()
+                        val currentDestination = navBackStackEntry?.destination?.route
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                // remove the focus and the opened photo/gallery menu
+                                .pointerInput(Unit, interactionSource) {
+                                    detectTapGestures(
+                                        onPress = {
+                                            focusManager.clearFocus()
+                                        }
+                                    )
+                                },
+                            color = MaterialTheme.colorScheme.background
                         ) {
                             Column(
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.fillMaxSize()
                             ) {
+                                Column(
+                                    modifier = Modifier.weight(1f)
+                                ) {
 
-                                val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-                                val coroutineScope = rememberCoroutineScope()
-                                ModalNavigationDrawer (
-                                    drawerState = drawerState,
-                                    gesturesEnabled = !isVertical(),
-                                    drawerContent = {
-                                        ModalDrawerSheet(drawerContainerColor = MaterialTheme.colorScheme.secondary, drawerContentColor = MaterialTheme.colorScheme.primary,
+                                    val drawerState =
+                                        rememberDrawerState(initialValue = DrawerValue.Closed)
+                                    val coroutineScope = rememberCoroutineScope()
+                                    ModalNavigationDrawer(
+                                        drawerState = drawerState,
+                                        gesturesEnabled = !isVertical(),
+                                        drawerContent = {
+                                            ModalDrawerSheet(
+                                                drawerContainerColor = MaterialTheme.colorScheme.secondary,
+                                                drawerContentColor = MaterialTheme.colorScheme.primary,
                                             ) {
-                                            Spacer(modifier = Modifier.height(16.dp))
+                                                Spacer(modifier = Modifier.height(16.dp))
 
-                                            items.forEachIndexed { index, item ->
+                                                items.forEachIndexed { index, item ->
+                                                    NavigationDrawerItem(
+                                                        colors = NavigationDrawerItemDefaults.colors(
+                                                            selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                                            selectedTextColor = MaterialTheme.colorScheme.onPrimary,
+                                                            selectedIconColor = MaterialTheme.colorScheme.onPrimary
+                                                        ),
+                                                        label = {
+                                                            Text(text = item.title)
+                                                        },
+                                                        selected = item.title == navBackStackEntry?.destination?.route,
+                                                        onClick = {
+
+                                                            navController.navigate(item.title) {
+                                                                launchSingleTop = true
+                                                            }
+
+
+                                                            selectedItemIndex = index
+                                                            coroutineScope.launch {
+                                                                drawerState.close()
+                                                            }
+                                                        },
+                                                        icon = {
+                                                            Icon(
+                                                                imageVector = if (index == selectedItemIndex) {
+                                                                    item.selectedIcon
+                                                                } else item.unselectedIcon,
+                                                                contentDescription = item.title
+                                                            )
+                                                        },
+                                                        badge = {
+                                                            item.badgeCount?.let {
+                                                                Text(text = item.badgeCount.toString())
+                                                            }
+                                                        },
+                                                        modifier = Modifier
+                                                            .padding(NavigationDrawerItemDefaults.ItemPadding)
+                                                    )
+                                                }
                                                 NavigationDrawerItem(
                                                     colors = NavigationDrawerItemDefaults.colors(
                                                         selectedContainerColor = MaterialTheme.colorScheme.primary,
                                                         selectedTextColor = MaterialTheme.colorScheme.onPrimary,
                                                         selectedIconColor = MaterialTheme.colorScheme.onPrimary
                                                     ),
-                                                    label = {
-                                                        Text(text = item.title)
-                                                    },
-                                                    selected = item.title == navBackStackEntry?.destination?.route,
+                                                    label = { Text(text = "Profile") },
+                                                    selected = "Profile" == navBackStackEntry?.destination?.route,
                                                     onClick = {
-
-                                                            navController.navigate(item.title){
-                                                                launchSingleTop = true
-                                                            }
-
-
-                                                        selectedItemIndex = index
+                                                        navController.navigate("Profile") {
+                                                            launchSingleTop = true
+                                                        }
+                                                        selectedItemIndex = 0
                                                         coroutineScope.launch {
                                                             drawerState.close()
                                                         }
                                                     },
                                                     icon = {
                                                         Icon(
-                                                            imageVector = if (index == selectedItemIndex) {
-                                                                item.selectedIcon
-                                                            } else item.unselectedIcon,
-                                                            contentDescription = item.title
+                                                            imageVector = if ("Profile" == navBackStackEntry?.destination?.route) {
+                                                                Icons.Default.ManageAccounts
+                                                            } else Icons.Outlined.ManageAccounts,
+                                                            contentDescription = "Profile"
                                                         )
-                                                    },
-                                                    badge = {
-                                                        item.badgeCount?.let {
-                                                            Text(text = item.badgeCount.toString())
-                                                        }
                                                     },
                                                     modifier = Modifier
                                                         .padding(NavigationDrawerItemDefaults.ItemPadding)
+
                                                 )
                                             }
-                                            NavigationDrawerItem(
-                                                colors = NavigationDrawerItemDefaults.colors(
-                                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                                    selectedTextColor = MaterialTheme.colorScheme.onPrimary,
-                                                    selectedIconColor = MaterialTheme.colorScheme.onPrimary
-                                                ),
-                                                label = { Text(text = "Profile") },
-                                                selected = "Profile" == navBackStackEntry?.destination?.route,
-                                                onClick = {
-                                                    navController.navigate("Profile"){
-                                                        launchSingleTop = true
-                                                    }
-                                                    selectedItemIndex = 0
-                                                    coroutineScope.launch {
-                                                        drawerState.close()
-                                                    }
-                                                },
-                                                icon = {
-                                                    Icon(
-                                                        imageVector = if ("Profile" == navBackStackEntry?.destination?.route) {
-                                                             Icons.Default.ManageAccounts
-                                                        } else  Icons.Outlined.ManageAccounts,
-                                                        contentDescription = "Profile"
+                                        },
+                                        content = {
+                                            Scaffold(
+                                                topBar = {
+                                                    MyTopAppBar(
+                                                        vm = viewModel(
+                                                            factory = Factory(
+                                                                LocalContext.current
+                                                            )
+                                                        ),
+                                                        navController,
+                                                        coroutineScope,
+                                                        drawerState
                                                     )
                                                 },
-                                                modifier = Modifier
-                                                    .padding(NavigationDrawerItemDefaults.ItemPadding)
-
-                                            )
-                                        }
-                                    },
-                                    content = {
-                                        Scaffold(
-                                        topBar = {
-                                            MyTopAppBar(
-                                                vm = viewModel(factory = Factory(LocalContext.current)),
-                                                navController,
-                                                coroutineScope,
-                                                drawerState
-                                            )
-                                        },
-                                        /*floatingActionButton = {
+                                                /*floatingActionButton = {
                                             //if (vm.isEditing) {
                                                 if (currentDestination == "Profile") {
                                                     FloatingActionButton(onClick ={
@@ -332,23 +355,71 @@ class MainActivity : ComponentActivity() {
                                                 }
                                             }
                                             },*/
-                                        content = { paddingValue ->
-                                            Column(Modifier.padding(paddingValue)) {
-                                                // In your main activity or main screen composable
-                                                NavHost(
-                                                    navController = navController,
-                                                    startDestination = "Teams"
-                                                ) {
-                                                    composable("Teams") {
-                                                        Home(
-                                                            vm = viewModel(
-                                                                factory = Factory(LocalContext.current)
-                                                            ),
-                                                            teamsList = teamsList.value,
-                                                            membersList = membersList.value
-                                                        )
-                                                    }
-                                                    composable("Team/{teamId}", arguments = listOf(navArgument("teamId") { type = NavType.StringType })) {
+                                                content = { paddingValue ->
+                                                    Column(Modifier.padding(paddingValue)) {
+                                                        // In your main activity or main screen composable
+                                                        NavHost(
+                                                            navController = navController,
+
+                                                            startDestination = "Test"
+                                                        ) {
+                                                            composable("Test") {
+                                                                val chatIdDiretta = "xZCNWiCeTOvitmu4qygp"
+                                                                val chatIdGruppo = "rlWwSVD9DMSHG41OxtTc"
+
+                                                                val teamId1 = "5GWPYciHHaLgCQPXPEK1"
+                                                                val chatId = chatIdGruppo
+
+                                                                Button(onClick = {
+                                                                    navController.navigate(
+                                                                        "Chat/$chatId"
+                                                                    ) /*TODO*/
+                                                                }) {
+                                                                    Text("ChatScreen")
+                                                                }
+                                                                Button(onClick = {
+                                                                    navController.navigate(
+                                                                        "ChatList/$teamId1"
+                                                                    ) /*TODO*/
+                                                                }) {
+                                                                    Text("ChatListTeam1")
+                                                                }
+                                                            }
+                                                            composable("Chat/{chatId}") {
+
+                                                                    ChatScreen(
+                                                                        vm = viewModel(
+                                                                            factory = Factory(
+                                                                                LocalContext.current
+                                                                            )
+                                                                        ),
+                                                                        teams = teams.value,
+                                                                        members = members.value,
+                                                                        messages = messages.value,
+                                                                        chats = chats.value
+                                                                    )
+                                                            }
+                                                            composable("ChatList/{teamId}") {
+                                                                ChatListScreen(
+                                                                    vm = viewModel(
+                                                                        factory = Factory(LocalContext.current)
+                                                                    ),
+                                                                    chatList = chats.value,
+                                                                    members = members.value,
+                                                                    teams = teams.value,
+                                                                    messages = messages.value
+                                                                )
+                                                            }
+//                                                    composable("Teams") {
+//                                                        Home(
+//                                                            vm = viewModel(
+//                                                                factory = Factory(LocalContext.current)
+//                                                            ),
+//                                                            teamsList = teamsList.value,
+//                                                            membersList = membersList.value
+//                                                        )
+//                                                    }
+                                                            /*composable("Team/{teamId}", arguments = listOf(navArgument("teamId") { type = NavType.StringType })) {
                                                         TeamScreen(
                                                             vm = viewModel(
                                                                 factory = Factory(LocalContext.current)
@@ -390,16 +461,17 @@ class MainActivity : ComponentActivity() {
                                                             )
                                                         )
                                                     }
-                                                    composable("ChatList/{teamId}") {
+                                                    /*composable("ChatList/{teamId}") {
                                                         ChatListScreen(
                                                             vm = viewModel(
                                                                 factory = Factory(LocalContext.current)
-                                                            )/*,
+                                                            ),
                                                             chatList = chats.value,
                                                             members = members.value,
-                                                            teams = teams.value*/
+                                                            teams = teams.value,
+                                                            messages = messages.value
                                                         )
-                                                    }
+                                                    }*/
                                                     composable("Profile") {
                                                         ProfileSettings(
                                                             vm = viewModel(
@@ -455,79 +527,82 @@ class MainActivity : ComponentActivity() {
                                                                 factory = Factory(LocalContext.current)
                                                             )
                                                         )
+                                                    }*/
+                                                        }
                                                     }
-                                                }
-                                            }
-                                        },
-                                        bottomBar = {
-                                            if (!isVertical()) {
-                                                Row {}
-                                            } else {
-                                                NavigationBar(containerColor = MaterialTheme.colorScheme.primary) {
-                                                    items.forEachIndexed { index, item ->
-                                                        NavigationBarItem(
-                                                            colors = NavigationBarItemColors(
-                                                                selectedIconColor = MaterialTheme.colorScheme.onPrimary,
-                                                                selectedTextColor = MaterialTheme.colorScheme.onPrimary,
-                                                                unselectedTextColor = MaterialTheme.colorScheme.onPrimary,
-                                                                disabledIconColor = MaterialTheme.colorScheme.onPrimary,
-                                                                disabledTextColor = MaterialTheme.colorScheme.onPrimary,
-                                                                selectedIndicatorColor = MaterialTheme.colorScheme.secondary,
-                                                                unselectedIconColor = MaterialTheme.colorScheme.onPrimary
-                                                            ),
-                                                            selected = item.title == navBackStackEntry?.destination?.route,//selectedItemIndex == index , PRIMA DELLA NAVIGATION
-                                                            onClick = {
-                                                                selectedItemIndex = index
-                                                                navController.navigate(item.title) {
-                                                                    //println("Destination: ${navController.previousBackStackEntry?.destination?.route}")
-                                                                    /* popUpTo(navController.graph.findStartDestination().id){
+                                                },
+                                                bottomBar = {
+                                                    if (!isVertical()) {
+                                                        Row {}
+                                                    } else {
+                                                        NavigationBar(containerColor = MaterialTheme.colorScheme.primary) {
+                                                            items.forEachIndexed { index, item ->
+                                                                NavigationBarItem(
+                                                                    colors = NavigationBarItemColors(
+                                                                        selectedIconColor = MaterialTheme.colorScheme.onPrimary,
+                                                                        selectedTextColor = MaterialTheme.colorScheme.onPrimary,
+                                                                        unselectedTextColor = MaterialTheme.colorScheme.onPrimary,
+                                                                        disabledIconColor = MaterialTheme.colorScheme.onPrimary,
+                                                                        disabledTextColor = MaterialTheme.colorScheme.onPrimary,
+                                                                        selectedIndicatorColor = MaterialTheme.colorScheme.secondary,
+                                                                        unselectedIconColor = MaterialTheme.colorScheme.onPrimary
+                                                                    ),
+                                                                    selected = item.title == navBackStackEntry?.destination?.route,//selectedItemIndex == index , PRIMA DELLA NAVIGATION
+                                                                    onClick = {
+                                                                        selectedItemIndex = index
+                                                                        navController.navigate(item.title) {
+                                                                            //println("Destination: ${navController.previousBackStackEntry?.destination?.route}")
+                                                                            /* popUpTo(navController.graph.findStartDestination().id){
                                                                          //saveState = true
                                                                      }*/
-                                                                    launchSingleTop = true
-                                                                    //restoreState = true
-                                                                }
-                                                            },
-                                                            label = {
-                                                                Text(text = item.title)
-                                                            },
-                                                            alwaysShowLabel = true,
-                                                            icon = {
-                                                                BadgedBox(
-                                                                    badge = {
-                                                                        if (item.badgeCount != null) {
-                                                                            Badge(containerColor = MaterialTheme.colorScheme.onPrimaryContainer) {
-                                                                                Text(text = item.badgeCount.toString())
+                                                                            launchSingleTop = true
+                                                                            //restoreState = true
+                                                                        }
+                                                                    },
+                                                                    label = {
+                                                                        Text(text = item.title)
+                                                                    },
+                                                                    alwaysShowLabel = true,
+                                                                    icon = {
+                                                                        BadgedBox(
+                                                                            badge = {
+                                                                                if (item.badgeCount != null && item.badgeCount > 0) {
+                                                                                    Badge(
+                                                                                        containerColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                                                                    ) {
+                                                                                        Text(text = item.badgeCount.toString())
+                                                                                    }
+                                                                                } else if (item.hasNews) {
+                                                                                    Badge()
+                                                                                }
                                                                             }
-                                                                        } else if (item.hasNews) {
-                                                                            Badge()
+                                                                        ) {
+                                                                            Icon(
+                                                                                imageVector = if (index == selectedItemIndex) {
+                                                                                    item.selectedIcon
+                                                                                } else item.unselectedIcon,
+                                                                                contentDescription = item.title
+
+                                                                            )
                                                                         }
                                                                     }
-                                                                ) {
-                                                                    Icon(
-                                                                        imageVector = if (index == selectedItemIndex) {
-                                                                            item.selectedIcon
-                                                                        } else item.unselectedIcon,
-                                                                        contentDescription = item.title
-
-                                                                    )
-                                                                }
+                                                                )
                                                             }
-                                                        )
+                                                        }
                                                     }
                                                 }
-                                            }
-                                            }
-                                )})
+                                            )
+                                        })
+                                }
                             }
                         }
                     }
                 }
             }
+
+            requestPermissions()
         }
-
-        requestPermissions()
     }
-
     private fun hasPermission(permission: String): Boolean {
         return ContextCompat.checkSelfPermission(
             this,
@@ -713,5 +788,89 @@ class NavControllerManager {
             return LocalNavController.current
         }
     }
+
 }
+    class AppStateManager {
+        companion object {
+            private val LocalTeams = staticCompositionLocalOf<List<TeamDBFinal>> { emptyList() }
+            private val LocalTasks = staticCompositionLocalOf<List<TaskDBFinal>> { emptyList() }
+            private val LocalMembers = staticCompositionLocalOf<List<MemberDBFinal>> { emptyList() }
+            private val LocalHistories = staticCompositionLocalOf<List<HistoryDBFinal>> { emptyList() }
+            private val LocalFiles = staticCompositionLocalOf<List<FileDBFinal>> { emptyList() }
+            private val LocalComments = staticCompositionLocalOf<List<CommentDBFinal>> { emptyList() }
+            private val LocalChats = staticCompositionLocalOf<List<ChatDBFinal>> { emptyList() }
+            private val LocalMessages = staticCompositionLocalOf<List<MessageDB>> { emptyList() }
+
+            @Composable
+            fun ProvideLocalAppState(
+                viewModel: GeneralViewModel = viewModel(
+                    factory = Factory(
+                        LocalContext.current
+                    )
+                ), content: @Composable () -> Unit
+            ) {
+                val teams = viewModel.teams.collectAsState(initial = emptyList())
+                val tasks = viewModel.tasks.collectAsState(initial = emptyList())
+                val members = viewModel.members.collectAsState(initial = emptyList())
+                val histories = viewModel.histories.collectAsState(initial = emptyList())
+                val files = viewModel.files.collectAsState(initial = emptyList())
+                val comments = viewModel.comments.collectAsState(initial = emptyList())
+                val chats = viewModel.chats.collectAsState(initial = emptyList())
+                val messages = viewModel.messages.collectAsState(initial = emptyList())
+
+                CompositionLocalProvider(
+                    LocalTeams provides teams.value,
+                    LocalTasks provides tasks.value,
+                    LocalMembers provides members.value,
+                    LocalHistories provides histories.value,
+                    LocalFiles provides files.value,
+                    LocalComments provides comments.value,
+                    LocalChats provides chats.value,
+                    LocalMessages provides messages.value
+                ) {
+                    content()
+                }
+            }
+
+            @Composable
+            fun getTeams(): List<TeamDBFinal> {
+                return LocalTeams.current
+            }
+
+            @Composable
+            fun getTasks(): List<TaskDBFinal> {
+                return LocalTasks.current
+            }
+
+            @Composable
+            fun getMembers(): List<MemberDBFinal> {
+                return LocalMembers.current
+            }
+
+            @Composable
+            fun getHistories(): List<HistoryDBFinal> {
+                return LocalHistories.current
+            }
+
+            @Composable
+            fun getFiles(): List<FileDBFinal> {
+                return LocalFiles.current
+            }
+
+            @Composable
+            fun getComments(): List<CommentDBFinal> {
+                return LocalComments.current
+            }
+
+            @Composable
+            fun getChats(): List<ChatDBFinal> {
+                return LocalChats.current
+            }
+
+            @Composable
+            fun getMessages(): List<MessageDB> {
+                return LocalMessages.current
+            }
+        }
+    }
 
