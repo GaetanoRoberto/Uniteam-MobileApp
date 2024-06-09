@@ -80,6 +80,13 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
+import it.polito.uniteam.classes.CommentDBFinal
+import it.polito.uniteam.classes.FileDBFinal
+import it.polito.uniteam.classes.HistoryDBFinal
+import it.polito.uniteam.classes.LoadingSpinner
+import it.polito.uniteam.classes.MemberDBFinal
+import it.polito.uniteam.classes.TaskDBFinal
+import it.polito.uniteam.classes.TeamDBFinal
 import it.polito.uniteam.gui.teamDetails.TeamViewScreen
 import it.polito.uniteam.gui.availability.Availability
 import it.polito.uniteam.gui.availability.Join
@@ -103,6 +110,10 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.listSaver
+import it.polito.uniteam.classes.ChatDBFinal
+import it.polito.uniteam.classes.MessageDB
 
 class MainActivity : ComponentActivity() {
 
@@ -138,167 +149,182 @@ class MainActivity : ComponentActivity() {
             val theme = isSystemInDarkTheme()
 
 
-            UniTeamTheme(darkTheme = theme, vm = viewModel(factory = Factory(LocalContext.current))) {
-                // Stati da passare per le queries che non vanno rieseguite ad ogni recomposition
-                val teamsList = it.getTeams().collectAsState(initial = emptyList())
-                val membersList = it.getAllTeamsMembersHome().collectAsState(initial = emptyList())
+            UniTeamTheme(
+                darkTheme = theme,
+                vm = viewModel(factory = Factory(LocalContext.current))
+            ) {
+                AppStateManager.ProvideLocalAppState(it) {
 
-                val teams = it.teams.collectAsState(initial = emptyList())
-                val tasks = it.tasks.collectAsState(initial = emptyList())
-                val messages = it.messages.collectAsState(initial = emptyList())
-                val members = it.members.collectAsState(initial = emptyList())
-                val histories = it.histories.collectAsState(initial = emptyList())
-                val files = it.files.collectAsState(initial = emptyList())
-                val comments = it.comments.collectAsState(initial = emptyList())
-                val chats = it.chats.collectAsState(initial = emptyList())
+                    val items = listOf(
+                        BottomNavigationItem(
+                            title = "Teams",
+                            selectedIcon = Icons.Filled.Diversity3,
+                            unselectedIcon = Icons.Outlined.Diversity3,
+                            hasNews = false,
+                        ),
+                        BottomNavigationItem(
+                            title = "Tasks",
+                            selectedIcon = Icons.Filled.ChecklistRtl,
+                            unselectedIcon = Icons.Outlined.ChecklistRtl,
+                            hasNews = false,//mette un pallino nuovo
+                        ),
+                        BottomNavigationItem(
+                            title = "Notifications",
+                            selectedIcon = Icons.Filled.Notifications,
+                            unselectedIcon = Icons.Outlined.Notifications,
+                            hasNews = false,
+                            badgeCount = messageUnreadCountForBottomBar()
+                        ),
 
+                        )
 
-                val items = listOf(
-                    BottomNavigationItem(
-                        title = "Teams",
-                        selectedIcon = Icons.Filled.Diversity3,
-                        unselectedIcon = Icons.Outlined.Diversity3,
-                        hasNews = false,
-                    ),
-                    BottomNavigationItem(
-                        title = "Tasks",
-                        selectedIcon = Icons.Filled.ChecklistRtl,
-                        unselectedIcon = Icons.Outlined.ChecklistRtl,
-                        hasNews = false,//mette un pallino nuovo
-                    ),
-                    BottomNavigationItem(
-                        title = "Notifications",
-                        selectedIcon = Icons.Filled.Notifications,
-                        unselectedIcon = Icons.Outlined.Notifications,
-                        hasNews = false,
-                        badgeCount = messageUnreadCountForBottomBar()
-                    ),
-
-                    )
-
-                var selectedItemIndex by rememberSaveable {
-                    mutableIntStateOf(0)
-                }
-                NavControllerManager.ProvideNavController {
-                    val navController = NavControllerManager.getNavController()
-                    val navBackStackEntry by navController.currentBackStackEntryAsState()
-                    val currentDestination = navBackStackEntry?.destination?.route
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            // remove the focus and the opened photo/gallery menu
-                            .pointerInput(Unit, interactionSource) {
-                                detectTapGestures(
-                                    onPress = {
-                                        focusManager.clearFocus()
-                                    }
-                                )
-                            },
-                        color = MaterialTheme.colorScheme.background
-                    ) {
-                        Column(
-                            modifier = Modifier.fillMaxSize()
+                    var selectedItemIndex by rememberSaveable {
+                        mutableIntStateOf(0)
+                    }
+                    NavControllerManager.ProvideNavController {
+                        val navController = NavControllerManager.getNavController()
+                        val navBackStackEntry by navController.currentBackStackEntryAsState()
+                        val currentDestination = navBackStackEntry?.destination?.route
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                // remove the focus and the opened photo/gallery menu
+                                .pointerInput(Unit, interactionSource) {
+                                    detectTapGestures(
+                                        onPress = {
+                                            focusManager.clearFocus()
+                                        }
+                                    )
+                                },
+                            color = MaterialTheme.colorScheme.background
                         ) {
                             Column(
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.fillMaxSize()
                             ) {
+                                Column(
+                                    modifier = Modifier.weight(1f)
+                                ) {
 
-                                val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-                                val coroutineScope = rememberCoroutineScope()
-                                ModalNavigationDrawer (
-                                    drawerState = drawerState,
-                                    gesturesEnabled = !isVertical(),
-                                    drawerContent = {
-                                        ModalDrawerSheet(drawerContainerColor = MaterialTheme.colorScheme.secondary, drawerContentColor = MaterialTheme.colorScheme.primary,
+                                    val drawerState =
+                                        rememberDrawerState(initialValue = DrawerValue.Closed)
+                                    val coroutineScope = rememberCoroutineScope()
+                                    ModalNavigationDrawer(
+                                        drawerState = drawerState,
+                                        gesturesEnabled = !isVertical(),
+                                        drawerContent = {
+                                            ModalDrawerSheet(
+                                                drawerContainerColor = MaterialTheme.colorScheme.secondary,
+                                                drawerContentColor = MaterialTheme.colorScheme.primary,
                                             ) {
-                                            Spacer(modifier = Modifier.height(16.dp))
+                                                Spacer(modifier = Modifier.height(16.dp))
 
-                                            items.forEachIndexed { index, item ->
+                                                items.forEachIndexed { index, item ->
+                                                    NavigationDrawerItem(
+                                                        colors = NavigationDrawerItemDefaults.colors(
+                                                            selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                                            selectedTextColor = MaterialTheme.colorScheme.onPrimary,
+                                                            selectedIconColor = MaterialTheme.colorScheme.onPrimary
+                                                        ),
+                                                        label = {
+                                                            Text(text = item.title)
+                                                        },
+                                                        selected = item.title == navBackStackEntry?.destination?.route,
+                                                        onClick = {
+
+                                                            navController.navigate(item.title) {
+                                                                launchSingleTop = true
+                                                            }
+
+
+                                                            selectedItemIndex = index
+                                                            coroutineScope.launch {
+                                                                drawerState.close()
+                                                            }
+                                                        },
+                                                        icon = {
+                                                            Icon(
+                                                                imageVector = if (index == selectedItemIndex) {
+                                                                    item.selectedIcon
+                                                                } else item.unselectedIcon,
+                                                                contentDescription = item.title
+                                                            )
+                                                        },
+                                                        badge = {
+                                                            item.badgeCount?.let {
+                                                                Text(text = item.badgeCount.toString())
+                                                            }
+                                                        },
+                                                        modifier = Modifier
+                                                            .padding(NavigationDrawerItemDefaults.ItemPadding)
+                                                    )
+                                                }
                                                 NavigationDrawerItem(
                                                     colors = NavigationDrawerItemDefaults.colors(
                                                         selectedContainerColor = MaterialTheme.colorScheme.primary,
                                                         selectedTextColor = MaterialTheme.colorScheme.onPrimary,
                                                         selectedIconColor = MaterialTheme.colorScheme.onPrimary
                                                     ),
-                                                    label = {
-                                                        Text(text = item.title)
-                                                    },
-                                                    selected = item.title == navBackStackEntry?.destination?.route,
+                                                    label = { Text(text = "Profile") },
+                                                    selected = "Profile" == navBackStackEntry?.destination?.route,
                                                     onClick = {
-
-                                                            navController.navigate(item.title){
-                                                                launchSingleTop = true
-                                                            }
-
-
-                                                        selectedItemIndex = index
+                                                        navController.navigate("Profile") {
+                                                            launchSingleTop = true
+                                                        }
+                                                        selectedItemIndex = 0
                                                         coroutineScope.launch {
                                                             drawerState.close()
                                                         }
                                                     },
                                                     icon = {
                                                         Icon(
-                                                            imageVector = if (index == selectedItemIndex) {
-                                                                item.selectedIcon
-                                                            } else item.unselectedIcon,
-                                                            contentDescription = item.title
+                                                            imageVector = if ("Profile" == navBackStackEntry?.destination?.route) {
+                                                                Icons.Default.ManageAccounts
+                                                            } else Icons.Outlined.ManageAccounts,
+                                                            contentDescription = "Profile"
                                                         )
-                                                    },
-                                                    badge = {
-                                                        item.badgeCount?.let {
-                                                            Text(text = item.badgeCount.toString())
-                                                        }
                                                     },
                                                     modifier = Modifier
                                                         .padding(NavigationDrawerItemDefaults.ItemPadding)
+
                                                 )
                                             }
-                                            NavigationDrawerItem(
-                                                colors = NavigationDrawerItemDefaults.colors(
-                                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                                    selectedTextColor = MaterialTheme.colorScheme.onPrimary,
-                                                    selectedIconColor = MaterialTheme.colorScheme.onPrimary
-                                                ),
-                                                label = { Text(text = "Profile") },
-                                                selected = "Profile" == navBackStackEntry?.destination?.route,
-                                                onClick = {
-                                                    navController.navigate("Profile"){
-                                                        launchSingleTop = true
-                                                    }
-                                                    selectedItemIndex = 0
-                                                    coroutineScope.launch {
-                                                        drawerState.close()
-                                                    }
-                                                },
-                                                icon = {
-                                                    Icon(
-                                                        imageVector = if ("Profile" == navBackStackEntry?.destination?.route) {
-                                                             Icons.Default.ManageAccounts
-                                                        } else  Icons.Outlined.ManageAccounts,
-                                                        contentDescription = "Profile"
+                                        },
+                                        content = {
+                                            Scaffold(
+                                                topBar = {
+                                                    MyTopAppBar(
+                                                        vm = viewModel(
+                                                            factory = Factory(
+                                                                LocalContext.current
+                                                            )
+                                                        ),
+                                                        navController,
+                                                        coroutineScope,
+                                                        drawerState
                                                     )
                                                 },
-                                                modifier = Modifier
-                                                    .padding(NavigationDrawerItemDefaults.ItemPadding)
-
-                                            )
-                                        }
-                                    },
-                                    content = {
-                                        Scaffold(
-                                        topBar = {
-                                            MyTopAppBar(
-                                                vm = viewModel(factory = Factory(LocalContext.current)),
-                                                navController,
-                                                coroutineScope,
-                                                drawerState
-                                            )
-                                        },
-                                        /*floatingActionButton = {
-                                            //if (vm.isEditing) {
-                                                if (currentDestination == "Profile") {
+                                                /*floatingActionButton = {
+                                                //if (vm.isEditing) {
+                                                    if (currentDestination == "Profile") {
+                                                        FloatingActionButton(onClick ={
+                                                            navController.navigate("EditProfile"){
+                                                                popUpTo(navController.graph.findStartDestination().id) {
+                                                                    saveState = true
+                                                                }
+                                                                launchSingleTop = true
+                                                                restoreState = true
+                                                            }},
+                                                            containerColor = MaterialTheme.colorScheme.primary
+                                                        ){
+                                                            Icon(
+                                                                imageVector = Icons.Default.Edit,
+                                                                contentDescription = "Edit",
+                                                                tint = MaterialTheme.colorScheme.onSecondary
+                                                            )
+                                                        }
+                                                }else if(currentDestination == "Tasks"){
                                                     FloatingActionButton(onClick ={
-                                                        navController.navigate("EditProfile"){
+                                                        navController.navigate("EditTask"){
                                                             popUpTo(navController.graph.findStartDestination().id) {
                                                                 saveState = true
                                                             }
@@ -313,211 +339,277 @@ class MainActivity : ComponentActivity() {
                                                             tint = MaterialTheme.colorScheme.onSecondary
                                                         )
                                                     }
-                                            }else if(currentDestination == "Tasks"){
-                                                FloatingActionButton(onClick ={
-                                                    navController.navigate("EditTask"){
-                                                        popUpTo(navController.graph.findStartDestination().id) {
-                                                            saveState = true
-                                                        }
-                                                        launchSingleTop = true
-                                                        restoreState = true
-                                                    }},
-                                                    containerColor = MaterialTheme.colorScheme.primary
-                                                ){
-                                                    Icon(
-                                                        imageVector = Icons.Default.Edit,
-                                                        contentDescription = "Edit",
-                                                        tint = MaterialTheme.colorScheme.onSecondary
-                                                    )
                                                 }
-                                            }
-                                            },*/
-                                        content = { paddingValue ->
-                                            Column(Modifier.padding(paddingValue)) {
-                                                // In your main activity or main screen composable
-                                                NavHost(
-                                                    navController = navController,
-                                                    startDestination = "Teams"
-                                                ) {
-                                                    composable("Teams") {
-                                                        Home(
-                                                            vm = viewModel(
-                                                                factory = Factory(LocalContext.current)
-                                                            ),
-                                                            teamsList = teamsList.value,
-                                                            membersList = membersList.value
-                                                        )
-                                                    }
-                                                    composable("Team/{teamId}", arguments = listOf(navArgument("teamId") { type = NavType.StringType })) {
-                                                        TeamScreen(
-                                                            vm = viewModel(
-                                                                factory = Factory(LocalContext.current)
+                                                },*/
+                                                content = { paddingValue ->
+                                                    Column(Modifier.padding(paddingValue)) {
+                                                        // In your main activity or main screen composable
+                                                        NavHost(
+                                                            navController = navController,
+                                                            startDestination = "Teams"
+                                                        ) {
+                                                            composable("Teams") {
+                                                                /*Home(
+                                                                vm = viewModel(
+                                                                    factory = Factory(LocalContext.current)
+                                                                ),
+                                                                teamsList = AppStateManager.getTeams(),
+                                                                membersList = AppStateManager.getMembers()
+                                                            )*/
+                                                            }
+                                                            composable(
+                                                                "Team/{teamId}",
+                                                                arguments = listOf(navArgument("teamId") {
+                                                                    type = NavType.StringType
+                                                                })
+                                                            ) {
+                                                                TeamScreen(
+                                                                    vm = viewModel(
+                                                                        factory = Factory(
+                                                                            LocalContext.current
+                                                                        )
+                                                                    )
+                                                                )
+                                                            }
+                                                            composable("Task/{taskId}") {
+                                                                TaskScreen(
+                                                                    vm = viewModel(
+                                                                        factory = Factory(
+                                                                            LocalContext.current
+                                                                        )
+                                                                    )
+                                                                )
+                                                            }
+                                                            composable("Calendar/{teamId}") {
+                                                                CalendarAppContainer(
+                                                                    vm = viewModel(
+                                                                        factory = Factory(
+                                                                            LocalContext.current
+                                                                        )
+                                                                    ),
+                                                                    teams = AppStateManager.getTeams(),
+                                                                    tasks = AppStateManager.getTasks(),
+                                                                    members = AppStateManager.getMembers()
+                                                                )
+                                                            }
+                                                            composable("Notifications") {
+                                                                Notifications(
+                                                                    vm = viewModel(
+                                                                        factory = Factory(
+                                                                            LocalContext.current
+                                                                        )
+                                                                    )
+                                                                )
+                                                            }
+                                                            /*composable("ChatTeam/{teamId}") {
+                                                            ChatScreen(
+                                                                vm = viewModel(
+                                                                    factory = Factory(LocalContext.current)
+                                                                )
                                                             )
-                                                        )
-                                                    }
-                                                    composable("Task/{taskId}") {
-                                                        TaskScreen(
-                                                            vm = viewModel(
-                                                                factory = Factory(LocalContext.current)
-                                                            )
-                                                        )
-                                                    }
-                                                    composable("Calendar/{teamId}") {
-                                                        CalendarAppContainer(
-                                                            vm = viewModel(
-                                                                factory = Factory(LocalContext.current)
-                                                            )
-                                                        )
-                                                    }
-                                                    composable("Notifications") {
-                                                        Notifications(
-                                                            vm = viewModel(
-                                                                factory = Factory(LocalContext.current)
-                                                            )
-                                                        )
-                                                    }
-                                                    /*composable("ChatTeam/{teamId}") {
-                                                        ChatScreen(
-                                                            vm = viewModel(
-                                                                factory = Factory(LocalContext.current)
-                                                            )
-                                                        )
-                                                    }*/
-                                                    composable("Chat/{chatId}") {
-                                                        ChatScreen(
-                                                            vm = viewModel(
-                                                                factory = Factory(LocalContext.current)
-                                                            )
-                                                        )
-                                                    }
-                                                    composable("ChatList/{teamId}") {
-                                                        ChatListScreen(
-                                                            vm = viewModel(
-                                                                factory = Factory(LocalContext.current)
-                                                            )/*,
+                                                        }*/
+                                                            composable("Chat/{chatId}") {
+                                                                ChatScreen(
+                                                                    vm = viewModel(
+                                                                        factory = Factory(
+                                                                            LocalContext.current
+                                                                        )
+                                                                    )
+                                                                )
+                                                            }
+                                                            composable("ChatList/{teamId}") {
+                                                                ChatListScreen(
+                                                                    vm = viewModel(
+                                                                        factory = Factory(
+                                                                            LocalContext.current
+                                                                        )
+                                                                    )/*,
                                                             chatList = chats.value,
                                                             members = members.value,
                                                             teams = teams.value*/
-                                                        )
+                                                                )
+                                                            }
+                                                            composable("Profile") {
+                                                                ProfileSettings(
+                                                                    vm = viewModel(
+                                                                        factory = Factory(
+                                                                            LocalContext.current
+                                                                        )
+                                                                    ),
+                                                                    outputDirectory = getOutputDirectory(),
+                                                                    cameraExecutor = cameraExecutor
+                                                                )
+                                                            }
+                                                            composable(
+                                                                "Invitation/{teamId}/{teamName}",
+                                                                arguments = listOf(
+                                                                    navArgument("teamId") {
+                                                                        type = NavType.StringType
+                                                                    },
+                                                                    navArgument("teamName") {
+                                                                        type = NavType.StringType
+                                                                    })
+                                                            ) { backStackEntry ->
+                                                                Invitation(
+                                                                    teamId = backStackEntry.arguments?.getString(
+                                                                        "teamId"
+                                                                    )!!,
+                                                                    teamName = backStackEntry.arguments?.getString(
+                                                                        "teamName"
+                                                                    )!!
+                                                                )
+                                                            }
+                                                            composable(
+                                                                "ChangeAvailability/{teamId}",
+                                                                arguments = listOf(navArgument("teamId") {
+                                                                    type = NavType.StringType
+                                                                })
+                                                            ) {
+                                                                Availability(
+                                                                    vm = viewModel(
+                                                                        factory = Factory(
+                                                                            LocalContext.current
+                                                                        )
+                                                                    )
+                                                                )
+                                                            }
+                                                            composable(
+                                                                "JoinTeam/{teamId}",
+                                                                deepLinks = listOf(navDeepLink {
+                                                                    uriPattern =
+                                                                        "https://UniTeam/join/{teamId}"
+                                                                })
+                                                            ) {
+                                                                Join(
+                                                                    vm = viewModel(
+                                                                        factory = Factory(
+                                                                            LocalContext.current
+                                                                        )
+                                                                    )
+                                                                )
+                                                            }
+                                                            composable(
+                                                                "Statistics/{teamId}",
+                                                                arguments = listOf(navArgument("teamId") {
+                                                                    type = NavType.StringType
+                                                                })
+                                                            ) {
+                                                                Statistics(
+                                                                    vm = viewModel(
+                                                                        factory = Factory(
+                                                                            LocalContext.current
+                                                                        )
+                                                                    ),
+                                                                    teams = AppStateManager.getTeams(),
+                                                                    members = AppStateManager.getMembers(),
+                                                                    tasks = AppStateManager.getTasks()
+                                                                )
+                                                            }
+                                                            composable(
+                                                                "TeamDetails/{teamId}",
+                                                                arguments = listOf(navArgument("teamId") {
+                                                                    type = NavType.StringType
+                                                                })
+                                                            ) {
+                                                                TeamViewScreen(
+                                                                    vm = viewModel(
+                                                                        factory = Factory(
+                                                                            LocalContext.current
+                                                                        )
+                                                                    ),
+                                                                    outputDirectory = getOutputDirectory(),
+                                                                    cameraExecutor = cameraExecutor
+                                                                )
+                                                            }
+                                                            composable("Tasks") {
+                                                                YourTasksCalendarViewScreen(
+                                                                    vm = viewModel(
+                                                                        factory = Factory(
+                                                                            LocalContext.current
+                                                                        )
+                                                                    )
+                                                                )
+                                                            }
+                                                            composable(
+                                                                "OtherUserProfile/{memberId}",
+                                                                arguments = listOf(navArgument("memberId") {
+                                                                    type = NavType.StringType
+                                                                })
+                                                            ) {
+                                                                OtherProfileSettings(
+                                                                    vm = viewModel(
+                                                                        factory = Factory(
+                                                                            LocalContext.current
+                                                                        )
+                                                                    )
+                                                                )
+                                                            }
+                                                        }
                                                     }
-                                                    composable("Profile") {
-                                                        ProfileSettings(
-                                                            vm = viewModel(
-                                                                factory = Factory(LocalContext.current)
-                                                            ),
-                                                            outputDirectory = getOutputDirectory(),
-                                                            cameraExecutor = cameraExecutor
-                                                        )
-                                                    }
-                                                    composable("Invitation/{teamId}/{teamName}", arguments = listOf(navArgument("teamId") { type = NavType.StringType }, navArgument("teamName") { type = NavType.StringType })) { backStackEntry ->
-                                                        Invitation(teamId = backStackEntry.arguments?.getString("teamId")!!, teamName = backStackEntry.arguments?.getString("teamName")!!)
-                                                    }
-                                                    composable("ChangeAvailability/{teamId}", arguments = listOf(navArgument("teamId") { type = NavType.StringType })) {
-                                                        Availability(
-                                                            vm = viewModel(
-                                                                factory = Factory(LocalContext.current)
-                                                            )
-                                                        )
-                                                    }
-                                                    composable("JoinTeam/{teamId}", deepLinks = listOf(navDeepLink {uriPattern = "https://UniTeam/join/{teamId}" })) {
-                                                        Join(
-                                                            vm = viewModel(
-                                                                factory = Factory(LocalContext.current)
-                                                            )
-                                                        )
-                                                    }
-                                                    composable("Statistics/{teamId}", arguments = listOf(navArgument("teamId") { type = NavType.StringType })) {
-                                                        Statistics(
-                                                            vm = viewModel(
-                                                                factory = Factory(LocalContext.current)
-                                                            )
-                                                        )
-                                                    }
-                                                    composable("TeamDetails/{teamId}" , arguments = listOf(navArgument("teamId") { type = NavType.StringType })) {
-                                                        TeamViewScreen(
-                                                            vm = viewModel(
-                                                                factory = Factory(LocalContext.current)
-                                                            ),
-                                                            outputDirectory = getOutputDirectory(),
-                                                            cameraExecutor = cameraExecutor
-                                                        )
-                                                    }
-                                                    composable("Tasks") {
-                                                        YourTasksCalendarViewScreen(
-                                                            vm = viewModel(
-                                                                factory = Factory(LocalContext.current)
-                                                            )
-                                                        )
-                                                    }
-                                                    composable("OtherUserProfile/{memberId}", arguments = listOf(navArgument("memberId") { type = NavType.StringType })) {
-                                                        OtherProfileSettings(
-                                                            vm = viewModel(
-                                                                factory = Factory(LocalContext.current)
-                                                            )
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        },
-                                        bottomBar = {
-                                            if (!isVertical()) {
-                                                Row {}
-                                            } else {
-                                                NavigationBar(containerColor = MaterialTheme.colorScheme.primary) {
-                                                    items.forEachIndexed { index, item ->
-                                                        NavigationBarItem(
-                                                            colors = NavigationBarItemColors(
-                                                                selectedIconColor = MaterialTheme.colorScheme.onPrimary,
-                                                                selectedTextColor = MaterialTheme.colorScheme.onPrimary,
-                                                                unselectedTextColor = MaterialTheme.colorScheme.onPrimary,
-                                                                disabledIconColor = MaterialTheme.colorScheme.onPrimary,
-                                                                disabledTextColor = MaterialTheme.colorScheme.onPrimary,
-                                                                selectedIndicatorColor = MaterialTheme.colorScheme.secondary,
-                                                                unselectedIconColor = MaterialTheme.colorScheme.onPrimary
-                                                            ),
-                                                            selected = item.title == navBackStackEntry?.destination?.route,//selectedItemIndex == index , PRIMA DELLA NAVIGATION
-                                                            onClick = {
-                                                                selectedItemIndex = index
-                                                                navController.navigate(item.title) {
-                                                                    //println("Destination: ${navController.previousBackStackEntry?.destination?.route}")
-                                                                    /* popUpTo(navController.graph.findStartDestination().id){
-                                                                         //saveState = true
-                                                                     }*/
-                                                                    launchSingleTop = true
-                                                                    //restoreState = true
-                                                                }
-                                                            },
-                                                            label = {
-                                                                Text(text = item.title)
-                                                            },
-                                                            alwaysShowLabel = true,
-                                                            icon = {
-                                                                BadgedBox(
-                                                                    badge = {
-                                                                        if (item.badgeCount != null) {
-                                                                            Badge(containerColor = MaterialTheme.colorScheme.onPrimaryContainer) {
-                                                                                Text(text = item.badgeCount.toString())
+                                                },
+                                                bottomBar = {
+                                                    if (!isVertical()) {
+                                                        Row {}
+                                                    } else {
+                                                        NavigationBar(containerColor = MaterialTheme.colorScheme.primary) {
+                                                            items.forEachIndexed { index, item ->
+                                                                NavigationBarItem(
+                                                                    colors = NavigationBarItemColors(
+                                                                        selectedIconColor = MaterialTheme.colorScheme.onPrimary,
+                                                                        selectedTextColor = MaterialTheme.colorScheme.onPrimary,
+                                                                        unselectedTextColor = MaterialTheme.colorScheme.onPrimary,
+                                                                        disabledIconColor = MaterialTheme.colorScheme.onPrimary,
+                                                                        disabledTextColor = MaterialTheme.colorScheme.onPrimary,
+                                                                        selectedIndicatorColor = MaterialTheme.colorScheme.secondary,
+                                                                        unselectedIconColor = MaterialTheme.colorScheme.onPrimary
+                                                                    ),
+                                                                    selected = item.title == navBackStackEntry?.destination?.route,//selectedItemIndex == index , PRIMA DELLA NAVIGATION
+                                                                    onClick = {
+                                                                        selectedItemIndex = index
+                                                                        navController.navigate(item.title) {
+                                                                            //println("Destination: ${navController.previousBackStackEntry?.destination?.route}")
+                                                                            /* popUpTo(navController.graph.findStartDestination().id){
+                                                                             //saveState = true
+                                                                         }*/
+                                                                            launchSingleTop = true
+                                                                            //restoreState = true
+                                                                        }
+                                                                    },
+                                                                    label = {
+                                                                        Text(text = item.title)
+                                                                    },
+                                                                    alwaysShowLabel = true,
+                                                                    icon = {
+                                                                        BadgedBox(
+                                                                            badge = {
+                                                                                if (item.badgeCount != null) {
+                                                                                    Badge(
+                                                                                        containerColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                                                                    ) {
+                                                                                        Text(text = item.badgeCount.toString())
+                                                                                    }
+                                                                                } else if (item.hasNews) {
+                                                                                    Badge()
+                                                                                }
                                                                             }
-                                                                        } else if (item.hasNews) {
-                                                                            Badge()
+                                                                        ) {
+                                                                            Icon(
+                                                                                imageVector = if (index == selectedItemIndex) {
+                                                                                    item.selectedIcon
+                                                                                } else item.unselectedIcon,
+                                                                                contentDescription = item.title
+
+                                                                            )
                                                                         }
                                                                     }
-                                                                ) {
-                                                                    Icon(
-                                                                        imageVector = if (index == selectedItemIndex) {
-                                                                            item.selectedIcon
-                                                                        } else item.unselectedIcon,
-                                                                        contentDescription = item.title
-
-                                                                    )
-                                                                }
+                                                                )
                                                             }
-                                                        )
+                                                        }
                                                     }
                                                 }
-                                            }
-                                            }
-                                )})
+                                            )
+                                        })
+                                }
                             }
                         }
                     }
@@ -629,19 +721,23 @@ fun MyTopAppBar(
             }
         },
         actions = {
-            if (isVertical()){
-                IconButton(onClick = {
-                    navController.navigate("Profile") {
+            if (isVertical()) {
+                IconButton(
+                    onClick = {
+                        navController.navigate("Profile") {
 
-                        /*popUpTo(navController.graph.findStartDestination().id) {
-                            // Pop everything up to the "destination_a" destination off the back stack before
-                            // navigating to the "destination_b" destination
-                            //saveState = true
-                        }*/
-                        launchSingleTop = true //avoiding multiple copies on the top of the back stack
-                        //restoreState = true
-                    }
-                }, colors = IconButtonDefaults.iconButtonColors(MaterialTheme.colorScheme.secondary)) {
+                            /*popUpTo(navController.graph.findStartDestination().id) {
+                                // Pop everything up to the "destination_a" destination off the back stack before
+                                // navigating to the "destination_b" destination
+                                //saveState = true
+                            }*/
+                            launchSingleTop =
+                                true //avoiding multiple copies on the top of the back stack
+                            //restoreState = true
+                        }
+                    },
+                    colors = IconButtonDefaults.iconButtonColors(MaterialTheme.colorScheme.secondary)
+                ) {
                     Icon(
                         imageVector = Icons.Default.ManageAccounts,
                         contentDescription = "Profile",
@@ -651,12 +747,15 @@ fun MyTopAppBar(
             }
 
             //TODO DRAWER
-            if (!isVertical()){
-                IconButton(onClick = {
-                    coroutineScope.launch {
-                        drawerState.open()
-                    }
-                }, colors = IconButtonDefaults.iconButtonColors(MaterialTheme.colorScheme.secondary)) {
+            if (!isVertical()) {
+                IconButton(
+                    onClick = {
+                        coroutineScope.launch {
+                            drawerState.open()
+                        }
+                    },
+                    colors = IconButtonDefaults.iconButtonColors(MaterialTheme.colorScheme.secondary)
+                ) {
                     Icon(
                         imageVector = Icons.Default.Menu,
                         contentDescription = "Menu",
@@ -711,6 +810,90 @@ class NavControllerManager {
         @Composable
         fun getNavController(): NavHostController {
             return LocalNavController.current
+        }
+    }
+}
+
+class AppStateManager {
+    companion object {
+        private val LocalTeams = staticCompositionLocalOf<List<TeamDBFinal>> { emptyList() }
+        private val LocalTasks = staticCompositionLocalOf<List<TaskDBFinal>> { emptyList() }
+        private val LocalMembers = staticCompositionLocalOf<List<MemberDBFinal>> { emptyList() }
+        private val LocalHistories = staticCompositionLocalOf<List<HistoryDBFinal>> { emptyList() }
+        private val LocalFiles = staticCompositionLocalOf<List<FileDBFinal>> { emptyList() }
+        private val LocalComments = staticCompositionLocalOf<List<CommentDBFinal>> { emptyList() }
+        private val LocalChats = staticCompositionLocalOf<List<ChatDBFinal>> { emptyList() }
+        private val LocalMessages = staticCompositionLocalOf<List<MessageDB>> { emptyList() }
+
+        @Composable
+        fun ProvideLocalAppState(
+            viewModel: GeneralViewModel = viewModel(
+                factory = Factory(
+                    LocalContext.current
+                )
+            ), content: @Composable () -> Unit
+        ) {
+            val teams = viewModel.teams.collectAsState(initial = emptyList())
+            val tasks = viewModel.tasks.collectAsState(initial = emptyList())
+            val members = viewModel.members.collectAsState(initial = emptyList())
+            val histories = viewModel.histories.collectAsState(initial = emptyList())
+            val files = viewModel.files.collectAsState(initial = emptyList())
+            val comments = viewModel.comments.collectAsState(initial = emptyList())
+            val chats = viewModel.chats.collectAsState(initial = emptyList())
+            val messages = viewModel.messages.collectAsState(initial = emptyList())
+
+            CompositionLocalProvider(
+                LocalTeams provides teams.value,
+                LocalTasks provides tasks.value,
+                LocalMembers provides members.value,
+                LocalHistories provides histories.value,
+                LocalFiles provides files.value,
+                LocalComments provides comments.value,
+                LocalChats provides chats.value,
+                LocalMessages provides messages.value
+            ) {
+                content()
+            }
+        }
+
+        @Composable
+        fun getTeams(): List<TeamDBFinal> {
+            return LocalTeams.current
+        }
+
+        @Composable
+        fun getTasks(): List<TaskDBFinal> {
+            return LocalTasks.current
+        }
+
+        @Composable
+        fun getMembers(): List<MemberDBFinal> {
+            return LocalMembers.current
+        }
+
+        @Composable
+        fun getHistories(): List<HistoryDBFinal> {
+            return LocalHistories.current
+        }
+
+        @Composable
+        fun getFiles(): List<FileDBFinal> {
+            return LocalFiles.current
+        }
+
+        @Composable
+        fun getComments(): List<CommentDBFinal> {
+            return LocalComments.current
+        }
+
+        @Composable
+        fun getChats(): List<ChatDBFinal> {
+            return LocalChats.current
+        }
+
+        @Composable
+        fun getMessages(): List<MessageDB> {
+            return LocalMessages.current
         }
     }
 }
