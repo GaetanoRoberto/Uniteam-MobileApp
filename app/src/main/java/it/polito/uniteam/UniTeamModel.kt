@@ -64,7 +64,7 @@ class UniTeamModel(val context: Context) {
     var loggedUser = getMemberById(db, coroutineScope, "2nm8PdGbk5CaROcyWjq7")
     var loggedUserFlow = getMemberFlowById(db, coroutineScope, "tQLCfuconmcAxnoyMS6w")
     val loggedMemberFinal = MemberDBFinal(
-        id = "2nm8PdGbk5CaROcyWjq7",
+        id = "tQLCfuconmcAxnoyMS6w",
         fullName = "Matteo Nicita",
         username = "niciteo di prova",
         email = "niciteo@gmail.com",
