@@ -108,19 +108,11 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import it.polito.uniteam.Factory
 import it.polito.uniteam.NavControllerManager
-import it.polito.uniteam.classes.Category
-import it.polito.uniteam.classes.DummyDataProvider
 import it.polito.uniteam.classes.HourMinutesPicker
 import it.polito.uniteam.classes.Member
+import it.polito.uniteam.classes.MemberDBFinal
 import it.polito.uniteam.classes.MemberIcon
-import it.polito.uniteam.classes.Priority
-import it.polito.uniteam.classes.Repetition
 import it.polito.uniteam.classes.Status
-import it.polito.uniteam.classes.Task
-import it.polito.uniteam.gui.notifications.notificationsSection
-import it.polito.uniteam.gui.teamDetails.DeleteTeamDialog
-import it.polito.uniteam.gui.teamDetails.TeamDetailsViewModel
-import java.util.HashMap
 
 
 //@Preview
@@ -209,7 +201,7 @@ fun TaskDetailsView(vm: taskDetails = viewModel(factory = Factory(LocalContext.c
             value = vm.spentTime.values.sumOf { it.first }.toString() + "h " + vm.spentTime.values.sumOf { it.second }.toString() + "m"
         )
         RowItem(title = "Repeatable:", value = vm.repeatable)
-        RowMemberItem( title = "Members:", value = vm.members)
+        //RowMemberItem( title = "Members:", value = vm.members)
         RowItem(
             title = "Status:",
             value = if (vm.status == Status.IN_PROGRESS.toString()) "IN PROGRESS" else vm.status
@@ -573,7 +565,7 @@ fun RowItem(modifier: Modifier = Modifier, title: String, value: Any) {
 
 
 @Composable
-fun RowMemberItem( modifier: Modifier = Modifier, title: String, value: List<Member>) {
+fun RowMemberItem(loggedMember: String,dialogAction: () -> Unit = {}, loggedMemberAction: () -> Unit = {}, modifier: Modifier = Modifier, title: String, value: List<MemberDBFinal>) {
     Row(
         modifier = Modifier.fillMaxWidth(0.8f),
         verticalAlignment = Alignment.CenterVertically
@@ -590,7 +582,7 @@ fun RowMemberItem( modifier: Modifier = Modifier, title: String, value: List<Mem
         modifier = modifier.horizontalScroll(rememberScrollState()),
     ) {
         for ((i, member) in value.withIndex()) {
-//            MemberIcon(member = member, modifierScale = Modifier.scale(0.65f), modifierPadding = Modifier.padding(start = if (i == 0) 16.dp else 0.dp, top = 8.dp))
+            MemberIcon(member = member, modifierScale = Modifier.scale(0.65f), modifierPadding = Modifier.padding(start = if (i == 0) 16.dp else 0.dp, top = 8.dp), dialogAction = dialogAction, loggedMemberAction = if(member.id == loggedMember) loggedMemberAction else null)
             Text(
                 member.username.toString() + if (i < value.size - 1) {
                     ", "

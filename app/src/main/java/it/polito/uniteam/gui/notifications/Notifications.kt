@@ -39,6 +39,7 @@ import com.patrykandpatrick.vico.core.cartesian.data.ChartValues.Empty.model
 import it.polito.uniteam.AppStateManager
 import it.polito.uniteam.Factory
 import it.polito.uniteam.NavControllerManager
+import it.polito.uniteam.classes.Status
 import it.polito.uniteam.classes.messageStatus
 
 @Composable
@@ -50,8 +51,8 @@ fun messageUnreadCountForBottomBar(vm : NotificationsViewModel = viewModel(facto
     val chats = AppStateManager.getChats()
     val teams = AppStateManager.getTeams()
 
-    val directChats = chats.filter { chat -> chat.sender == loggedMember.id || chat.receiver == loggedMember.id }
-    val teamChats = chats.filter { chat -> teams.any { team -> team.id == chat.teamId && team.members.contains(loggedMember.id) } }
+    val directChats = chats.filter { chat -> chat.sender == loggedMember || chat.receiver == loggedMember }
+    val teamChats = chats.filter { chat -> teams.any { team -> team.id == chat.teamId && team.members.contains(loggedMember) } }
     val directMessages = messages.filter { message ->
         directChats.any { chat -> chat.messages.contains(message.id) }
     }
@@ -61,18 +62,63 @@ fun messageUnreadCountForBottomBar(vm : NotificationsViewModel = viewModel(facto
     }
 
     val unreadDirectMessages = directMessages.filter { message ->
-        message.status == messageStatus.UNREAD && message.senderId != loggedMember.id
+        message.status == messageStatus.UNREAD && message.senderId != loggedMember
     }.size
 
     val unreadTeamMessages = teamMessages.filter { message ->
-        message.membersUnread.contains(loggedMember.id)
+        message.membersUnread.contains(loggedMember)
     }.size
 
     return unreadTeamMessages + unreadDirectMessages
     }
 
 @Composable
+fun SetupNotificationsData(vm: NotificationsViewModel = viewModel(factory = Factory(LocalContext.current))) {
+    val chats = AppStateManager.getChats()
+    val teams = AppStateManager.getTeams()
+    val messages = AppStateManager.getMessages()
+    val members = AppStateManager.getMembers()
+    // teamsMessages
+    val userTeamsMessages = teams.filter { it.members.contains(vm.loggedMember)}
+        .map { userTeam -> Pair(userTeam,chats.find {chat -> chat.id == userTeam.chat }) }
+        .map { userTeamChat -> Pair(userTeamChat.first,userTeamChat.second?.messages) }
+        .map { userTeamMessagesIds ->
+            val teamMessages = messages.filter { userTeamMessagesIds.second?.contains(it.id)!! }
+            Pair(userTeamMessagesIds.first,teamMessages)
+        }
+    vm.teamsMessages = userTeamsMessages.map {
+        Pair(it.first,vm.getUnreadMessagesTeamDB(it.second,vm.loggedMember))
+    }.filter { it.second > 0 }
+    // membersChatMessages
+    val directChats = chats.filter { chat -> chat.receiver == vm.loggedMember || chat.sender == vm.loggedMember }
+        .map { chat ->
+            // take the other member to chat with and messagesIds
+            if(chat.receiver == vm.loggedMember) {
+                val member = members.find {it.id == chat.sender}!!
+                Triple(member,chat.id,chat.messages)
+            } else {
+                val member = members.find {it.id == chat.receiver}!!
+                Triple(member,chat.id,chat.messages)
+            }
+        }
+        .map { memberChatIdMessagesId ->
+            val userMessages = messages.filter { memberChatIdMessagesId.third.contains(it.id) }
+            Triple(memberChatIdMessagesId.first,memberChatIdMessagesId.second,userMessages)
+        }
+    vm.membersChatMessages = directChats.map { memberChatIdMessages ->
+        Triple(memberChatIdMessages.first,memberChatIdMessages.second,vm.getUnreadMessagesUserDB(memberChatIdMessages.third,vm.loggedMember))
+    }.filter { it.third > 0 }
+
+    val userTeams = teams.filter { it.members.contains(vm.loggedMember)}
+    vm.teamsHistories = userTeams.map { userTeam ->
+        val teamHistories = AppStateManager.getHistories().filter { userTeam.teamHistory.contains(it.id) }
+        Pair(userTeam,teamHistories)
+    }
+}
+
+@Composable
 fun Notifications(vm: NotificationsViewModel = viewModel(factory = Factory(LocalContext.current))) {
+    SetupNotificationsData(vm = vm)
     val icons = listOf(Icons.Filled.Comment, Icons.Filled.Info)
     val titles = notificationsSection.entries.map { it.toString() }
     Column {
@@ -115,24 +161,24 @@ fun Notifications(vm: NotificationsViewModel = viewModel(factory = Factory(Local
 
 @Composable
 fun MessagesSection(vm: NotificationsViewModel = viewModel(factory = Factory(LocalContext.current))) {
-//    LazyColumn {
-//        item(vm.teamsMessages.size + vm.membersMessages.size) {
-//            vm.teamsMessages.forEach { (team,count) ->
-//                MessageItem(teamMemberName = team.name, teamMemberChatId = team.chat?.id!!, nOfMessages = count)
-//            }
-//            vm.membersMessages.forEach { (member,count)->
-//                MessageItem(teamMemberName = member.username, teamMemberChatId = vm.getUsersChat(member).id, nOfMessages = count)
-//            }
-//        }
-//    }
+    LazyColumn {
+        item(vm.teamsMessages.size + vm.membersChatMessages.size) {
+            vm.teamsMessages.forEach { (team,count) ->
+                MessageItem(teamMemberName = team.name, teamMemberChatId = team.chat!!, nOfMessages = count)
+            }
+            vm.membersChatMessages.forEach { (member,chatId,count)->
+                MessageItem(teamMemberName = member.username, teamMemberChatId = chatId, nOfMessages = count)
+            }
+        }
+    }
 }
 
 @Composable
-fun MessageItem(teamMemberName: String, teamMemberChatId:Int, nOfMessages: Int) {
+fun MessageItem(teamMemberName: String, teamMemberChatId:String, nOfMessages: Int) {
     val navController = NavControllerManager.getNavController()
     Row(
         modifier = Modifier
-            .clickable { navController.navigate("Chat/$teamMemberChatId") }
+            .clickable { Log.i("prova",teamMemberChatId); navController.navigate("Chat/$teamMemberChatId") }
             .fillMaxWidth()
             .border(0.5.dp, MaterialTheme.colorScheme.onPrimary)
             .padding(10.dp),
@@ -165,14 +211,23 @@ fun ActivitiesSection(vm: NotificationsViewModel = viewModel(factory = Factory(L
     LazyColumn {
         items(vm.teamsHistories) { (team,histories) ->
             histories.forEach { history ->
-                ActivityItem(teamName = team.name, teamId = team.id, Activity = history.comment)
+                val comment = if(history.comment == "Team Joined.") {
+                    val member = AppStateManager.getMembers().find { it.id == history.user }!!
+                    "${member.username} Joined The Team."
+                } else if(history.comment == "Team Left.") {
+                    val member = AppStateManager.getMembers().find { it.id == history.user }!!
+                    "${member.username} Left The Team."
+                } else {
+                    history.comment
+                }
+                ActivityItem(teamName = team.name, teamId = team.id, Activity = comment)
             }
         }
     }
 }
 
 @Composable
-fun ActivityItem(teamName: String, teamId:Int, Activity: String) {
+fun ActivityItem(teamName: String, teamId:String, Activity: String) {
     val navController = NavControllerManager.getNavController()
     Row(
         modifier = Modifier

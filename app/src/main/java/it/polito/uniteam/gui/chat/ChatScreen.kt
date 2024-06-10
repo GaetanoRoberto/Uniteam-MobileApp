@@ -262,7 +262,8 @@ fun ChatHeader(
     membersChat: List<MemberDBFinal>
 ) {
     val teamName = team?.name
-    val receiver = membersChat.find { it.id == chat.receiver || it.id == chat.sender  && it.id != vm.loggedMember.id}
+    val receiver = membersChat.find { (it.id == chat.receiver || it.id == chat.sender)  && it.id != vm.loggedMember.id}
+    Log.d("ChatScreen",vm.loggedMember.id)
     Log.d("ChatScreen", "membersChat: ${membersChat.find { it.id == chat.receiver || it.id == chat.sender  && it.id != vm.loggedMember.id}}")
     val text = if (chat.teamId != null) teamName else receiver?.username
 

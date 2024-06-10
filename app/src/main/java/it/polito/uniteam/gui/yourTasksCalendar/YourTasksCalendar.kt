@@ -48,7 +48,7 @@ import it.polito.uniteam.classes.TextTrim
 import java.time.LocalDate
 
 class YourTasksCalendarViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHandle): ViewModel() {
-    var memberId = "d67br0MqJf6Qs1tzKHhm" // TODO hardcoded
+    var memberId = model.loggedMemberFinal.id // TODO hardcoded
         private set
 }
 

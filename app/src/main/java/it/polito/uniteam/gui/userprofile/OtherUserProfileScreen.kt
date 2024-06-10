@@ -62,7 +62,7 @@ class OtherUserProfileScreen (val model: UniTeamModel, val savedStateHandle: Sav
     val memberId = checkNotNull(savedStateHandle["memberId"]).toString()
     var member: MemberDBFinal = MemberDBFinal()
     var teamsInCommon: List<TeamDBFinal> = emptyList()
-    val loggedMember = "d67br0MqJf6Qs1tzKHhm" // TODO hardcoded
+    val loggedMember = model.loggedMemberFinal.id // TODO hardcoded
 }
 
 // TODO Recall this Function Also for UserProfileScreen

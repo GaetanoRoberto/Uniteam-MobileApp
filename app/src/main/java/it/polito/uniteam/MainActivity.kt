@@ -117,14 +117,7 @@ import java.util.concurrent.Executors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import androidx.compose.runtime.saveable.Saver
-import androidx.compose.runtime.saveable.listSaver
-import androidx.lifecycle.ViewModel
-import it.polito.uniteam.classes.ChatDBFinal
-import it.polito.uniteam.classes.MessageDB
-import it.polito.uniteam.gui.teamDetails.TeamDetailsView
-import it.polito.uniteam.gui.yourTasksCalendar.YourTasksCalendarView
-import okhttp3.internal.wait
+
 
 class MainActivity : ComponentActivity() {
 

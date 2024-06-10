@@ -833,7 +833,7 @@ fun TeamDetailsView(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
 
         RowItem(title = "Name:", value = vm.selectedTeam.value.name)
         RowItem(title = "Description:", value = vm.selectedTeam.value.description.toString())
-        RowMemberItem( title = "Members:", value = vm.selectedTeam.value.members)
+        //RowMemberItem( title = "Members:", value = vm.selectedTeam.value.members)
         RowItem(title = "Creation Date:", value = vm.selectedTeam.value.creationDate.toString())
         val icon = Icons.Filled.History
         val title = " Team History"
