@@ -14,10 +14,11 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 class NotificationsViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
+    val loggedMember = model.loggedMemberFinal
     fun getUsersChat(member: Member) = model.getUsersChat(member)
     fun getAllHistories() = model.getAllHistories()
-    fun getAllTeamMessages() = model.getAllTeamMessagesCount()
-    fun getAllMembersMessages() = model.getAllMembersMessagesCount()
+    fun getAllTeamMessages() = 2//= model.getAllTeamMessagesCount()
+    fun getAllMembersMessages() = 3//= model.getAllMembersMessagesCount()
     var teamsHistories by mutableStateOf(getAllHistories())
         private set
 

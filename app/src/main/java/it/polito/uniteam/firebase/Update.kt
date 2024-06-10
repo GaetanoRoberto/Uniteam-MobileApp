@@ -1,14 +1,28 @@
 package it.polito.uniteam.firebase
-
-import android.util.Log
-import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
+import android.util.Log
+import com.google.firebase.Timestamp
 import it.polito.uniteam.classes.TaskDBFinal
 import com.google.firebase.firestore.Query
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Date
+
+suspend fun markTeamMessageAsReadDB(db: FirebaseFirestore, memberId: String, messageId: String) {
+    val messageRef = db.collection("Message").document(messageId)
+
+    // Aggiorna il campo membersUnread rimuovendo il memberId
+    messageRef.update("membersUnread", FieldValue.arrayRemove(memberId)).await()
+}
+
+suspend fun markUserMessageAsReadDB(db: FirebaseFirestore, messageId: String) {
+    val messageRef = db.collection("Message").document(messageId)
+
+    // Aggiorna il campo status a "READ"
+    messageRef.update("status", "READ").await()
+}
 
 fun scheduleTask(db: FirebaseFirestore, task: TaskDBFinal, scheduleDate: LocalDate, hoursToSchedule: Pair<Int,Int>) {
     val newSchedule = mapOf(

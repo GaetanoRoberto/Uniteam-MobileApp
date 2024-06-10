@@ -1,7 +1,6 @@
 package it.polito.uniteam.gui.teamScreen
 
 import android.content.Context
-import android.net.Uri
 import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
@@ -114,16 +113,13 @@ import it.polito.uniteam.NavControllerManager
 import it.polito.uniteam.R
 import it.polito.uniteam.UniTeamModel
 import it.polito.uniteam.classes.Category
-import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.MemberDB
 import it.polito.uniteam.classes.MemberIcon
 import it.polito.uniteam.classes.Priority
 import it.polito.uniteam.classes.Repetition
 import it.polito.uniteam.classes.Status
-import it.polito.uniteam.classes.Task
 import it.polito.uniteam.classes.TaskDB
 import it.polito.uniteam.classes.TeamDB
-import it.polito.uniteam.classes.TeamIcon
 import it.polito.uniteam.gui.showtaskdetails.CustomDatePicker
 import it.polito.uniteam.isVertical
 import kotlinx.coroutines.CoroutineScope
@@ -916,10 +912,10 @@ fun VerticalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, scop
                 membersList
             for ((index, member) in membersToShow.withIndex()) {
                 val endPadding = if (index == membersToShow.lastIndex) 16.dp else 20.dp
-                MemberIcon(
+                /*MemberIcon(
                     modifierPadding = Modifier.padding(0.dp, 0.dp, endPadding, 0.dp),
                     member = member
-                )
+                )*/
             }
             if (membersList.size > 5) {
                 Text(
@@ -1097,7 +1093,7 @@ fun VerticalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, scop
                                     Text(" nobody assigned", style = MaterialTheme.typography.labelMedium)
                                 } else {
                                     for (member in membersToShow) {
-                                        MemberIcon(Modifier.scale(0.7f), Modifier.padding(5.dp, 0.dp, 10.dp, 0.dp), member)
+                                        //MemberIcon(Modifier.scale(0.7f), Modifier.padding(5.dp, 0.dp, 10.dp, 0.dp), member)
                                     }
                                 }
                                 if (task.members.size > 4) {
@@ -1334,10 +1330,10 @@ fun HorizontalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, sc
                     membersList
                 for ((index, member) in membersToShow.withIndex()) {
                     val endPadding = if (index == membersToShow.lastIndex) 16.dp else 20.dp
-                    MemberIcon(
+                    /*MemberIcon(
                         modifierPadding = Modifier.padding(0.dp, 0.dp, endPadding, 0.dp),
                         member = member
-                    )
+                    )*/
                 }
                 if (membersList.size > 5) {
                     Text(
@@ -1526,7 +1522,7 @@ fun HorizontalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, sc
                                         Text(" nobody assigned", style = MaterialTheme.typography.labelMedium)
                                     } else {
                                         for (member in membersToShow) {
-                                            MemberIcon(Modifier.scale(0.7f), Modifier.padding(5.dp, 0.dp, 10.dp, 0.dp), member)
+                                            //MemberIcon(Modifier.scale(0.7f), Modifier.padding(5.dp, 0.dp, 10.dp, 0.dp), member)
                                         }
                                     }
                                     if (task.members.size > 4) {

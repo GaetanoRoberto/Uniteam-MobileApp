@@ -6,6 +6,17 @@ import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
+import it.polito.uniteam.classes.CommentDBFinal
+import it.polito.uniteam.classes.FileDBFinal
+import it.polito.uniteam.classes.HistoryDBFinal
+import it.polito.uniteam.classes.LoadingSpinner
+import it.polito.uniteam.classes.MemberDBFinal
+import it.polito.uniteam.classes.TaskDBFinal
+import it.polito.uniteam.classes.TeamDBFinal
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.listSaver
+import it.polito.uniteam.classes.ChatDBFinal
+import it.polito.uniteam.classes.MessageDB
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -34,6 +45,7 @@ import androidx.compose.material.icons.outlined.ManageAccounts
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -81,13 +93,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
-import it.polito.uniteam.classes.CommentDBFinal
-import it.polito.uniteam.classes.FileDBFinal
-import it.polito.uniteam.classes.HistoryDBFinal
-import it.polito.uniteam.classes.LoadingSpinner
-import it.polito.uniteam.classes.MemberDBFinal
-import it.polito.uniteam.classes.TaskDBFinal
-import it.polito.uniteam.classes.TeamDBFinal
 import it.polito.uniteam.gui.teamDetails.TeamViewScreen
 import it.polito.uniteam.gui.availability.Availability
 import it.polito.uniteam.gui.availability.Join
@@ -104,11 +109,13 @@ import it.polito.uniteam.gui.notifications.messageUnreadCountForBottomBar
 import it.polito.uniteam.gui.userprofile.OtherProfileSettings
 import it.polito.uniteam.gui.userprofile.ProfileSettings
 import it.polito.uniteam.gui.userprofile.UserProfileScreen
+import it.polito.uniteam.gui.yourTasksCalendar.YourTasksCalendarView
 import it.polito.uniteam.ui.theme.UniTeamTheme
 import java.io.File
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.listSaver
@@ -117,6 +124,7 @@ import it.polito.uniteam.classes.ChatDBFinal
 import it.polito.uniteam.classes.MessageDB
 import it.polito.uniteam.gui.teamDetails.TeamDetailsView
 import it.polito.uniteam.gui.yourTasksCalendar.YourTasksCalendarView
+import okhttp3.internal.wait
 
 class MainActivity : ComponentActivity() {
 
@@ -156,9 +164,19 @@ class MainActivity : ComponentActivity() {
                 darkTheme = theme,
                 vm = viewModel(factory = Factory(LocalContext.current))
             ) {
+                // Stati da passare per le queries che non vanno rieseguite ad ogni recomposition
+                /*val teamsList = it.getTeams().collectAsState(initial = emptyList())
+                val membersList = it.getAllTeamsMembersHome().collectAsState(initial = emptyList())*/
 
+                val teams = it.teams.collectAsState(initial = emptyList())
+                val tasks = it.tasks.collectAsState(initial = emptyList())
+                val messages = it.messages.collectAsState(initial = emptyList())
+                val members = it.members.collectAsState(initial = emptyList())
+                val histories = it.histories.collectAsState(initial = emptyList())
+                val files = it.files.collectAsState(initial = emptyList())
+                val comments = it.comments.collectAsState(initial = emptyList())
+                val chats = it.chats.collectAsState(initial = emptyList())
                 AppStateManager.ProvideLocalAppState(it) {
-
                     val items = listOf(
                         BottomNavigationItem(
                             title = "Teams",
@@ -410,24 +428,28 @@ class MainActivity : ComponentActivity() {
                                                             )
                                                         }*/
                                                             composable("Chat/{chatId}") {
+
                                                                 ChatScreen(
                                                                     vm = viewModel(
                                                                         factory = Factory(
                                                                             LocalContext.current
                                                                         )
-                                                                    )
+                                                                    ),
+                                                                    teams = teams.value,
+                                                                    members = members.value,
+                                                                    messages = messages.value,
+                                                                    chats = chats.value
                                                                 )
                                                             }
                                                             composable("ChatList/{teamId}") {
                                                                 ChatListScreen(
                                                                     vm = viewModel(
-                                                                        factory = Factory(
-                                                                            LocalContext.current
-                                                                        )
-                                                                    )/*,
-                                                            chatList = chats.value,
-                                                            members = members.value,
-                                                            teams = teams.value*/
+                                                                        factory = Factory(LocalContext.current)
+                                                                    ),
+                                                                    chatList = chats.value,
+                                                                    members = members.value,
+                                                                    teams = teams.value,
+                                                                    messages = messages.value
                                                                 )
                                                             }
                                                             composable("Profile") {
@@ -615,8 +637,9 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        requestPermissions()
-    }
+            requestPermissions()
+        }
+
 
     private fun hasPermission(permission: String): Boolean {
         return ContextCompat.checkSelfPermission(
@@ -719,23 +742,19 @@ fun MyTopAppBar(
             }
         },
         actions = {
-            if (isVertical()) {
-                IconButton(
-                    onClick = {
-                        navController.navigate("Profile") {
+            if (isVertical()){
+                IconButton(onClick = {
+                    navController.navigate("Profile") {
 
-                            /*popUpTo(navController.graph.findStartDestination().id) {
-                                // Pop everything up to the "destination_a" destination off the back stack before
-                                // navigating to the "destination_b" destination
-                                //saveState = true
-                            }*/
-                            launchSingleTop =
-                                true //avoiding multiple copies on the top of the back stack
-                            //restoreState = true
-                        }
-                    },
-                    colors = IconButtonDefaults.iconButtonColors(MaterialTheme.colorScheme.secondary)
-                ) {
+                        /*popUpTo(navController.graph.findStartDestination().id) {
+                            // Pop everything up to the "destination_a" destination off the back stack before
+                            // navigating to the "destination_b" destination
+                            //saveState = true
+                        }*/
+                        launchSingleTop = true //avoiding multiple copies on the top of the back stack
+                        //restoreState = true
+                    }
+                }, colors = IconButtonDefaults.iconButtonColors(MaterialTheme.colorScheme.secondary)) {
                     Icon(
                         imageVector = Icons.Default.ManageAccounts,
                         contentDescription = "Profile",

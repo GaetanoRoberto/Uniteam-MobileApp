@@ -15,7 +15,7 @@ class GeneralViewModel(val model: UniTeamModel, val savedStateHandle: SavedState
 
 
 
-    fun getTeams() = model.getTeams()
+    /*fun getTeams() = model.getTeams()
     fun getAllTeamsMembersHome() = model.getAllTeamsMembersHome()
-    fun getTeamById(id: String) = model.getTeamById(id)
+    fun getTeamById(id: String) = model.getTeamById(id)*/
 }

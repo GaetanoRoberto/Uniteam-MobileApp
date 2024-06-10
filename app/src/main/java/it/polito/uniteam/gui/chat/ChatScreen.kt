@@ -1,5 +1,6 @@
 package it.polito.uniteam.gui.chat
 import android.net.Uri
+import android.util.Log
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -43,9 +44,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import it.polito.uniteam.AppStateManager
 import it.polito.uniteam.Factory
+import it.polito.uniteam.classes.ChatDBFinal
+import it.polito.uniteam.classes.MemberDBFinal
 import it.polito.uniteam.classes.MemberIcon
-import it.polito.uniteam.classes.Message
+import it.polito.uniteam.classes.MessageDB
+import it.polito.uniteam.classes.TeamDBFinal
 import it.polito.uniteam.classes.TeamIcon
 import it.polito.uniteam.isVertical
 import java.time.LocalDate
@@ -54,17 +59,37 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
 @Composable
-fun ChatScreen( vm : ChatViewModel = viewModel(factory = Factory(LocalContext.current))) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            
-            ChatHeader(vm = vm)
-            ChatBody(vm = vm)
-            SendMessage(vm = vm)
+fun ChatScreen( vm : ChatViewModel = viewModel(factory = Factory(LocalContext.current)),teams: List<TeamDBFinal>,members: List<MemberDBFinal>,messages: List<MessageDB>,chats: List<ChatDBFinal>    ) {
+    val chatId = vm.chatId
+
+    val team = teams.find { it.chat == chatId }
+    val chat = chats.find { it.id == chatId }!!
+    val chatMessages = messages.filter { chat.messages.contains(it.id) }.sortedBy { it.creationDate }
+    val membersChat = if (team != null) {
+        // If teamId is defined, get all members of the team
+        members.filter { team.members.contains(it.id) }
+    } else {
+        // If it is a direct chat, get both the receiver and sender of the chat
+        val sender = chat.sender
+        val receiver = chat.receiver
+
+        members.filter { it.id == sender || it.id == receiver }
+
+    }
+    Column(modifier = Modifier.fillMaxSize()) {
+            ChatHeader(vm,team,chat,membersChat)
+            ChatBody(vm = vm,chat,chatMessages,membersChat)
+            SendMessage(vm = vm,team)
         }
 }
 
 @Composable
-fun ChatBody(vm: ChatViewModel){
+fun ChatBody(
+    vm: ChatViewModel,
+    chat: ChatDBFinal,
+    messages: List<MessageDB>,
+    membersChat: List<MemberDBFinal>
+){
     val screenHeightDp = LocalConfiguration.current.screenHeightDp
 
     Box(
@@ -79,19 +104,19 @@ fun ChatBody(vm: ChatViewModel){
         //.padding(top = 5.dp)
 
     ) {
-        key(vm.chat.messages.size) {
+        key(messages.size) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState(initial = Int.MAX_VALUE))
                     //.border(BorderStroke(1.dp, MaterialTheme.colorScheme.onPrimary))
             ) {
-                if (vm.chat.messages.size == 0)
+                if (messages.isEmpty())
                     EmptyChat()
                 else{
-                    vm.chat.messages.forEach { message ->
-                        if (vm.chat.teamId != null)
-                            ChatRowTeam(message = message, vm)
+                    messages.forEach { message ->
+                        if (chat.teamId != null)
+                            ChatRowTeam(message = message, vm, membersChat)
                         else
                             ChatRowDirect(message = message, vm)
                     }
@@ -120,14 +145,14 @@ fun EmptyChat(){
 }
 @Composable
 fun ChatRowDirect(
-    message: Message,
+    message: MessageDB,
     vm: ChatViewModel
 ) {
-    val loggedMember = vm.getLoggedMember()
-    val isSender = message.senderId == loggedMember.id
+    val loggedMember = vm.loggedMember
+    val isSender = message.senderId== loggedMember.id
     val alignment = if (isSender) Alignment.End else Alignment.Start
-    vm.markUserMessageAsRead( message)
-
+    if (message.senderId != loggedMember.id)
+        vm.markUserMessageAsRead( message)
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = alignment
@@ -165,11 +190,16 @@ fun ChatRowDirect(
 
 @Composable
 fun ChatRowTeam(
-    message: Message,
-    vm: ChatViewModel
+    message: MessageDB,
+    vm: ChatViewModel,
+    membersChat: List<MemberDBFinal>
 ) {
-    val member = vm.getMemberById(message.senderId)
-    val loggedMember = vm.getLoggedMember()
+
+    val member = membersChat.find { it.id == message.senderId }
+    Log.d("ChatScreen", "membersChat: $membersChat")
+
+    //val member = vm.getMemberById(message.senderId)
+    val loggedMember = vm.loggedMember
     val isSender = message.senderId == loggedMember.id
 
     val alignment = if (isSender) Alignment.End else Alignment.Start
@@ -181,7 +211,8 @@ fun ChatRowTeam(
         Row(modifier = Modifier.padding(all = 8.dp)) {
             if (!isSender){
                 if (member != null) {
-                    //MemberIcon(modifierScale= Modifier.scale(0.9f), modifierPadding = Modifier.padding(4.dp, 12.dp, 15.dp, 0.dp),member = member)
+                    Log.d("ChatScreen", "Member: $member")
+                    MemberIcon(modifierScale= Modifier.scale(0.9f), modifierPadding = Modifier.padding(4.dp, 12.dp, 15.dp, 0.dp),member = member)
                 }
             }
             Column {
@@ -225,9 +256,16 @@ fun ChatRowTeam(
 }
 @Composable
 fun ChatHeader(
-    vm: ChatViewModel
+    vm : ChatViewModel,
+    team: TeamDBFinal?,
+    chat: ChatDBFinal,
+    membersChat: List<MemberDBFinal>
 ) {
-    val text = if (vm.chat.teamId != null) vm.teamName else vm.chat.receiver?.username
+    val teamName = team?.name
+    val receiver = membersChat.find { it.id == chat.receiver || it.id == chat.sender  && it.id != vm.loggedMember.id}
+    Log.d("ChatScreen", "membersChat: ${membersChat.find { it.id == chat.receiver || it.id == chat.sender  && it.id != vm.loggedMember.id}}")
+    val text = if (chat.teamId != null) teamName else receiver?.username
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -235,14 +273,17 @@ fun ChatHeader(
             .padding(16.dp),
         horizontalArrangement = Arrangement.Start
     ) {
-        /*if (vm.chat.teamId == null) {
-            vm.chat.receiver?.let { MemberIcon(member = it) }
+        if (team == null) {
+                if (receiver != null) {
+                    MemberIcon(member = receiver)
+                }
+
         } else {
-            TeamIcon(
-                team = vm.getTeam(vm.chat.teamId),
-                modifierPadding = if(vm.getTeam(vm.chat.teamId).image != Uri.EMPTY) Modifier.padding(6.dp, 4.dp, 12.dp, 7.dp) else Modifier.padding(4.dp, 0.dp, 12.dp, 0.dp),
-                modifierScale = if(vm.getTeam(vm.chat.teamId).image != Uri.EMPTY) Modifier.scale(2f) else Modifier.scale(1f))
-        }*/
+                TeamIcon(
+                    team = team,
+                    modifierPadding = if(team.image != Uri.EMPTY) Modifier.padding(6.dp, 4.dp, 12.dp, 7.dp) else Modifier.padding(4.dp, 0.dp, 12.dp, 0.dp),
+                    modifierScale = if(team.image != Uri.EMPTY) Modifier.scale(2f) else Modifier.scale(1f))
+        }
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text =  text ?: "Unknown",
@@ -259,11 +300,12 @@ fun ChatHeader(
 
 @Composable
 fun SendMessage(
-    vm: ChatViewModel
+    vm: ChatViewModel,
+    team: TeamDBFinal?
 ) {
     val focusManager = LocalFocusManager.current
     var messageText by remember { mutableStateOf("") }
-    val loggedMember = vm.getLoggedMember()
+    val loggedMember = vm.loggedMember
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -277,31 +319,18 @@ fun SendMessage(
             value = messageText,
             onValueChange = { messageText = it },
             modifier = Modifier
-                .height(if (isVertical()) (LocalConfiguration.current.screenHeightDp * 0.15).dp else (LocalConfiguration.current.screenHeightDp * 0.3).dp )
+                .height(if (isVertical()) (LocalConfiguration.current.screenHeightDp * 0.15).dp else (LocalConfiguration.current.screenHeightDp * 0.3).dp)
                 .weight(1f),
             trailingIcon = {
                 IconButton(
                     onClick = {
                         if (messageText.isNotBlank()) {
-                            if(vm.chat.teamId != null)
-                                vm.addTeamMessage(loggedMember!!.id, messageText, vm.chat.teamId)
+                            if(team != null)
+                                vm.addTeamMessage(loggedMember.id, messageText,team.members)
                             else
-                                vm.addMessage(
-                                    Message(
-                                        id = vm.chat.messages.size + 1,
-                                        senderId = loggedMember!!.id,
-                                        message = messageText,
-                                        creationDate = LocalDateTime.now()
-                                    )
-                                )
-                            /*vm.addMessage(
-                                Message(
-                                    id = vm.chat.messages.size + 1,
-                                    senderId = loggedMember!!.id,
-                                    message = messageText,
-                                    creationDate = LocalDateTime.now()
-                                )
-                            )*/
+                                vm.addMessage(loggedMember.id, messageText)
+
+
                             messageText = ""
                             focusManager.clearFocus()
                         }
