@@ -34,11 +34,11 @@ import it.polito.uniteam.classes.TeamDBFinal
 import it.polito.uniteam.classes.messageStatus
 import it.polito.uniteam.firebase.getMemberById
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import java.time.LocalDate
 import kotlin.collections.HashMap
 
 
@@ -64,7 +64,7 @@ class UniTeamModel(val context: Context) {
     fun getTeamById(id: String): Flow<TeamDB> = it.polito.uniteam.firebase.getTeamById(db,coroutineScope,id)
 
     fun getAllTeams2(): Flow<List<TeamDBFinal>> = it.polito.uniteam.firebase.getAllTeams(db,coroutineScope,loggedUser,isLoading)
-    fun getAllMembers2(): Flow<List<MemberDBFinal>> = it.polito.uniteam.firebase.getAllMembers(db)
+    fun getAllMembers2(): Flow<List<MemberDBFinal>> = it.polito.uniteam.firebase.getAllMembers(db,coroutineScope)
 
     fun getAllTasks2(): Flow<List<TaskDBFinal>> = it.polito.uniteam.firebase.getAllTasks(db)
 
@@ -75,6 +75,9 @@ class UniTeamModel(val context: Context) {
     fun getAllComments2() : Flow<List<CommentDBFinal>> = it.polito.uniteam.firebase.getAllComments(db)
 
     fun getAllMessages2() : Flow<List<MessageDB>> = it.polito.uniteam.firebase.getAllMessages(db)
+
+    fun scheduleTask(task: TaskDBFinal, scheduleDate: LocalDate, hoursToSchedule: Pair<Int,Int>) = it.polito.uniteam.firebase.scheduleTask(db, task, scheduleDate, hoursToSchedule)
+    fun unscheduleTask(task: TaskDBFinal, scheduleDate: LocalDate) = it.polito.uniteam.firebase.unscheduleTask(db,task,scheduleDate)
 
     var membersList = mutableListOf<Member>(
         Member().apply {

@@ -1,10 +1,13 @@
 package it.polito.uniteam.firebase
 
 import android.net.Uri
+import android.util.Base64
 import android.util.Log
 import androidx.compose.runtime.MutableState
+import androidx.core.net.toUri
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
 import it.polito.uniteam.classes.Category
 import it.polito.uniteam.classes.CategoryRole
 import it.polito.uniteam.classes.ChatDB
@@ -44,29 +47,43 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
 import java.time.LocalDateTime
+
+suspend fun getImageToFirebaseStorage(fileName: String): Uri? {
+    val storage = FirebaseStorage.getInstance()
+    val imageRef = storage.reference.child("images/${fileName}.jpg")
+    return try {
+        imageRef.downloadUrl.await()
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
+    }
+}
+
 fun getAllTeams(db: FirebaseFirestore, coroutineScope: CoroutineScope, loggedUser: Deferred<MemberDB>, isLoading: MutableState<Boolean>): Flow<List<TeamDBFinal>> = callbackFlow {
     val listener = db.collection("Team").addSnapshotListener {
         // whenever there is a change in this collection give me data (r query result, e error)
             r, e ->
         if (r != null) {
-            var teams = mutableListOf<TeamDBFinal>()
-            r.forEach{
-                val t = TeamDBFinal()
-                t.id = it.id
-                t.name = it.getString("name") ?: ""
-                t.description = it.getString("description") ?: ""
-                t.image = Uri.EMPTY
-                t.creationDate = it.getTimestamp("creationDate") ?.let { parseToLocalDate(it.toDate(),parseReturnType.DATE) } as LocalDate
-                t.chat = it.getString("chat")
-                t.tasks = it.get("tasks") as MutableList<String>
-                t.members = it.get("members") as MutableList<String>
-                t.teamHistory = it.get("teamHistory") as MutableList<String>
+            val teams = mutableListOf<TeamDBFinal>()
+            coroutineScope.launch {
+                r.forEach {
+                    val t = TeamDBFinal()
+                    t.id = it.id
+                    t.name = it.getString("name") ?: ""
+                    t.description = it.getString("description") ?: ""
+                    t.image = getImageToFirebaseStorage(it.id)!!
+                    t.creationDate = it.getTimestamp("creationDate")
+                        ?.let { parseToLocalDate(it.toDate(), parseReturnType.DATE) } as LocalDate
+                    t.chat = it.getString("chat")
+                    t.tasks = it.get("tasks") as MutableList<String>
+                    t.members = it.get("members") as MutableList<String>
+                    t.teamHistory = it.get("teamHistory") as MutableList<String>
 
-                teams.add(t)
+                    teams.add(t)
+                }
+                //val teams = r.toObjects(TeamDBFinal::class.java)
+                trySend(teams)
             }
-
-            //val teams = r.toObjects(TeamDBFinal::class.java)
-            trySend(teams)
         }else{
             trySend(listOf()).onSuccess {
                 isLoading.value = false
@@ -78,58 +95,64 @@ fun getAllTeams(db: FirebaseFirestore, coroutineScope: CoroutineScope, loggedUse
             listener.remove()
         }
     }
-fun getAllMembers(db: FirebaseFirestore): Flow<List<MemberDBFinal>> = callbackFlow {
+fun getAllMembers(db: FirebaseFirestore, coroutineScope: CoroutineScope): Flow<List<MemberDBFinal>> = callbackFlow {
     val listener = db.collection("Member").addSnapshotListener {
         // whenever there is a change in this collection give me data (r query result, e error)
             r, e ->
         if (r != null) {
             var members = mutableListOf<MemberDBFinal>()
-            r.forEach{
-                val m = MemberDBFinal()
-                m.id = it.id
-                m.fullName = it.getString("fullName") ?: ""
-                m.username = it.getString("username") ?: ""
-                m.email = it.getString("email") ?: ""
-                m.location = it.getString("location") ?: ""
-                m.description = it.getString("description") ?: ""
-                m.kpi = it.getString("kpi") ?: ""
-                m.profileImage = Uri.EMPTY
-                val teamsInfo = it.get("teamsInfo")
-                if (teamsInfo is List<*>) {
-                    m.teamsInfo = hashMapOf()
-                    (teamsInfo as List<HashMap<String, Any>>).forEach { teamInfoMap ->
-                        val teamId = teamInfoMap["teamId"] as String ?: return@forEach
-                        val role = teamInfoMap["role"] as String ?: "NONE"
-                        val weeklyAvailabilityTimes = (teamInfoMap["weeklyAvailabilityTimes"] as Number).toInt() ?: 0
-                        val weeklyAvailabilityHoursMap = teamInfoMap["weeklyAvailabilityHours"] as HashMap<String, Number>
-                        var hours = 0
-                        var minutes = 0
-                        weeklyAvailabilityHoursMap.forEach { (dbKey, dbValue) ->
-                            if(dbKey == "hours")
-                                hours = dbValue.toInt()
-                            else
-                                minutes = dbValue.toInt()
+            coroutineScope.launch {
+                r.forEach {
+                    val m = MemberDBFinal()
+                    m.id = it.id
+                    m.fullName = it.getString("fullName") ?: ""
+                    m.username = it.getString("username") ?: ""
+                    m.email = it.getString("email") ?: ""
+                    m.location = it.getString("location") ?: ""
+                    m.description = it.getString("description") ?: ""
+                    m.kpi = it.getString("kpi") ?: ""
+                    m.profileImage = getImageToFirebaseStorage(it.id)!!
+                    val teamsInfo = it.get("teamsInfo")
+                    if (teamsInfo is List<*>) {
+                        m.teamsInfo = hashMapOf()
+                        (teamsInfo as List<HashMap<String, Any>>).forEach { teamInfoMap ->
+                            val teamId = teamInfoMap["teamId"] as String ?: return@forEach
+                            val role = teamInfoMap["role"] as String ?: "NONE"
+                            val weeklyAvailabilityTimes =
+                                (teamInfoMap["weeklyAvailabilityTimes"] as Number).toInt() ?: 0
+                            val weeklyAvailabilityHoursMap =
+                                teamInfoMap["weeklyAvailabilityHours"] as HashMap<String, Number>
+                            var hours = 0
+                            var minutes = 0
+                            weeklyAvailabilityHoursMap.forEach { (dbKey, dbValue) ->
+                                if (dbKey == "hours")
+                                    hours = dbValue.toInt()
+                                else
+                                    minutes = dbValue.toInt()
+                            }
+                            val weeklyAvailabilityHours = Pair(hours, minutes)
+                            val permissionrole = teamInfoMap["permissionRole"] as? String ?: "USER"
+
+                            m.teamsInfo?.put(
+                                teamId, MemberTeamInfo(
+                                    role = CategoryRole.valueOf(role),
+                                    weeklyAvailabilityTimes = weeklyAvailabilityTimes,
+                                    weeklyAvailabilityHours = weeklyAvailabilityHours,
+                                    permissionrole = permissionRole.valueOf(permissionrole)
+                                )
+                            )
                         }
-                        val weeklyAvailabilityHours = Pair(hours, minutes)
-                        val permissionrole = teamInfoMap["permissionRole"] as? String ?: "USER"
-
-                        m.teamsInfo?.put(teamId, MemberTeamInfo(
-                            role = CategoryRole.valueOf(role),
-                            weeklyAvailabilityTimes = weeklyAvailabilityTimes,
-                            weeklyAvailabilityHours = weeklyAvailabilityHours,
-                            permissionrole = permissionRole.valueOf(permissionrole)
-                        ))
+                    } else {
+                        m.teamsInfo = hashMapOf()
                     }
-                } else {
-                    m.teamsInfo = hashMapOf()
+                    m.chats = it.get("chats") as MutableList<String>
+
+                    members.add(m)
                 }
-                m.chats = it.get("chats") as MutableList<String>
 
-                members.add(m)
+                //val teams = r.toObjects(TeamDBFinal::class.java)
+                trySend(members)
             }
-
-            //val teams = r.toObjects(TeamDBFinal::class.java)
-            trySend(members)
         }else{
             trySend(listOf()).onSuccess {
                 //isLoading.value = false
@@ -307,7 +330,9 @@ fun getAllHistoriesFinal(db: FirebaseFirestore): Flow<List<HistoryDBFinal>> = ca
 fun getAllChats(db: FirebaseFirestore): Flow<List<ChatDBFinal>> = callbackFlow {
     val listener = db.collection("Chat").addSnapshotListener { r, e ->
         if (r != null) {
-            val chats = r.toObjects(ChatDBFinal::class.java)
+            val chats = r.documents.mapNotNull { document ->
+                document.toObject(ChatDBFinal::class.java)?.copy(id = document.id)
+            }
             trySend(chats)
         } else {
             trySend(listOf())
@@ -317,6 +342,7 @@ fun getAllChats(db: FirebaseFirestore): Flow<List<ChatDBFinal>> = callbackFlow {
         listener.remove()
     }
 }
+
 fun getAllFiles(db: FirebaseFirestore): Flow<List<FileDBFinal>> = callbackFlow {
     val listener = db.collection("File").addSnapshotListener { r, e ->
         if(r != null) {

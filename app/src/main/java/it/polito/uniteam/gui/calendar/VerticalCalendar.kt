@@ -1,6 +1,5 @@
 package it.polito.uniteam.gui.calendar
 
-import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -46,7 +45,6 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextLayoutResult
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -57,11 +55,10 @@ import com.mohamedrejeb.compose.dnd.drop.dropTarget
 import com.mohamedrejeb.compose.dnd.rememberDragAndDropState
 import it.polito.uniteam.AppStateManager
 import it.polito.uniteam.Factory
-import it.polito.uniteam.classes.MemberDBFinal
+import it.polito.uniteam.NavControllerManager
 import it.polito.uniteam.classes.MemberIcon
 import it.polito.uniteam.classes.Status
 import it.polito.uniteam.classes.TaskDBFinal
-import it.polito.uniteam.classes.TeamDBFinal
 import it.polito.uniteam.classes.TextTrim
 import it.polito.uniteam.isVertical
 import java.time.LocalDate
@@ -70,7 +67,7 @@ import java.time.LocalDate
 fun SetupCalendarData(vm: Calendar = viewModel(factory = Factory(LocalContext.current))) {
     val teamTasks = AppStateManager.getTeams().find { it.id == vm.teamId }?.tasks
     val teamTasksFull = AppStateManager.getTasks().filter { teamTasks?.contains(it.id) == true }
-    vm.tasksToAssign = teamTasksFull.filter { it.members.contains(vm.memberId) && it.status != Status.COMPLETED }.toMutableStateList()
+    vm.tasksToAssign = teamTasksFull.filter { it.members.contains(vm.loggedMember) && it.status != Status.COMPLETED }.toMutableStateList()
     vm.allScheduledTasks = teamTasksFull.toMutableStateList()
     vm.viewedScheduledTasks = teamTasksFull.toMutableStateList()
 }
@@ -349,20 +346,23 @@ fun EventItem(vm: Calendar = viewModel(factory = Factory(LocalContext.current)),
                 .padding(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            val navController = NavControllerManager.getNavController()
             if (memberTime!=null) {
                 // get scheduled member
+                val scheduledMember = AppStateManager.getMembers().find{it.id == memberTime.key.first}!!
                 MemberIcon(
                     modifierScale = Modifier.scale(0.6f),
                     modifierPadding = Modifier.padding(0.dp, 0.dp, 8.dp, 8.dp),
-                    member = AppStateManager.getMembers().find{it.id == memberTime.key.first}!!,
+                    member = scheduledMember,
+                    loggedMemberAction = if(scheduledMember.id == vm.loggedMember) {{navController.navigate("Profile")}} else null
                 )
             } else {
                 // are not scheduled, so taskstoassign use the logged member
                 MemberIcon(
                     modifierScale = Modifier.scale(0.6f),
                     modifierPadding = Modifier.padding(0.dp, 0.dp, 8.dp, 8.dp),
-                    member = AppStateManager.getMembers().find{it.id == vm.memberId}!!,
-
+                    member = AppStateManager.getMembers().find{it.id == vm.loggedMember}!!,
+                    loggedMemberAction = {navController.navigate("Profile")}
                 )
             }
         }
@@ -467,7 +467,7 @@ fun VerticalDayEventScheduler(
                                             val task = state.data.first
                                             val oldDate = state.data.second
                                             val hoursToSchedule =
-                                                task.schedules.get(Pair(vm.memberId, oldDate))
+                                                task.schedules.get(Pair(vm.loggedMember, oldDate))
                                             // remove the old day scheduled and add the new one
                                             vm.unScheduleTask(task, oldDate!!)
                                             if (hoursToSchedule != null) {

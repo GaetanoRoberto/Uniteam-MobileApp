@@ -1,6 +1,7 @@
 package it.polito.uniteam.gui.userprofile
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -35,7 +36,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -47,34 +47,56 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
+import it.polito.uniteam.AppStateManager
 import it.polito.uniteam.Factory
 import it.polito.uniteam.NavControllerManager
 import it.polito.uniteam.UniTeamModel
-import it.polito.uniteam.classes.Member
-import it.polito.uniteam.classes.Team
-import it.polito.uniteam.classes.TeamIcon
+import it.polito.uniteam.classes.MemberDBFinal
+import it.polito.uniteam.classes.Status
+import it.polito.uniteam.classes.TeamDBFinal
 import it.polito.uniteam.ui.theme.Orange
 
 
 class OtherUserProfileScreen (val model: UniTeamModel, val savedStateHandle: SavedStateHandle): ViewModel() {
 
-    val memberId = checkNotNull(savedStateHandle["memberId"]).toString().toInt()
-    val member:Member = model.getMemberById(memberId).first!!
-    val teams = model.teams.value
-    val loggedMember = model.loggedMember.value
+    val memberId = checkNotNull(savedStateHandle["memberId"]).toString()
+    var member: MemberDBFinal = MemberDBFinal()
+    var teamsInCommon: List<TeamDBFinal> = emptyList()
+    val loggedMember = "d67br0MqJf6Qs1tzKHhm" // TODO hardcoded
 }
 
+// TODO Recall this Function Also for UserProfileScreen
+@Composable
+fun computeKPI(memberId: String): String {
+    // get all the teams of the member
+    val userTeams = AppStateManager.getTeams().filter { it.members.contains(memberId) }
+    // get all the taskId of all the teams of the member
+    val userTeamsTasksIds = mutableListOf<String>()
+    userTeams.forEach {
+        userTeamsTasksIds.addAll(it.tasks)
+    }
+    // get all the task of all the teams of the member that are completed
+    val overAllUserTeamsTasks = AppStateManager.getTasks().filter { userTeamsTasksIds.contains(it.id) && it.status == Status.COMPLETED }
+    val overallCompletedTasks = overAllUserTeamsTasks.size 
+    var memberCompletedTasks = 0
+    overAllUserTeamsTasks.forEach { completedTask ->
+        if(completedTask.members.contains(memberId))
+            memberCompletedTasks+=1
+    }
 
+    return "${(memberCompletedTasks/overallCompletedTasks) * 100} % on all Completed Tasks."
+}
 
+@Composable
+fun SetupOtherUserProfileData(vm: OtherUserProfileScreen = viewModel(factory = Factory(LocalContext.current.applicationContext))){
+    vm.member = AppStateManager.getMembers().find { it.id == vm.memberId }!!
+    vm.teamsInCommon = AppStateManager.getTeams().filter { it.members.contains(vm.memberId) && it.members.contains(vm.loggedMember) }
+}
 
 
 @Composable
 fun OtherUserProfile(vm: OtherUserProfileScreen = viewModel(factory = Factory(LocalContext.current.applicationContext))) {
-
-    val member = vm.member
-    val teamsInCommon = vm.teams.filter{
-        it.members.contains(member) && it.members.contains(vm.loggedMember)
-    }
+    SetupOtherUserProfileData(vm = vm)
     BoxWithConstraints {
         if (this.maxHeight > this.maxWidth) {
             Column(
@@ -83,11 +105,11 @@ fun OtherUserProfile(vm: OtherUserProfileScreen = viewModel(factory = Factory(Lo
                     .verticalScroll(rememberScrollState())
             ) {
                 val rowItems = listOf(
-                    Triple(Icons.Default.Person, "name", member.fullName ),
-                    Triple(Icons.Default.Face, "nickname",member.username ),
-                    Triple(Icons.Default.Email, "email", member.email),
-                    Triple(Icons.Default.LocationOn, "location", member.location),
-                    Triple(Icons.Default.Star, "KPI", member.kpi)
+                    Triple(Icons.Default.Person, "name", vm.member.fullName ),
+                    Triple(Icons.Default.Face, "nickname",vm.member.username ),
+                    Triple(Icons.Default.Email, "email", vm.member.email),
+                    Triple(Icons.Default.LocationOn, "location", vm.member.location),
+                    Triple(Icons.Default.Star, "KPI", computeKPI(memberId = vm.member.id))
                 )
                 val line_modifier = Modifier
                     .fillMaxWidth(0.8f)
@@ -104,9 +126,9 @@ fun OtherUserProfile(vm: OtherUserProfileScreen = viewModel(factory = Factory(Lo
 
 
                 RowItem(icon = Icons.Default.JoinInner, description = "Teams", value = "Teams in common:" )
-                    teamsInCommon.forEach{
+                    vm.teamsInCommon.forEach{
                         Row(modifier = Modifier.fillMaxWidth(0.8f)) {
-                            RowTeamItem(team = it, role = member.teamsInfo?.get(it.id)?.role.toString(), member= member)                        }
+                            RowTeamItem(team = it, role = vm.member.teamsInfo?.get(it.id)?.role.toString(), member= vm.member)                        }
 
                     }/*
                 Row(modifier = Modifier.fillMaxWidth()) {
@@ -129,11 +151,11 @@ fun OtherUserProfile(vm: OtherUserProfileScreen = viewModel(factory = Factory(Lo
                 verticalArrangement = Arrangement.Center
             ) {
                 val rowItems = listOf(
-                    Triple(Icons.Default.Person, "name", member.fullName ),
-                    Triple(Icons.Default.Face, "nickname", member.username ),
-                    Triple(Icons.Default.Email, "email", member.email),
-                    Triple(Icons.Default.LocationOn, "location", member.location),
-                    Triple(Icons.Default.Star, "KPI", member.kpi)
+                    Triple(Icons.Default.Person, "name", vm.member.fullName ),
+                    Triple(Icons.Default.Face, "nickname", vm.member.username ),
+                    Triple(Icons.Default.Email, "email", vm.member.email),
+                    Triple(Icons.Default.LocationOn, "location", vm.member.location),
+                    Triple(Icons.Default.Star, "KPI", vm.member.kpi)
                 )
                 val line_modifier = Modifier
                     .fillMaxWidth(0.8f)
@@ -149,10 +171,10 @@ fun OtherUserProfile(vm: OtherUserProfileScreen = viewModel(factory = Factory(Lo
                 }
 
                     RowItem(icon = Icons.Default.JoinInner, description = "Teams", value = "Teams in common:")
-                    teamsInCommon.forEach{
+                    vm.teamsInCommon.forEach{
                         Row(modifier = Modifier
                             .fillMaxWidth(0.8f)
-                            .padding(0.dp, 0.dp, 0.dp, 0.dp)) {RowTeamItem(team = it, role = member.teamsInfo?.get(it.id)?.role.toString(), member= member)}
+                            .padding(0.dp, 0.dp, 0.dp, 0.dp)) {RowTeamItem(team = it, role = vm.member.teamsInfo?.get(it.id)?.role.toString(), member= vm.member)}
 
 
 
@@ -169,9 +191,11 @@ fun OtherUserProfile(vm: OtherUserProfileScreen = viewModel(factory = Factory(Lo
 
 
 @Composable
-fun RowTeamItem(modifier: Modifier = Modifier, team: Team, role: String, member: Member) {
+fun RowTeamItem(modifier: Modifier = Modifier, team: TeamDBFinal, role: String, member: MemberDBFinal) {
     val controller = NavControllerManager.getNavController()
-    Column(modifier = Modifier.fillMaxWidth().clickable { controller.navigate("Team/${team.id}") }) {
+    Column(modifier = Modifier
+        .fillMaxWidth()
+        .clickable { controller.navigate("Team/${team.id}") }) {
         Row(
             modifier = Modifier.padding(6.dp, 0.dp, 0.dp, 0.dp)
         ) {

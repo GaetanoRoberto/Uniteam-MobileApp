@@ -229,7 +229,7 @@ fun HorizontalDayEventScheduler(
                                             // data passed from the DraggableItem, so move from 1 day to another
                                             val task = state.data.first
                                             val oldDate = state.data.second
-                                            val hoursToSchedule = task.schedules.get(Pair(vm.memberId,oldDate))
+                                            val hoursToSchedule = task.schedules.get(Pair(vm.loggedMember,oldDate))
                                             // remove the old day scheduled and add the new one
                                             vm.unScheduleTask(task, oldDate!!)
                                             if (hoursToSchedule != null) {

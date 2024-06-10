@@ -63,7 +63,7 @@ data class TaskDBFinal (
 )
 
 data class TaskForCalendar(
-    val id: Int,
+    val id: String,
     val team: String,
     val name: String,
     val date: LocalDate,

@@ -1,5 +1,6 @@
 package it.polito.uniteam.gui.calendar
 
+import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.rememberScrollState
@@ -23,8 +24,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import it.polito.uniteam.AppStateManager
 import it.polito.uniteam.Factory
+import it.polito.uniteam.NavControllerManager
 import it.polito.uniteam.classes.HourMinutesPicker
-import it.polito.uniteam.classes.MemberDBFinal
 import it.polito.uniteam.classes.Status
 import it.polito.uniteam.gui.showtaskdetails.RowItem
 import it.polito.uniteam.gui.showtaskdetails.RowMemberItem
@@ -164,7 +165,7 @@ fun ScheduleBackInTimeDialog(vm: Calendar = viewModel(factory = Factory(LocalCon
                     val (task,oldDate,newDate) = vm.taskToSchedule!!
                     if (oldDate != null) {
                         // old data passed from the state, so move from 1 day to another
-                        val hoursToSchedule = task.schedules.get(Pair(vm.memberId,oldDate))
+                        val hoursToSchedule = task.schedules.get(Pair(vm.loggedMember,oldDate))
                         // remove the old day scheduled and add the new one
                         vm.unScheduleTask(task, oldDate)
                         if (hoursToSchedule != null) {
@@ -221,7 +222,7 @@ fun ScheduleAfterDeadlineDialog(vm: Calendar = viewModel(factory = Factory(Local
                     val (task,oldDate,newDate) = vm.taskToSchedule!!
                     if (oldDate != null) {
                         // old data passed from the state, so move from 1 day to another
-                        val hoursToSchedule = task.schedules.get(Pair(vm.memberId,oldDate))
+                        val hoursToSchedule = task.schedules.get(Pair(vm.loggedMember,oldDate))
                         // remove the old day scheduled and add the new one
                         vm.unScheduleTask(task, oldDate)
                         if (hoursToSchedule != null) {
@@ -260,6 +261,7 @@ fun ScheduleAfterDeadlineDialog(vm: Calendar = viewModel(factory = Factory(Local
 
 @Composable
 fun TaskDetailDialog(vm: Calendar = viewModel(factory = Factory(LocalContext.current))) {
+    val navController = NavControllerManager.getNavController()
     val task = vm.taskToSchedule!!.first
     AlertDialog(
         containerColor = MaterialTheme.colorScheme.background,
@@ -279,7 +281,7 @@ fun TaskDetailDialog(vm: Calendar = viewModel(factory = Factory(LocalContext.cur
                 RowItem(title = "Priority:", value = task.priority)
                 RowItem(title = "Deadline:", value = task.deadline.toString())
                 RowItem(title = "Repeatable:", value = task.repetition)
-                RowMemberItem(title = "Members:", value = AppStateManager.getMembers().filter { task.members.contains(it.id) })
+                RowMemberItem(loggedMember = vm.loggedMember, dialogAction = {vm.closeDialog()}, loggedMemberAction = {navController.navigate("Profile");},title = "Members:", value = AppStateManager.getMembers().filter { task.members.contains(it.id) })
                 RowItem(title = "Status:", value = if(task.status==Status.IN_PROGRESS) "IN PROGRESS" else task.status)
             }
         },

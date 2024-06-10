@@ -104,7 +104,6 @@ import it.polito.uniteam.gui.notifications.messageUnreadCountForBottomBar
 import it.polito.uniteam.gui.userprofile.OtherProfileSettings
 import it.polito.uniteam.gui.userprofile.ProfileSettings
 import it.polito.uniteam.gui.userprofile.UserProfileScreen
-import it.polito.uniteam.gui.yourTasksCalendar.YourTasksCalendarViewScreen
 import it.polito.uniteam.ui.theme.UniTeamTheme
 import java.io.File
 import java.util.concurrent.ExecutorService
@@ -116,6 +115,8 @@ import androidx.compose.runtime.saveable.listSaver
 import androidx.lifecycle.ViewModel
 import it.polito.uniteam.classes.ChatDBFinal
 import it.polito.uniteam.classes.MessageDB
+import it.polito.uniteam.gui.teamDetails.TeamDetailsView
+import it.polito.uniteam.gui.yourTasksCalendar.YourTasksCalendarView
 
 class MainActivity : ComponentActivity() {
 
@@ -499,10 +500,7 @@ class MainActivity : ComponentActivity() {
                                                                         factory = Factory(
                                                                             LocalContext.current
                                                                         )
-                                                                    ),
-                                                                    teams = AppStateManager.getTeams(),
-                                                                    members = AppStateManager.getMembers(),
-                                                                    tasks = AppStateManager.getTasks()
+                                                                    )
                                                                 )
                                                             }
                                                             composable(
@@ -522,7 +520,7 @@ class MainActivity : ComponentActivity() {
                                                                 )
                                                             }
                                                             composable("Tasks") {
-                                                                YourTasksCalendarViewScreen(
+                                                                YourTasksCalendarView(
                                                                     vm = viewModel(
                                                                         factory = Factory(
                                                                             LocalContext.current

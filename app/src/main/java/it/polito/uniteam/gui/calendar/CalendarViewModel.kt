@@ -5,7 +5,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import it.polito.uniteam.UniTeamModel
@@ -21,7 +20,7 @@ class Calendar(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) 
     val teamId: String = "8Kil7wNz6eF1ZD2Lf19K"//checkNotNull(savedStateHandle["teamId"])
     //fun getTeam(teamId: Int) = model.getTeam(teamId)
     //val teamName = getTeam(teamId.toInt()).name
-    var memberId = "d67br0MqJf6Qs1tzKHhm" // TODO hardcoded
+    var loggedMember = "d67br0MqJf6Qs1tzKHhm" // TODO hardcoded
         private set
 
     fun scheduleTask(task: TaskDBFinal, scheduleDate: LocalDate, hoursToSchedule: Pair<Int,Int>) = model.scheduleTask(task, scheduleDate, hoursToSchedule)
@@ -39,8 +38,8 @@ class Calendar(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) 
 
     fun checkDialogs(task: TaskDBFinal, sourceDate:LocalDate? = null, targetDate: LocalDate, isNewSchedule: Boolean = true) {
         // check permissions
-        Log.i("diooo",task.schedules.keys.contains(Pair(memberId,targetDate)).toString())
-        if ((task.schedules.keys.contains(Pair(memberId,sourceDate)) &&!isNewSchedule) || isNewSchedule) {
+        Log.i("diooo",task.schedules.keys.contains(Pair(loggedMember,targetDate)).toString())
+        if ((task.schedules.keys.contains(Pair(loggedMember,sourceDate)) &&!isNewSchedule) || isNewSchedule) {
             // if permissions, check if back in time
             if(targetDate.isBefore(LocalDate.now())) {
                 selectedShowDialog = showDialog.schedule_in_past
@@ -72,7 +71,7 @@ class Calendar(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) 
 
     fun filterScheduledTasks(filterByMyTask: Boolean) {
         if (filterByMyTask) {
-            viewedScheduledTasks.removeIf { !it.members.contains(memberId) }
+            viewedScheduledTasks.removeIf { !it.members.contains(loggedMember) }
         } else {
             viewedScheduledTasks.clear()
             viewedScheduledTasks.addAll(allScheduledTasks)
