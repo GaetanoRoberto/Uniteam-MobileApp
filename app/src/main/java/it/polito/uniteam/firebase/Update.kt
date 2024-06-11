@@ -43,7 +43,7 @@ fun uploadImageToFirebase(fileName: String,fileUri: Uri = Uri.EMPTY) {
         }
 }
 
-fun scheduleTask(db: FirebaseFirestore, task: TaskDBFinal, scheduleDate: LocalDate, hoursToSchedule: Pair<Int,Int>, memberId: String) {
+fun scheduleTask(db: FirebaseFirestore, task: TaskDBFinal, scheduleDate: LocalDate, hoursToSchedule: Pair<Int, Int>, memberId: String) {
     val newSchedule = mapOf(
         "scheduleInfo" to mapOf(
             "member" to memberId,
@@ -55,15 +55,45 @@ fun scheduleTask(db: FirebaseFirestore, task: TaskDBFinal, scheduleDate: LocalDa
         )
     )
 
-    db.collection("Task").document(task.id)
-        .update("schedules", FieldValue.arrayUnion(newSchedule))
-        .addOnSuccessListener {
-            Log.d("DB","Task Updated Successfully.")
+    val taskRef = db.collection("Task").document(task.id)
+
+    db.runTransaction { transaction ->
+        val taskDoc = transaction.get(taskRef)
+        val schedules = taskDoc.get("schedules") as? List<Map<String, Map<String,Any>>>
+
+        val updatedSchedules = if (schedules != null) {
+            val existingScheduleIndex = schedules.indexOfFirst {
+                Log.i("DB",it["scheduleInfo"]?.get("member").toString())
+                Log.i("DB",it["scheduleInfo"]?.get("scheduleDate").toString())
+                Log.i("DB",newSchedule["scheduleInfo"]?.get("scheduleDate").toString())
+                it["scheduleInfo"]?.get("member") == memberId && it["scheduleInfo"]?.get("scheduleDate") == newSchedule["scheduleInfo"]?.get("scheduleDate")
+            }
+            if (existingScheduleIndex != -1) {
+                val existingSchedule = schedules[existingScheduleIndex]
+                val existingHours = (existingSchedule["scheduleTime"]?.get("hours") as Long).toInt()
+                val existingMinutes = (existingSchedule["scheduleTime"]?.get("minutes") as Long).toInt()
+                val newHours = existingHours + newSchedule["scheduleTime"]?.get("hours") as Int
+                val newMinutes = existingMinutes + newSchedule["scheduleTime"]?.get("minutes") as Int
+
+                val updatedSchedule = existingSchedule.toMutableMap()
+                updatedSchedule["scheduleTime"] = mapOf("hours" to newHours, "minutes" to newMinutes)
+                schedules.toMutableList().apply { set(existingScheduleIndex, updatedSchedule) }
+            } else {
+                schedules + newSchedule
+            }
+        } else {
+            listOf(newSchedule)
         }
-        .addOnFailureListener {
-            Log.d("DB","Failed to Add Schedule: $it")
-        }
+
+        transaction.update(taskRef, "schedules", updatedSchedules)
+    }.addOnSuccessListener {
+        Log.d("DB", "Task Updated Successfully.")
+    }.addOnFailureListener { exception ->
+        Log.d("DB", "Failed to Add Schedule: $exception")
+    }
 }
+
+
 
 fun unscheduleTask(db: FirebaseFirestore, task: TaskDBFinal, scheduleDate: LocalDate, memberId: String) {
     val scheduleTime = task.schedules[Pair(memberId,scheduleDate)]!!
