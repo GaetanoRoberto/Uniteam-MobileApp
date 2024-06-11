@@ -1,7 +1,10 @@
 package it.polito.uniteam.gui.userprofile
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
@@ -77,16 +80,25 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
+import it.polito.uniteam.AppStateManager
 import it.polito.uniteam.Factory
 import it.polito.uniteam.R
 import it.polito.uniteam.UniTeamModel
+import it.polito.uniteam.classes.CompressImage
+import it.polito.uniteam.firebase.updateUserProfile
+import it.polito.uniteam.firebase.uploadImageToFirebase
 import it.polito.uniteam.isVertical
 import it.polito.uniteam.ui.theme.Orange
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileOutputStream
+import java.util.UUID
 import java.util.concurrent.ExecutorService
 
 
 class UserProfileScreen(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
+    var loggedMember = model.loggedMemberFinal.id // TODO hardcoded
+        private set
     var nameBefore = ""
     var usernameBefore = ""
     var emailBefore = ""
@@ -137,13 +149,14 @@ class UserProfileScreen(val model: UniTeamModel, val savedStateHandle: SavedStat
                 description = descriptionValue,
                 profileImage = photoUri
             )
+            model.updateUserProfile(loggedMember,usernameValue,nameValue,emailValue,locationValue,descriptionValue,photoUri)
+            //uploadImageToFirebase(loggedMember,photoUri)
             model.setLoggedMember(updatedMember)
             isEditing = false
         }
     }
 
-    var nameValue by mutableStateOf(model.loggedMember.value.fullName)
-        private set
+    var nameValue by mutableStateOf("")
     var nameError by mutableStateOf("")
         private set
 
@@ -158,8 +171,7 @@ class UserProfileScreen(val model: UniTeamModel, val savedStateHandle: SavedStat
             nameError = ""
     }
 
-    var usernameValue by mutableStateOf(model.loggedMember.value.username)
-        private set
+    var usernameValue by mutableStateOf("")
     var usernameError by mutableStateOf("")
         private set
 
@@ -174,8 +186,7 @@ class UserProfileScreen(val model: UniTeamModel, val savedStateHandle: SavedStat
             usernameError = ""
     }
 
-    var emailValue by mutableStateOf(model.loggedMember.value.email)
-        private set
+    var emailValue by mutableStateOf("")
     var emailError by mutableStateOf("")
         private set
 
@@ -193,8 +204,7 @@ class UserProfileScreen(val model: UniTeamModel, val savedStateHandle: SavedStat
             emailError = ""
     }
 
-    var locationValue by mutableStateOf(model.loggedMember.value.location)
-        private set
+    var locationValue by mutableStateOf("")
     var locationError by mutableStateOf("")
         private set
 
@@ -209,8 +219,7 @@ class UserProfileScreen(val model: UniTeamModel, val savedStateHandle: SavedStat
             locationError = ""
     }
 
-    var descriptionValue by mutableStateOf(model.loggedMember.value.description)
-        private set
+    var descriptionValue by mutableStateOf("")
     var descriptionError by mutableStateOf("")
         private set
 
@@ -225,8 +234,7 @@ class UserProfileScreen(val model: UniTeamModel, val savedStateHandle: SavedStat
             descriptionError = ""
     }
 
-    var KPIValue by mutableStateOf(model.loggedMember.value.kpi)
-        private set
+    var KPIValue by mutableStateOf("")
 
     var cameraPressed by mutableStateOf(false)
         private set
@@ -240,9 +248,8 @@ class UserProfileScreen(val model: UniTeamModel, val savedStateHandle: SavedStat
     fun showCamera(boolean: Boolean) {
         showCamera = boolean
     }
-    var photoUri by mutableStateOf(model.loggedMember.value.profileImage)
+    var photoUri by mutableStateOf(Uri.EMPTY)
         private set
-
     fun setUri(uri: Uri) {
         photoUri = uri
     }
@@ -781,6 +788,30 @@ fun PresentationPane(vm: UserProfileScreen = viewModel(factory = Factory(LocalCo
 }
 
 @Composable
+fun SetupProfileData(vm: UserProfileScreen = viewModel(factory = Factory(LocalContext.current))) {
+    val loggedMember = AppStateManager.getMembers().find { it.id == vm.loggedMember }!!
+    vm.nameValue = loggedMember.fullName
+    vm.usernameValue = loggedMember.username
+    vm.emailValue = loggedMember.email
+    vm.descriptionValue = loggedMember.description
+    vm.locationValue = loggedMember.location
+    vm.KPIValue = computeKPI(memberId = vm.loggedMember)
+    vm.setUri(loggedMember.profileImage)
+}
+
+@Composable
+fun isProfileChanges(vm: UserProfileScreen = viewModel(factory = Factory(LocalContext.current))): Boolean {
+    val loggedMember = AppStateManager.getMembers().find { it.id == vm.loggedMember }!!
+    return (vm.nameValue.isNotEmpty() && vm.nameValue != loggedMember.fullName) ||
+            (vm.usernameValue.isNotEmpty() && vm.usernameValue != loggedMember.username) ||
+            (vm.emailValue.isNotEmpty() && vm.emailValue != loggedMember.email) ||
+            (vm.descriptionValue.isNotEmpty() && vm.descriptionValue != loggedMember.description) ||
+            (vm.locationValue.isNotEmpty() && vm.locationValue != loggedMember.location) ||
+            //(vm.KPIValue.isNotEmpty() && vm.KPIValue != computeKPI(memberId = vm.loggedMember)) ||
+            (vm.photoUri != Uri.EMPTY && vm.photoUri != loggedMember.profileImage)
+}
+
+@Composable
 fun ProfileSettings(
     vm: UserProfileScreen = viewModel(factory = Factory(LocalContext.current)),
     outputDirectory: File,
@@ -808,7 +839,7 @@ fun ProfileSettings(
         }
     }
 
-
+    val context = LocalContext.current
     val pickImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { activity: ActivityResult? ->
         if (activity == null || activity.resultCode != Activity.RESULT_OK) {
             // User canceled the action, handle it here
@@ -819,14 +850,13 @@ fun ProfileSettings(
             val uri = activity.data?.data
             if (uri != null) {
                 // Image picked successfully, do something with the URI
-                vm.setUri(uri)
+                vm.setUri(CompressImage(context = context, sourceUri = uri))
             }
         }
         // Optionally, you can still call vm.openGallery() here if needed
         vm.openGallery(false)
     }
 
-    val context = LocalContext.current
     if (vm.openGallery) {
         // Launch gallery intent
         val galleryIntent = Intent(Intent.ACTION_PICK).apply {

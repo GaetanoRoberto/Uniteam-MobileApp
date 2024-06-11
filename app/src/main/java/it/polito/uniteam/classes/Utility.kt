@@ -1,5 +1,8 @@
 package it.polito.uniteam.classes
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.Image
@@ -43,11 +46,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import it.polito.uniteam.NavControllerManager
 import it.polito.uniteam.R
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Calendar
 import java.util.Date
+import java.util.UUID
 
 
 enum class Repetition{
@@ -113,6 +120,34 @@ fun handleInputString(input: String): String {
     output = output.trim('\n')
     Log.i("trim",output)
     return output
+}
+
+fun CompressImage(context: Context, sourceUri: Uri, maxFileSizeKB: Int = 500): Uri {
+    val inputStream = context.contentResolver.openInputStream(sourceUri)
+    val originalBitmap = BitmapFactory.decodeStream(inputStream)
+    inputStream?.close()
+
+    var quality = 100
+    var streamLength: Int
+    val byteArrayOutputStream = ByteArrayOutputStream()
+
+    do {
+        byteArrayOutputStream.reset()
+        originalBitmap.compress(Bitmap.CompressFormat.JPEG, quality, byteArrayOutputStream)
+        val byteArray = byteArrayOutputStream.toByteArray()
+        streamLength = byteArray.size
+        quality -= 5
+    } while (streamLength > maxFileSizeKB * 1024 && quality > 0)
+
+    // Create a new file to save the compressed image
+    val compressedFile = File(context.cacheDir, UUID.randomUUID().toString())
+    val outputStream = FileOutputStream(compressedFile)
+    outputStream.use {
+        it.write(byteArrayOutputStream.toByteArray())
+    }
+
+    // Return the URI of the compressed file
+    return Uri.fromFile(compressedFile)
 }
 
 @Composable

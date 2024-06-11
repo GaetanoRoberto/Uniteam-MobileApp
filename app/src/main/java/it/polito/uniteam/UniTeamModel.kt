@@ -9,6 +9,7 @@ import androidx.compose.runtime.toMutableStateList
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import it.polito.uniteam.classes.CategoryRole
@@ -103,10 +104,11 @@ class UniTeamModel(val context: Context) {
 
     fun getAllMessages2() : Flow<List<MessageDB>> = it.polito.uniteam.firebase.getAllMessages(db)
 
-    fun scheduleTask(task: TaskDBFinal, scheduleDate: LocalDate, hoursToSchedule: Pair<Int,Int>) = it.polito.uniteam.firebase.scheduleTask(db, task, scheduleDate, hoursToSchedule)
-    fun unscheduleTask(task: TaskDBFinal, scheduleDate: LocalDate) = it.polito.uniteam.firebase.unscheduleTask(db,task,scheduleDate)
+    fun scheduleTask(task: TaskDBFinal, scheduleDate: LocalDate, hoursToSchedule: Pair<Int,Int>) = it.polito.uniteam.firebase.scheduleTask(db, task, scheduleDate, hoursToSchedule, memberId = loggedMemberFinal.id)
+    fun unscheduleTask(task: TaskDBFinal, scheduleDate: LocalDate) = it.polito.uniteam.firebase.unscheduleTask(db,task,scheduleDate, memberId = loggedMemberFinal.id)
+    fun updateUserProfile(memberId: String, username: String, fullName: String, email: String, location: String, description: String, profileImage: Uri) = it.polito.uniteam.firebase.updateUserProfile(db, memberId, username, fullName,email, location, description, profileImage)
 
-    var membersList = mutableListOf<Member>(
+        var membersList = mutableListOf<Member>(
         Member().apply {
             id = 1
             fullName = "John Doe"

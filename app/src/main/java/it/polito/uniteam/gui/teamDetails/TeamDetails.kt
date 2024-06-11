@@ -105,6 +105,7 @@ import it.polito.uniteam.R
 import it.polito.uniteam.UniTeamModel
 import it.polito.uniteam.classes.CategoryRole
 import it.polito.uniteam.classes.Chat
+import it.polito.uniteam.classes.CompressImage
 import it.polito.uniteam.classes.DummyDataProvider
 import it.polito.uniteam.classes.History
 import it.polito.uniteam.classes.HourMinutesPicker
@@ -346,6 +347,7 @@ fun TeamViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalC
             }*/
         }
     })
+    val context = LocalContext.current
     val pickImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { activity: ActivityResult? ->
         if (activity == null || activity.resultCode != Activity.RESULT_OK) {
             // User canceled the action, handle it here
@@ -356,14 +358,13 @@ fun TeamViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalC
             val uri = activity.data?.data
             if (uri != null) {
                 // Image picked successfully, do something with the URI
-                vm.setUri(uri)
+                vm.setUri(CompressImage(context = context, sourceUri = uri))
             }
         }
         // Optionally, you can still call vm.openGallery() here if needed
         vm.openGallery(false)
     }
 
-    val context = LocalContext.current
     if (vm.openGallery) {
         // Launch gallery intent
         val galleryIntent = Intent(Intent.ACTION_PICK).apply {

@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import it.polito.uniteam.R
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -147,13 +148,15 @@ fun takePhoto(
             val screenWidthDp = configuration.screenWidthDp.dp
             val screenHeightDp = configuration.screenHeightDp.dp
 
-            val savedUri = Uri.fromFile(photoFile)
             val bitmap = BitmapFactory.decodeFile(photoFile.absolutePath)
-            if (flip) {
+            val flag = (bitmap.width >= bitmap.height && screenHeightDp >= screenWidthDp)
+            if (flip || flag) {
                 // Flip the image horizontally
                 val matrix = Matrix().apply {
-                    postScale(-1f, 1f, bitmap.width / 2f, bitmap.height / 2f)
-                    if (bitmap.width >= bitmap.height && screenHeightDp >= screenWidthDp) {
+                    if (flip) {
+                        postScale(-1f, 1f, bitmap.width / 2f, bitmap.height / 2f)
+                    }
+                    if (flag) {
                         postRotate(90f)
                     }
                 }
@@ -164,7 +167,26 @@ fun takePhoto(
                     flippedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
                 }
             }
+            val compressedBitmap = BitmapFactory.decodeFile(photoFile.absolutePath)
+            // Compress the image to a size below 500 KB
+            var quality = 100
+            var streamLength: Int
+            val threshold : Int = 500 * 1024 // 500 KB
+            var byteArrayOutputStream = ByteArrayOutputStream()
+            do {
+                byteArrayOutputStream = ByteArrayOutputStream()
+                compressedBitmap.compress(Bitmap.CompressFormat.JPEG, quality, byteArrayOutputStream)
+                val byteArray = byteArrayOutputStream.toByteArray()
+                streamLength = byteArray.size
+                quality -= 5
+            } while (streamLength > threshold && quality > 0)
+
+            // Save the compressed bitmap
+            FileOutputStream(photoFile).use { outputStream ->
+                outputStream.write(byteArrayOutputStream.toByteArray())
+            }
             // Notify the caller with the flipped image URI
+            val savedUri = Uri.fromFile(photoFile)
             onImageCaptured(savedUri)
         }
     })

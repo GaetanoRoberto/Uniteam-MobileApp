@@ -108,7 +108,9 @@ import it.polito.uniteam.gui.home.Home
 import it.polito.uniteam.gui.notifications.messageUnreadCountForBottomBar
 import it.polito.uniteam.gui.userprofile.OtherProfileSettings
 import it.polito.uniteam.gui.userprofile.ProfileSettings
+import it.polito.uniteam.gui.userprofile.SetupProfileData
 import it.polito.uniteam.gui.userprofile.UserProfileScreen
+import it.polito.uniteam.gui.userprofile.isProfileChanges
 import it.polito.uniteam.gui.yourTasksCalendar.YourTasksCalendarView
 import it.polito.uniteam.ui.theme.UniTeamTheme
 import java.io.File
@@ -446,6 +448,8 @@ class MainActivity : ComponentActivity() {
                                                                 )
                                                             }
                                                             composable("Profile") {
+                                                                if (!isProfileChanges())
+                                                                    SetupProfileData()
                                                                 ProfileSettings(
                                                                     vm = viewModel(
                                                                         factory = Factory(
