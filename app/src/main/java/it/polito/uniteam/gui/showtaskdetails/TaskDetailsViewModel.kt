@@ -328,6 +328,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
                 user = loggedMember
             ))
         }
+        model.addHistories(history,taskId)
     }
 
     fun validate() {

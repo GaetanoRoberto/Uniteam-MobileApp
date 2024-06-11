@@ -333,7 +333,7 @@ fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.curr
                     deadline = LocalDate.parse(vm.deadline),
                     estimatedTime = Pair(vm.estimatedHours.value.toInt(),vm.estimatedMinutes.value.toInt()),
                     spentTime = HashMap(vm.spentTime),
-                    status = Status.valueOf(vm.status),
+                    status = if(vm.status == "IN PROGRESS") Status.IN_PROGRESS else Status.valueOf(vm.status),
                     repetition = Repetition.valueOf(vm.repeatable),
                     members = vm.members,
                     schedules = hashMapOf(),
@@ -355,7 +355,7 @@ fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.curr
                     deadline = LocalDate.parse(vm.deadline),
                     estimatedTime = Pair(vm.estimatedHours.value.toInt(),vm.estimatedMinutes.value.toInt()),
                     spentTime = HashMap(vm.spentTime),
-                    status = Status.valueOf(vm.status),
+                    status = if(vm.status == "IN PROGRESS") Status.IN_PROGRESS else Status.valueOf(vm.status),
                     repetition = Repetition.valueOf(vm.repeatable),
                     members = vm.members.map{it.id}.toMutableList(),
                     schedules = hashMapOf(),
@@ -470,7 +470,7 @@ fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.curr
                                                 deadline = LocalDate.parse(vm.deadline),
                                                 estimatedTime = Pair(vm.estimatedHours.value.toInt(),vm.estimatedMinutes.value.toInt()),
                                                 spentTime = HashMap(vm.spentTime),
-                                                status = Status.valueOf(vm.status),
+                                                status = if(vm.status == "IN PROGRESS") Status.IN_PROGRESS else Status.valueOf(vm.status),
                                                 repetition = Repetition.valueOf(vm.repeatable),
                                                 members = vm.members,
                                                 schedules = hashMapOf(),
@@ -492,7 +492,7 @@ fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.curr
                                                 deadline = LocalDate.parse(vm.deadline),
                                                 estimatedTime = Pair(vm.estimatedHours.value.toInt(),vm.estimatedMinutes.value.toInt()),
                                                 spentTime = HashMap(vm.spentTime),
-                                                status = Status.valueOf(vm.status),
+                                                status = if(vm.status == "IN PROGRESS") Status.IN_PROGRESS else Status.valueOf(vm.status),
                                                 repetition = Repetition.valueOf(vm.repeatable),
                                                 members = vm.members.map{it.id}.toMutableList(),
                                                 schedules = hashMapOf(),
@@ -583,7 +583,7 @@ fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.curr
                                             deadline = LocalDate.parse(vm.deadline),
                                             estimatedTime = Pair(vm.estimatedHours.value.toInt(),vm.estimatedMinutes.value.toInt()),
                                             spentTime = HashMap(vm.spentTime),
-                                            status = Status.valueOf(vm.status),
+                                            status = if(vm.status == "IN PROGRESS") Status.IN_PROGRESS else Status.valueOf(vm.status),
                                             repetition = Repetition.valueOf(vm.repeatable),
                                             members = vm.members,
                                             schedules = hashMapOf(),
@@ -605,7 +605,7 @@ fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.curr
                                             deadline = LocalDate.parse(vm.deadline),
                                             estimatedTime = Pair(vm.estimatedHours.value.toInt(),vm.estimatedMinutes.value.toInt()),
                                             spentTime = HashMap(vm.spentTime),
-                                            status = Status.valueOf(vm.status),
+                                            status = if(vm.status == "IN PROGRESS") Status.IN_PROGRESS else Status.valueOf(vm.status),
                                             repetition = Repetition.valueOf(vm.repeatable),
                                             members = vm.members.map{it.id}.toMutableList(),
                                             schedules = hashMapOf(),
@@ -1296,7 +1296,7 @@ fun FilesView(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .align(Alignment.CenterVertically),
-                            onClick = { vm.model.deleteFile(file.id,file.id + "." + file.filename.split(".")[1],vm.taskId) }) {
+                            onClick = { vm.model.deleteFile(file,vm.taskId) }) {
                             Icon(
                                 imageVector = Icons.Default.Delete,
                                 contentDescription = "Delete File",

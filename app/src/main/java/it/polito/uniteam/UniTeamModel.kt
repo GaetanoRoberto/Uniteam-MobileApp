@@ -111,9 +111,9 @@ class UniTeamModel(val context: Context) {
     fun updateTask(task: TaskDBFinal) = it.polito.uniteam.firebase.updateTask(db, task)
     fun addComment(comment: CommentDBFinal, taskId: String) = it.polito.uniteam.firebase.addComment(db, comment, taskId)
     fun addFile(context: Context, file: FileDBFinal, taskId: String) = it.polito.uniteam.firebase.addFile(db, coroutineScope, context, file, taskId)
-    fun addHistory(history: HistoryDBFinal, taskId: String) = it.polito.uniteam.firebase.addHistory(db, history, taskId)
+    fun addHistories(histories: List<HistoryDBFinal>, taskId: String) = it.polito.uniteam.firebase.addHistories(db, histories, taskId)
     fun deleteComment(commentId: String, taskId: String) = it.polito.uniteam.firebase.deleteComment(db, commentId, taskId)
-    fun deleteFile(fileId: String, fileName: String, taskId: String) = it.polito.uniteam.firebase.deleteFile(db, fileId, fileName, taskId)
+    fun deleteFile(file: FileDBFinal, taskId: String) = it.polito.uniteam.firebase.deleteFile(db, file, taskId)
     fun updateComment(comment: CommentDBFinal, taskId: String) = it.polito.uniteam.firebase.updateComment(db, comment, taskId)
     suspend fun downloadFileAndSaveToDownloads(context: Context, fileStorageName: String, fileName: String) = it.polito.uniteam.firebase.downloadFileAndSaveToDownloads(context, fileStorageName, fileName)
 

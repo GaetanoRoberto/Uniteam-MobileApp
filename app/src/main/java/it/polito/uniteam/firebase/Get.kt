@@ -313,7 +313,7 @@ fun getAllTasks(db: FirebaseFirestore): Flow<List<TaskDBFinal>> = callbackFlow {
                     t.spentTime.put(memberId, spentTime)
                 }
                 val status = task.getString("status") ?: ""
-                t.status = if (status.isNotEmpty()) Status.valueOf(status) else Status.TODO
+                t.status = if(status == "IN PROGRESS") Status.IN_PROGRESS else if (status.isNotEmpty()) Status.valueOf(status) else Status.TODO
                 val repetition = task.getString("repetition") ?: ""
                 t.repetition =
                     if (repetition.isNotEmpty()) Repetition.valueOf(repetition) else Repetition.NONE

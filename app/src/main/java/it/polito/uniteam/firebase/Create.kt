@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -18,11 +19,8 @@ import it.polito.uniteam.classes.CommentDBFinal
 import it.polito.uniteam.classes.FileDBFinal
 import it.polito.uniteam.classes.HistoryDBFinal
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withContext
-import java.io.FileOutputStream
 import java.io.InputStream
 import java.time.ZoneId
 import java.util.Date
@@ -164,20 +162,32 @@ suspend fun uploadFile(context: Context, fileUri: Uri, fileStorageName: String) 
 }
 
 fun addFile(db: FirebaseFirestore, coroutineScope: CoroutineScope, context: Context, file: FileDBFinal, taskId: String) {
-    val data = mapOf(
+    val fileData = mapOf(
         "filename" to file.filename,
         "date" to Timestamp(Date.from(file.date.atStartOfDay(ZoneId.systemDefault()).toInstant())),
         "user" to file.user
     )
+    val fileHistoryData = mapOf(
+        "comment" to "File ${file.filename} uploaded.",
+        "date" to Timestamp(Date.from(file.date.atStartOfDay(ZoneId.systemDefault()).toInstant())),
+        "user" to file.user
+    )
     val fileRef = db.collection("File").document()
+    val historyRef = db.collection("History").document()
     val taskRef = db.collection("Task").document(taskId)
     db.runTransaction { transaction ->
         // Set the new file document
-        transaction.set(fileRef, data)
+        transaction.set(fileRef, fileData)
         // Get the new file document ID
         val fileId = fileRef.id
         // Update the task with the new file ID
         transaction.update(taskRef, "taskFiles", FieldValue.arrayUnion(fileId))
+        // Set the new history document
+        transaction.set(historyRef, fileHistoryData)
+        // Get the new history document ID
+        val fileHistoryId = historyRef.id
+        // Update the task with the new history ID
+        transaction.update(taskRef, "taskHistory", FieldValue.arrayUnion(fileHistoryId))
         // upload the corresponding file
         coroutineScope.launch {
             uploadFile(context,file.uri,fileId + "." + file.filename.split(".")[1])
@@ -185,20 +195,28 @@ fun addFile(db: FirebaseFirestore, coroutineScope: CoroutineScope, context: Cont
     }
 }
 
-fun addHistory(db: FirebaseFirestore, history: HistoryDBFinal, taskId: String) {
-    val data = mapOf(
-        "comment" to history.comment,
-        "date" to Timestamp(Date.from(history.date.atStartOfDay(ZoneId.systemDefault()).toInstant())),
-        "user" to history.user
-    )
-    val historyRef = db.collection("History").document()
+fun addHistories(db: FirebaseFirestore, histories: List<HistoryDBFinal>, taskId: String) {
     val taskRef = db.collection("Task").document(taskId)
     db.runTransaction { transaction ->
-        // Set the new history document
-        transaction.set(historyRef, data)
-        // Get the new history document ID
-        val historyId = historyRef.id
-        // Update the task with the new history ID
-        transaction.update(taskRef, "taskHistory", FieldValue.arrayUnion(historyId))
+        histories.forEach { history ->
+            try {
+                history.id.toInt()
+                // if parse successfully, int ids so entry to add into the db
+                val data = mapOf(
+                    "comment" to history.comment,
+                    "date" to Timestamp(Date.from(history.date.atStartOfDay(ZoneId.systemDefault()).toInstant())),
+                    "user" to history.user
+                )
+                val historyRef = db.collection("History").document()
+                // Set the new history document
+                transaction.set(historyRef, data)
+                // Get the new history document ID
+                val historyId = historyRef.id
+                // Update the task with the new history ID
+                transaction.update(taskRef, "taskHistory", FieldValue.arrayUnion(historyId))
+            } catch (e: Exception) {
+                // parse failed, db entry already exists, skip entry
+            }
+        }
     }
 }
