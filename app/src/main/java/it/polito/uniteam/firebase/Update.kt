@@ -1,16 +1,15 @@
 package it.polito.uniteam.firebase
-import android.content.ContentResolver
 import android.net.Uri
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import android.util.Log
-import androidx.core.net.toUri
 import com.google.firebase.Timestamp
 import it.polito.uniteam.classes.TaskDBFinal
-import com.google.firebase.firestore.Query
 import com.google.firebase.storage.FirebaseStorage
-import it.polito.uniteam.R
+import it.polito.uniteam.classes.CommentDBFinal
+import it.polito.uniteam.classes.FileDBFinal
+import it.polito.uniteam.classes.HistoryDBFinal
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Date
@@ -135,4 +134,52 @@ fun updateUserProfile(db: FirebaseFirestore, memberId: String, username: String,
     }.addOnFailureListener {
         Log.d("DB", "Failed to Update The Member: $it")
     }
+}
+
+fun updateTask(db: FirebaseFirestore, task: TaskDBFinal) {
+    val fieldsToUpdate = mapOf(
+        "name" to task.name,
+        "description" to task.description,
+        "category" to task.category,
+        "priority" to task.priority,
+        "deadline" to Timestamp(Date.from(task.deadline.atStartOfDay(ZoneId.systemDefault()).toInstant())),
+        "estimatedTime" to task.estimatedTime,
+        "spentTime" to task.spentTime.map { entry ->
+            hashMapOf(
+                "member" to entry.key,
+                "spentTime" to hashMapOf(
+                    "hours" to entry.value.first,
+                    "minutes" to entry.value.second
+                )
+            )
+        },
+        "repetition" to task.repetition,
+        "status" to task.status,
+        "creationDate" to Timestamp(Date.from(task.creationDate.atStartOfDay(ZoneId.systemDefault()).toInstant())),
+        "members" to task.members
+    )
+
+    db.collection("Task").document(task.id).update(fieldsToUpdate)
+    /*db.runTransaction { transaction ->
+        // TODO ADD comments history files
+
+        //fieldsToUpdate.put("taskComments",task.taskComments)
+        //fieldsToUpdate.put("taskHistory",task.taskHistory)
+        //fieldsToUpdate.put("taskFiles",task.taskFiles)
+        transaction.update(taskRef, fieldsToUpdate)
+    }.addOnSuccessListener {
+        Log.d("DB", "Task Updated Successfully.")
+    }.addOnFailureListener {
+        Log.d("DB", "Failed to Update The Task: $it")
+    }*/
+}
+
+fun updateComment(db: FirebaseFirestore, comment: CommentDBFinal, taskId: String) {
+    val data = mapOf(
+        "commentValue" to comment.commentValue,
+        "date" to Timestamp(Date.from(comment.date.atStartOfDay(ZoneId.systemDefault()).toInstant())),
+        "user" to comment.user
+    )
+
+    db.collection("Comment").document(comment.id).update(data)
 }

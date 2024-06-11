@@ -1,12 +1,31 @@
 package it.polito.uniteam.firebase
 
+import android.Manifest
+import android.app.Activity
+import android.content.Context
+import android.content.pm.PackageManager
+import android.net.Uri
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
-import it.polito.uniteam.classes.MessageDB
-import it.polito.uniteam.classes.messageStatus
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.UploadTask
+import it.polito.uniteam.classes.CommentDBFinal
+import it.polito.uniteam.classes.FileDBFinal
+import it.polito.uniteam.classes.HistoryDBFinal
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import java.time.LocalDateTime
+import kotlinx.coroutines.withContext
+import java.io.FileOutputStream
+import java.io.InputStream
+import java.time.ZoneId
+import java.util.Date
 
 suspend fun addTeamMessage(
     db: FirebaseFirestore,
@@ -64,4 +83,122 @@ suspend fun addMessage(
     // Update the chat to include the new message ID
     val chatRef = db.collection("Chat").document(chatId)
     chatRef.update("messages", FieldValue.arrayUnion(messageId)).await()
+}
+
+fun addComment(db: FirebaseFirestore, comment: CommentDBFinal, taskId: String) {
+    val data = mapOf(
+        "commentValue" to comment.commentValue,
+        "date" to Timestamp(Date.from(comment.date.atStartOfDay(ZoneId.systemDefault()).toInstant())),
+        "user" to comment.user
+    )
+
+    val commentRef = db.collection("Comment").document()
+    val taskRef = db.collection("Task").document(taskId)
+    db.runTransaction { transaction ->
+        // Set the new comment document
+        transaction.set(commentRef, data)
+        // Get the new comment document ID
+        val commentId = commentRef.id
+        // Update the task with the new comment ID
+        transaction.update(taskRef, "taskComments", FieldValue.arrayUnion(commentId))
+    }
+}
+
+suspend fun uploadFile(context: Context, fileUri: Uri, fileStorageName: String) {
+    if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+        ActivityCompat.requestPermissions(context as Activity, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1)
+        return // Return and wait for the permission to be granted
+    }
+    val storage = FirebaseStorage.getInstance()
+    val fileRef = storage.reference.child("files/$fileStorageName")
+
+    // Create the notification channel
+    createNotificationChannel(context, "Upload Channel", "Channel for file upload notifications", "UPLOAD_CHANNEL")
+
+    // Initialize the NotificationManager and NotificationCompat.Builder
+    val notificationManager = NotificationManagerCompat.from(context)
+    val builder = NotificationCompat.Builder(context, "UPLOAD_CHANNEL")
+        .setContentTitle("Uploading File")
+        .setContentText("Upload in progress")
+        .setSmallIcon(android.R.drawable.stat_sys_upload)
+        .setPriority(NotificationCompat.PRIORITY_LOW)
+        .setOngoing(true)
+        .setProgress(0, 0, true) // Indeterminate progress initially
+
+    // Start the notification
+    notificationManager.notify(2, builder.build())
+
+    try {
+        // Get the input stream from the URI
+        val inputStream: InputStream? = context.contentResolver.openInputStream(fileUri)
+        val streamSize = inputStream?.available()?.toLong() ?: 0L
+        val buffer = ByteArray(1024 * 4) // 4 KB buffer
+        var totalBytesRead = 0L
+
+        // Upload the file with progress updates
+        val uploadTask: UploadTask = fileRef.putStream(inputStream!!)
+        uploadTask.addOnProgressListener { taskSnapshot ->
+            val bytesTransferred = taskSnapshot.bytesTransferred
+            totalBytesRead += bytesTransferred
+            val progress = (100 * totalBytesRead / streamSize).toInt()
+            builder.setProgress(100, progress, false)
+            notificationManager.notify(2, builder.build())
+        }.await()
+
+        // Upload complete, update notification
+        builder.setContentText("Upload complete")
+            .setProgress(0, 0, false)
+            .setOngoing(false)
+            .setSmallIcon(android.R.drawable.stat_sys_upload_done)
+        notificationManager.notify(2, builder.build())
+
+    } catch (e: Exception) {
+        e.printStackTrace()
+
+        // Update notification for failure
+        builder.setContentText("Upload failed")
+            .setProgress(0, 0, false)
+            .setOngoing(false)
+        notificationManager.notify(2, builder.build())
+    }
+}
+
+fun addFile(db: FirebaseFirestore, coroutineScope: CoroutineScope, context: Context, file: FileDBFinal, taskId: String) {
+    val data = mapOf(
+        "filename" to file.filename,
+        "date" to Timestamp(Date.from(file.date.atStartOfDay(ZoneId.systemDefault()).toInstant())),
+        "user" to file.user
+    )
+    val fileRef = db.collection("File").document()
+    val taskRef = db.collection("Task").document(taskId)
+    db.runTransaction { transaction ->
+        // Set the new file document
+        transaction.set(fileRef, data)
+        // Get the new file document ID
+        val fileId = fileRef.id
+        // Update the task with the new file ID
+        transaction.update(taskRef, "taskFiles", FieldValue.arrayUnion(fileId))
+        // upload the corresponding file
+        coroutineScope.launch {
+            uploadFile(context,file.uri,fileId + "." + file.filename.split(".")[1])
+        }
+    }
+}
+
+fun addHistory(db: FirebaseFirestore, history: HistoryDBFinal, taskId: String) {
+    val data = mapOf(
+        "comment" to history.comment,
+        "date" to Timestamp(Date.from(history.date.atStartOfDay(ZoneId.systemDefault()).toInstant())),
+        "user" to history.user
+    )
+    val historyRef = db.collection("History").document()
+    val taskRef = db.collection("Task").document(taskId)
+    db.runTransaction { transaction ->
+        // Set the new history document
+        transaction.set(historyRef, data)
+        // Get the new history document ID
+        val historyId = historyRef.id
+        // Update the task with the new history ID
+        transaction.update(taskRef, "taskHistory", FieldValue.arrayUnion(historyId))
+    }
 }

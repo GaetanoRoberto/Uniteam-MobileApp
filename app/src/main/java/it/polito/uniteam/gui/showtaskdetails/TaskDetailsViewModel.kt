@@ -13,7 +13,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import it.polito.uniteam.UniTeamModel
 import it.polito.uniteam.classes.Category
-import it.polito.uniteam.classes.Comment
+import it.polito.uniteam.classes.CommentDBFinal
 import it.polito.uniteam.classes.File
 import it.polito.uniteam.classes.History
 import it.polito.uniteam.classes.Member
@@ -22,23 +22,28 @@ import it.polito.uniteam.classes.Repetition
 import it.polito.uniteam.classes.Status
 import it.polito.uniteam.classes.isRepetition
 import it.polito.uniteam.classes.DummyDataProvider
+import it.polito.uniteam.classes.FileDB
+import it.polito.uniteam.classes.FileDBFinal
+import it.polito.uniteam.classes.HistoryDBFinal
+import it.polito.uniteam.classes.MemberDBFinal
 import it.polito.uniteam.classes.handleInputString
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 @SuppressLint("MutableCollectionMutableState")
 class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
-    private val taskId: String = checkNotNull(savedStateHandle["taskId"])
-    val newTask = taskId.toInt() == 0
-
+    var loggedMember = model.loggedMemberFinal.id // TODO hardcoded
+        private set
+    val taskId: String = "ycfdFu7LuWGGJZvmwWKX"//checkNotNull(savedStateHandle["taskId"])
+    val newTask = taskId.length == 1 // navigate with 0, so length 1
+    var temporaryId: Int = 1
     fun getTask(taskId: Int) = model.getTask(taskId)
     fun getTeamRelatedToTask(taskId: Int) = model.getTeamRelatedToTask(taskId)
 
-    private val task = getTask(taskId.toInt())
-    var taskName by mutableStateOf(task?.name ?: "")
-        private set
+    var taskName by mutableStateOf("")
     var taskError by mutableStateOf("")
         private set
 
@@ -54,8 +59,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
     }
 
 
-    var description by mutableStateOf(task?.description ?: "")
-        private set
+    var description by mutableStateOf("")
     var descriptionError by mutableStateOf("")
         private set
 
@@ -71,8 +75,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
     }
 
 
-    var category by mutableStateOf(task?.category?.toString() ?: Category.NONE.toString())
-        private set
+    var category by mutableStateOf(Category.NONE.toString())
     val categoryValues = Category.entries.map { it.toString() }
     var categoryError by mutableStateOf("")
         private set
@@ -89,8 +92,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
     }
 
 
-    var priority by mutableStateOf(task?.priority?.toString() ?: Priority.LOW.toString())
-        private set
+    var priority by mutableStateOf(Priority.LOW.toString())
     val priorityValues = Priority.entries.map { it.toString() }
     var priorityError by mutableStateOf("")
         private set
@@ -99,8 +101,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
         priority = s
     }
 
-    var deadline by mutableStateOf(task?.deadline?.toString() ?: LocalDate.now().toString())
-        private set
+    var deadline by mutableStateOf(LocalDate.now().toString())
     var deadlineError by mutableStateOf("")
         private set
 
@@ -121,8 +122,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
     }
 
 
-    var status by mutableStateOf(task?.status?.toString() ?: Status.TODO.toString())
-        private set
+    var status by mutableStateOf(Status.TODO.toString())
     var stateError by mutableStateOf("")
         private set
 
@@ -134,9 +134,8 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
         listOf(Status.TODO.toString(), "IN PROGRESS", Status.COMPLETED.toString())
 
 
-    var estimatedHours = mutableStateOf(task?.estimatedTime?.first.toString() ?: "0")
-        private set
-    var estimatedMinutes = mutableStateOf(task?.estimatedTime?.second.toString() ?: "0")
+    var estimatedHours = mutableStateOf("0")
+    var estimatedMinutes = mutableStateOf("0")
         private set
     var estimatedTimeError = mutableStateOf("")
         private set
@@ -159,23 +158,22 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
         }
     }
 
-    var spentTime = task?.spentTime?.toMutableMap() ?: mutableMapOf()
-        private set
+    var spentTime: MutableMap<String,Pair<Int,Int>> = mutableMapOf()
 
-    fun addSpentTime(member: Member, time: Pair<Int,Int>) {
-        if(spentTime.contains(member)) {
-            val prevHours = spentTime.remove(member)
+    fun addSpentTime(time: Pair<Int,Int>) {
+        if(spentTime.contains(loggedMember)) {
+            val prevHours = spentTime.remove(loggedMember)
             if (prevHours != null) {
-                spentTime.put(member, model.sumTimes(prevHours,time))
+                spentTime.put(loggedMember, model.sumTimes(prevHours,time))
             }
         } else {
-            spentTime.put(member,time)
+            spentTime.put(loggedMember,time)
         }
         Log.i("diooo",spentTime.toString())
     }
-    var spentHours = mutableStateOf(task?.spentTime?.values?.sumOf { it.first }?.toString() ?: "0")
+    var spentHours = mutableStateOf("0")
         private set
-    var spentMinutes = mutableStateOf(task?.spentTime?.values?.sumOf { it.second }?.toString() ?: "0")
+    var spentMinutes = mutableStateOf("0")
         private set
     var spentTimeError = mutableStateOf("")
         private set
@@ -191,7 +189,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
                 spentHours.value = "0"
                 spentMinutes.value = "0"
                 if (!(hours == 0 && minutes == 0)) {
-                    addSpentTime(member,Pair(hours,minutes))
+                    addSpentTime(Pair(hours,minutes))
                 }
                 /*spentHours.value = hours.toString()
                 spentMinutes.value = minutes.toString()*/
@@ -201,32 +199,30 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
         }
     }
 
-    var possibleMembers = getTeamRelatedToTask(taskId.toInt())?.members?.toMutableStateList() ?: DummyDataProvider.getMembers()
-    var members = task?.members?.toMutableStateList() ?: mutableStateListOf()
+    var possibleMembers = listOf<MemberDBFinal>()
+    var members = mutableStateListOf<MemberDBFinal>()
 
     var openAssignDialog = mutableStateOf(false)
     var membersError by mutableStateOf("")
     var membersDialogError by mutableStateOf("")
 
-    fun addMembers(m: Member) {
+    /*fun addMembers(m: MemberDBFinal) {
         members.add(m)
         Log.i("diooo","member added")
     }
 
-    fun removeMembers(m: Member) {
+    fun removeMembers(m: MemberDBFinal) {
         members.remove(m)
-    }
-
+    }*/
     private fun checkMembers() {
         if (members.size <= 0)
-            membersError = "Almost a member should be assigned"
+            membersError = "At Least a member should be assigned"
         else
             membersError = ""
     }
 
 
-    var repeatable by mutableStateOf(task?.repetition?.toString() ?: Repetition.NONE.toString())
-        private set
+    var repeatable by mutableStateOf(Repetition.NONE.toString())
     val repeatableValues = Repetition.entries.map { it.toString() }
 
     fun changeRepetition(r: String) {
@@ -240,7 +236,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
     }
 
     fun handleHistory() {
-        val entryToAdd: MutableList<History> = mutableListOf()
+        val entryToAdd: MutableList<HistoryDBFinal> = mutableListOf()
         val isEdit = taskNameBefore.isNotBlank()
         if (isEdit) {
             //general editing
@@ -249,10 +245,11 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
                 || hasChanged(estimateHoursBefore,estimatedHours.value) || hasChanged(estimateMinutesBefore,estimatedMinutes.value)
                 || hasChanged(spentHoursBefore,spentHours.value) || hasChanged(spentMinutesBefore,spentMinutes.value)
                 || hasChanged(repeatableBefore,repeatable)) {
-                entryToAdd.add(History(
+                entryToAdd.add(HistoryDBFinal(
+                    id = (temporaryId++).toString(),
                     comment = "Task Edited.",
-                    date = LocalDate.now().toString(),
-                    user = member
+                    date = LocalDate.now(),
+                    user = loggedMember
                 ))
             }
             // members
@@ -275,40 +272,47 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
             if (removedMembers.isNotEmpty() && addedMembers.isNotEmpty()) {
                 val comment = "Task " + removedComment + removedMembers + "\n" +
                         "Task " + addedComment + addedMembers + "\n"
-                entryToAdd.add(History(
-                    comment = comment,
-                    date = LocalDate.now().toString(),
-                    user = member
-                ))
+                entryToAdd.add(
+                    HistoryDBFinal(
+                        id = (temporaryId++).toString(),
+                        comment = comment,
+                        date = LocalDate.now(),
+                        user = loggedMember
+                    )
+                )
             } else if (removedMembers.isNotEmpty()) {
                 val comment = "Task " + removedComment + removedMembers
-                entryToAdd.add(History(
+                entryToAdd.add(HistoryDBFinal(
+                    id = (temporaryId++).toString(),
                     comment = comment,
-                    date = LocalDate.now().toString(),
-                    user = member
+                    date = LocalDate.now(),
+                    user = loggedMember
                 ))
             } else if (addedMembers.isNotEmpty()) {
                 val comment = "Task " + addedComment + addedMembers
-                entryToAdd.add(History(
+                entryToAdd.add(HistoryDBFinal(
+                    id = (temporaryId++).toString(),
                     comment = comment,
-                    date = LocalDate.now().toString(),
-                    user = member
+                    date = LocalDate.now(),
+                    user = loggedMember
                 ))
             }
             //status
             if (hasChanged(statusBefore,status)) {
-                entryToAdd.add(History(
+                entryToAdd.add(HistoryDBFinal(
+                    id = (temporaryId++).toString(),
                     comment = "Task status changed from ${statusBefore} to ${status}.",
-                    date = LocalDate.now().toString(),
-                    user = member
+                    date = LocalDate.now(),
+                    user = loggedMember
                 ))
             }
             //priority
             if (hasChanged(priorityBefore,priority)) {
-                entryToAdd.add(History(
+                entryToAdd.add(HistoryDBFinal(
+                    id = (temporaryId++).toString(),
                     comment = "Task priority changed from ${priorityBefore} to ${priority}.",
-                    date = LocalDate.now().toString(),
-                    user = member
+                    date = LocalDate.now(),
+                    user = loggedMember
                 ))
             }
             // add to history
@@ -317,10 +321,11 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
             }
         } else {
             // add creation task history
-            history.add(History(
+            history.add(HistoryDBFinal(
+                id = (temporaryId++).toString(),
                 comment = "Task ${taskName} created.",
-                date = LocalDate.now().toString(),
-                user = member
+                date = LocalDate.now(),
+                user = loggedMember
             ))
         }
     }
@@ -353,7 +358,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
     var spentMinutesBefore = "0"
     var repeatableBefore = ""
     var statusBefore = ""
-    var membersBefore = mutableListOf<Member>()
+    var membersBefore = mutableListOf<MemberDBFinal>()
 
     fun enterEditingMode() {
         taskNameBefore = taskName
@@ -412,64 +417,63 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
         //scrollTaskDetails = Int.MAX_VALUE
     }
 
-    var localId by mutableIntStateOf(0)
-    val member = model.loggedMember.value
     val dummyMembers = DummyDataProvider.getMembers()
 
-    var comments = task?.taskComments?.toMutableStateList() ?: mutableStateListOf()
-    var addComment by mutableStateOf(Comment(++localId,member, "", "", ""))
+    var comments = mutableStateListOf<CommentDBFinal>()
+    var addComment by mutableStateOf(CommentDBFinal(id = (temporaryId++).toString(), loggedMember, "", LocalDate.now(), ""))
 
     fun changeAddComment(s: String) {
-        addComment = Comment(
-            ++localId,
+        addComment = CommentDBFinal(
+            id = (temporaryId++).toString(),
             addComment.user,
             s,
-            LocalDate.now().toString(),
-            LocalTime.now().hour.toString() + ":" + LocalTime.now().minute.toString()
+            LocalDate.now(),
+            LocalTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME).slice(IntRange(0,4))
         )
     }
 
     fun addNewComment() {
         if (addComment.commentValue.trim() != "") {
             addComment.commentValue = handleInputString(addComment.commentValue)
-            comments.add(addComment)
+            model.addComment(addComment,taskId)
         }
-        addComment = Comment(
-            ++localId,
+        addComment = CommentDBFinal(
+            id = (temporaryId++).toString(),
             addComment.user,
             "",
-            LocalDate.now().toString(),
+            LocalDate.now(),
             LocalTime.now().hour.toString() + ":" + LocalTime.now().minute.toString()
         )
     }
 
-    fun deleteComment(c: Comment) {
-        comments.remove(c)
-        //commentsBefore.remove(c)
+    fun deleteComment(c: CommentDBFinal) {
+        model.deleteComment(c.id,taskId)
     }
 
-    var files = mutableStateListOf(File(++localId,dummyMembers[3], "filename", "2024-02-05", Uri.EMPTY))
-    fun addFile(f: File) {
+    var files = mutableStateListOf<FileDBFinal>()
+    fun addFile(f: FileDBFinal) {
         files.add(f)
         // add history entry
-        history.add(History(
+        history.add(HistoryDBFinal(
+            id = (temporaryId++).toString(),
             comment = "File ${f.filename} uploaded.",
-            date = LocalDate.now().toString(),
-            user = member
+            date = LocalDate.now(),
+            user = loggedMember
         ))
     }
 
-    fun removeFile(f: File) {
+    fun removeFile(f: FileDBFinal) {
         files.remove(f)
         // add history entry
-        history.add(History(
+        history.add(HistoryDBFinal(
+            id = (temporaryId++).toString(),
             comment = "File ${f.filename} deleted.",
-            date = LocalDate.now().toString(),
-            user = member
+            date = LocalDate.now(),
+            user = loggedMember
         ))
     }
 
-    var history = mutableStateListOf<History>()
+    var history = mutableStateListOf<HistoryDBFinal>()
 
     fun newTask() {
         taskName = ""
@@ -483,7 +487,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
         spentMinutes.value = "0"
         repeatable = Repetition.NONE.toString()
         status = Status.TODO.toString()
-        members = mutableStateListOf<Member>()
+        members = mutableStateListOf<MemberDBFinal>()
         comments = mutableStateListOf()
         files = mutableStateListOf()
         history = mutableStateListOf()

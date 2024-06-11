@@ -108,6 +108,7 @@ import it.polito.uniteam.classes.Chat
 import it.polito.uniteam.classes.CompressImage
 import it.polito.uniteam.classes.DummyDataProvider
 import it.polito.uniteam.classes.History
+import it.polito.uniteam.classes.HistoryDBFinal
 import it.polito.uniteam.classes.HourMinutesPicker
 import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.MemberIcon
@@ -156,7 +157,7 @@ class TeamDetailsViewModel(val model: UniTeamModel, val savedStateHandle: SavedS
         }
     )
     var beforeSelectedTeam = selectedTeam.value
-    var history = if (teamId == 0) mutableListOf() else model.getTeam(teamId).teamHistory
+    var history = mutableListOf<HistoryDBFinal>()//if (teamId == 0) mutableListOf() else model.getTeam(teamId).teamHistory
     fun addTeamHistory(teamId: Int, history: History){
         model.addTeamHistory(teamId, history)
     }

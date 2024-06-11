@@ -52,6 +52,7 @@ import java.io.FileOutputStream
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
 import java.util.UUID
@@ -97,8 +98,8 @@ fun parseToLocalDate(date: Date, returnType: parseReturnType = parseReturnType.D
 
     return when (returnType) {
         parseReturnType.TIME -> {
-            val period = if (calendar.get(Calendar.HOUR_OF_DAY) > 12) "PM" else "AM"
-            "${calendar.get(Calendar.HOUR)}:${calendar.get(Calendar.MINUTE)} ${period}"
+            Instant.ofEpochMilli(date.time).atZone(ZoneId.systemDefault()).toLocalDateTime()
+                .format(DateTimeFormatter.ISO_LOCAL_TIME).slice(IntRange(0,4))
         }
         parseReturnType.DATETIME -> {
             Instant.ofEpochMilli(date.time).atZone(ZoneId.systemDefault()).toLocalDateTime()

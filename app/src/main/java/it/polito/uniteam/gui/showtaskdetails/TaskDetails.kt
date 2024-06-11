@@ -106,16 +106,67 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
+import androidx.lifecycle.viewModelScope
+import com.maxkeppeker.sheets.core.icons.sharp.Apps
+import it.polito.uniteam.AppStateManager
 import it.polito.uniteam.Factory
 import it.polito.uniteam.NavControllerManager
+import it.polito.uniteam.classes.Category
+import it.polito.uniteam.classes.FileDBFinal
+import it.polito.uniteam.classes.HistoryDBFinal
 import it.polito.uniteam.classes.HourMinutesPicker
 import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.MemberDBFinal
 import it.polito.uniteam.classes.MemberIcon
+import it.polito.uniteam.classes.Priority
+import it.polito.uniteam.classes.Repetition
 import it.polito.uniteam.classes.Status
+import it.polito.uniteam.classes.TaskDBFinal
+import it.polito.uniteam.classes.handleInputString
+import kotlinx.coroutines.launch
 
+@Composable
+fun SetupTaskData(vm: taskDetails = viewModel(factory = Factory(LocalContext.current))) {
+    val task = AppStateManager.getTasks().find { it.id == vm.taskId }!!
+    val members = AppStateManager.getMembers()
+    if(!isTaskChanges()) {
+        vm.taskName = task.name
+        vm.description = task.description.toString()
+        vm.category = task.category.toString()
+        vm.priority = task.priority.toString()
+        vm.deadline = task.deadline.toString()
+        vm.estimatedHours.value = task.estimatedTime.first.toString()
+        vm.estimatedMinutes.value = task.estimatedTime.second.toString()
+        vm.spentTime = task.spentTime
+        vm.repeatable = task.repetition.toString()
+        vm.status = task.status.toString()
+    }
+    vm.members = members.filter { task.members.contains(it.id) }.toMutableStateList()
+    val team = AppStateManager.getTeams().find { it.tasks.contains(task.id) }!!
+    vm.possibleMembers = members.filter { team.members.contains(it.id) }
+    vm.files = AppStateManager.getFiles().filter { task.taskFiles.contains(it.id) }.toMutableStateList()
+    vm.comments = AppStateManager.getComments().filter { task.taskComments.contains(it.id) }.toMutableStateList()
+    vm.history = AppStateManager.getHistories().filter { task.taskHistory.contains(it.id) }.toMutableStateList()
+}
 
-//@Preview
+@Composable
+fun isTaskChanges(vm: taskDetails = viewModel(factory = Factory(LocalContext.current))): Boolean {
+    val task = AppStateManager.getTasks().find { it.id == vm.taskId }!!
+    return (vm.taskName.isNotEmpty() && vm.taskName != task.name) ||
+            (vm.description.isNotEmpty() && vm.description != task.description) ||
+            (vm.category != Category.NONE.toString() && vm.category != task.category.toString()) ||
+            (vm.priority != Priority.LOW.toString() && vm.priority != task.priority.toString()) ||
+            (vm.deadline != LocalDate.now().toString() && vm.deadline != task.deadline.toString()) ||
+            (vm.estimatedHours.value != "0" && vm.estimatedHours.value != task.estimatedTime.first.toString()) ||
+            (vm.estimatedMinutes.value != "0" && vm.estimatedMinutes.value != task.estimatedTime.second.toString()) ||
+            (vm.spentTime.isNotEmpty() && vm.spentTime != task.spentTime) ||
+            (vm.repeatable != Repetition.NONE.toString() && vm.repeatable != task.repetition.toString()) ||
+            (vm.status != Status.TODO.toString() && vm.status != task.status.toString()) ||
+            (vm.comments.isNotEmpty() && vm.comments != AppStateManager.getComments().filter { task.taskComments.contains(it.id) }.toMutableStateList()) ||
+            (vm.files.isNotEmpty() && vm.files != AppStateManager.getFiles().filter { task.taskFiles.contains(it.id) }.toMutableStateList()) ||
+            (vm.history.isNotEmpty() && vm.history != AppStateManager.getHistories().filter { task.taskHistory.contains(it.id) }.toMutableStateList())
+}
+
 @Composable
 fun TaskScreen(vm: taskDetails = viewModel(factory = Factory(LocalContext.current)) ) {
     if (vm.editing) {
@@ -294,6 +345,24 @@ fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.curr
             } else {
                 vm.handleHistory()
                 vm.changeEditing()
+                vm.model.updateTask(TaskDBFinal(
+                    id = vm.taskId,
+                    name = vm.taskName,
+                    description = vm.description,
+                    category = Category.valueOf(vm.category),
+                    priority = Priority.valueOf(vm.priority),
+                    creationDate = LocalDate.now(),
+                    deadline = LocalDate.parse(vm.deadline),
+                    estimatedTime = Pair(vm.estimatedHours.value.toInt(),vm.estimatedMinutes.value.toInt()),
+                    spentTime = HashMap(vm.spentTime),
+                    status = Status.valueOf(vm.status),
+                    repetition = Repetition.valueOf(vm.repeatable),
+                    members = vm.members.map{it.id}.toMutableList(),
+                    schedules = hashMapOf(),
+                    taskFiles = vm.files.map{it.id}.toMutableList(),
+                    taskComments = vm.comments.map{it.id}.toMutableList(),
+                    taskHistory = vm.history.map{it.id}.toMutableList()
+                ))
             }
             /*navController.navigate("Tasks"){
                 popUpTo(navController.graph.findStartDestination().id) {
@@ -413,6 +482,24 @@ fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.curr
                                         } else {
                                             vm.handleHistory()
                                             vm.changeEditing()
+                                            vm.model.updateTask(TaskDBFinal(
+                                                id = vm.taskId,
+                                                name = vm.taskName,
+                                                description = vm.description,
+                                                category = Category.valueOf(vm.category),
+                                                priority = Priority.valueOf(vm.priority),
+                                                creationDate = LocalDate.now(),
+                                                deadline = LocalDate.parse(vm.deadline),
+                                                estimatedTime = Pair(vm.estimatedHours.value.toInt(),vm.estimatedMinutes.value.toInt()),
+                                                spentTime = HashMap(vm.spentTime),
+                                                status = Status.valueOf(vm.status),
+                                                repetition = Repetition.valueOf(vm.repeatable),
+                                                members = vm.members.map{it.id}.toMutableList(),
+                                                schedules = hashMapOf(),
+                                                taskFiles = vm.files.map{it.id}.toMutableList(),
+                                                taskComments = vm.comments.map{it.id}.toMutableList(),
+                                                taskHistory = vm.history.map{it.id}.toMutableList()
+                                            ))
                                         }
                                         /*navController.navigate("Tasks"){
                                             popUpTo(navController.graph.findStartDestination().id) {
@@ -508,6 +595,24 @@ fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.curr
                                     } else {
                                         vm.handleHistory()
                                         vm.changeEditing()
+                                        vm.model.updateTask(TaskDBFinal(
+                                            id = vm.taskId,
+                                            name = vm.taskName,
+                                            description = vm.description,
+                                            category = Category.valueOf(vm.category),
+                                            priority = Priority.valueOf(vm.priority),
+                                            creationDate = LocalDate.now(),
+                                            deadline = LocalDate.parse(vm.deadline),
+                                            estimatedTime = Pair(vm.estimatedHours.value.toInt(),vm.estimatedMinutes.value.toInt()),
+                                            spentTime = HashMap(vm.spentTime),
+                                            status = Status.valueOf(vm.status),
+                                            repetition = Repetition.valueOf(vm.repeatable),
+                                            members = vm.members.map{it.id}.toMutableList(),
+                                            schedules = hashMapOf(),
+                                            taskFiles = vm.files.map{it.id}.toMutableList(),
+                                            taskComments = vm.comments.map{it.id}.toMutableList(),
+                                            taskHistory = vm.history.map{it.id}.toMutableList()
+                                        ))
                                     }
                                     /*navController.navigate("Tasks"){
                                         popUpTo(navController.graph.findStartDestination().id) {
@@ -636,7 +741,7 @@ fun EditRowItem(
 fun MembersDropdownMenuBox(
     vm: taskDetails,
     label: String,
-    currentMembers: List<Member>
+    currentMembers: List<MemberDBFinal>
 ) {
 
     Box(
@@ -682,7 +787,7 @@ fun MembersDropdownMenuBox(
                             .padding(0.dp, 0.dp, 5.dp, 0.dp)
                     ) {
                         currentMembers.forEachIndexed { index, member ->
-//                            MemberIcon(member = member, modifierScale = Modifier.scale(0.65f), modifierPadding = Modifier.padding(start = if (index == 0) 12.dp else 0.dp), enableNavigation = false)
+                            MemberIcon(member = member, modifierScale = Modifier.scale(0.65f), modifierPadding = Modifier.padding(start = if (index == 0) 12.dp else 0.dp), enableNavigation = false)
                             Text(
                                 text = member.username.toString() + if (index < currentMembers.size - 1) {
                                     ", "
@@ -713,7 +818,7 @@ fun MembersDropdownMenuBox(
 @Composable
 fun AssignMemberDialog(vm: taskDetails) {
     val screenHeightDp = LocalConfiguration.current.screenHeightDp
-    val selectedMembers = remember { mutableStateMapOf<Member, Boolean>() }
+    val selectedMembers = remember { mutableStateMapOf<MemberDBFinal, Boolean>() }
     vm.possibleMembers.forEach { member ->
         selectedMembers[member] = vm.members.toMutableList().contains(member)
     }
@@ -978,7 +1083,7 @@ fun CustomDatePickerPreview(label: String, value: String, onChange: (String) -> 
 fun CommentsView(
     vm: taskDetails = viewModel(factory = Factory(LocalContext.current))
 ) {
-    var date = ""
+    var date = LocalDate.now()
     val screenHeightDp = LocalConfiguration.current.screenHeightDp
 
     Box(
@@ -998,7 +1103,7 @@ fun CommentsView(
                     if (comment.date != date) {
                         Row(modifier = Modifier.fillMaxWidth()) {
                             Text(
-                                text = comment.date,
+                                text = comment.date.toString(),
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.fillMaxWidth()
                             )
@@ -1009,7 +1114,7 @@ fun CommentsView(
                         OutlinedTextField(
                             label = {
                                 Text(
-                                    text = comment.user.username,
+                                    text = AppStateManager.getMembers().find { it.id == comment.user }!!.username,
                                     style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)//testo
                                 )
                             },
@@ -1017,21 +1122,16 @@ fun CommentsView(
                                 .fillMaxWidth(0.9f)
                                 .padding(8.dp, 0.dp, 0.dp, 3.dp)
                                 .width(IntrinsicSize.Max),
-                            enabled = (comment.user == vm.member),// <- Add this to make click event work
+                            enabled = (comment.user == vm.loggedMember),// <- Add this to make click event work
                             value = comment.commentValue,
                             onValueChange = {value ->
-                                vm.comments.replaceAll { c->
-                                    if(c.id == comment.id)
-                                        c.copy(commentValue = value.replace(Regex("\\n+"), "\n"))
-                                    else
-                                        c
-                                }
+                                vm.model.updateComment(comment.copy(commentValue = handleInputString(value)),vm.taskId)
                             },
                             trailingIcon = {
                                 Text(text = comment.hour, textAlign = TextAlign.End)
                             }
                         )
-                        if (comment.user == vm.member) {
+                        if (comment.user == vm.loggedMember) {
                             IconButton(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -1077,10 +1177,10 @@ fun CommentsView(
 
 @Composable
 fun HistoryView(
-    history: MutableList<History>,
+    history: MutableList<HistoryDBFinal>,
     customHeight: Float = 0.7f
 ) {
-    var date = ""
+    var date = LocalDate.now()
     val screenHeightDp = LocalConfiguration.current.screenHeightDp
 
     Box(
@@ -1100,7 +1200,7 @@ fun HistoryView(
                     if (history.date != date) {
                         Row(modifier = Modifier.fillMaxWidth()) {
                             Text(
-                                text = history.date,
+                                text = history.date.toString(),
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.fillMaxWidth()
                             )
@@ -1113,7 +1213,7 @@ fun HistoryView(
                         OutlinedTextField(
                             label = {
                                 Text(
-                                    text = history.user.username,
+                                    text = AppStateManager.getMembers().find { it.id == history.user }!!.username,
                                     style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)//testo
                                 )
                             },
@@ -1141,7 +1241,7 @@ fun HistoryView(
 fun FilesView(
     vm: taskDetails = viewModel(factory = Factory(LocalContext.current)),
 ) {
-    var date = ""
+    var date = LocalDate.now()
     val screenHeightDp = LocalConfiguration.current.screenHeightDp
 
     Box(
@@ -1161,7 +1261,7 @@ fun FilesView(
                 if (file.date != date) {
                     Row(modifier = Modifier.fillMaxWidth()) {
                         Text(
-                            text = file.date,
+                            text = file.date.toString(),
                             textAlign = TextAlign.Center,
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -1170,11 +1270,11 @@ fun FilesView(
 
                 }
                 Row {
-
+                    val context = LocalContext.current;
                     OutlinedTextField(
                         label = {
                             Text(
-                                text = file.user.username,
+                                text = AppStateManager.getMembers().find { it.id == file.user }!!.username,
                                 style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary)//testo
                             )
                         },
@@ -1186,17 +1286,17 @@ fun FilesView(
                         value = file.filename,
                         onValueChange = {},
                         trailingIcon = {
-                            IconButton(onClick = { /*TODO download web*/ }) {
+                            IconButton(onClick = { vm.viewModelScope.launch { vm.model.downloadFileAndSaveToDownloads(context,file.id + "." + file.filename.split(".")[1],file.filename) }}) {
                                 Icon(Icons.Default.Download, contentDescription = null)
                             }
                         }
                     )
-                    if (file.user == vm.member) {
+                    if (file.user == vm.loggedMember) {
                         IconButton(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .align(Alignment.CenterVertically),
-                            onClick = { vm.removeFile(file) }) {
+                            onClick = { vm.model.deleteFile(file.id,file.id + "." + file.filename.split(".")[1],vm.taskId) }) {
                             Icon(
                                 imageVector = Icons.Default.Delete,
                                 contentDescription = "Delete File",
@@ -1220,7 +1320,7 @@ fun FileUpload(vm: taskDetails = viewModel(factory = Factory(LocalContext.curren
     var selectedFileUri by remember { mutableStateOf<Uri?>(null) }
     var selectedFileName by remember { mutableStateOf<String?>(null) }
     val contentResolver = LocalContext.current.contentResolver
-
+    val context = LocalContext.current
     val chooseFileLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -1229,14 +1329,22 @@ fun FileUpload(vm: taskDetails = viewModel(factory = Factory(LocalContext.curren
             // Extract filename from URI
             selectedFileName = getFileName(uri, contentResolver)
 
-            vm.addFile(
-                File(
-                    user = vm.member,
+            vm.model.addFile(context,FileDBFinal(
+                id = (vm.temporaryId++).toString(),
+                user = vm.loggedMember,
+                filename = selectedFileName ?: uri.path.toString(),
+                date = LocalDate.now(),
+                uri = uri
+            ),vm.taskId)
+            /*vm.addFile(
+                FileDBFinal(
+                    id = (vm.temporaryId++).toString(),
+                    user = vm.loggedMember,
                     filename = selectedFileName ?: uri.path.toString(),
-                    date = LocalDate.now().toString(),
+                    date = LocalDate.now(),
                     uri = uri
                 )
-            )
+            )*/
         }
     }
 

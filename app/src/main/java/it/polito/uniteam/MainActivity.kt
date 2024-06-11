@@ -106,6 +106,8 @@ import it.polito.uniteam.gui.statistics.Statistics
 import it.polito.uniteam.gui.teamScreen.TeamScreen
 import it.polito.uniteam.gui.home.Home
 import it.polito.uniteam.gui.notifications.messageUnreadCountForBottomBar
+import it.polito.uniteam.gui.showtaskdetails.SetupTaskData
+import it.polito.uniteam.gui.showtaskdetails.isTaskChanges
 import it.polito.uniteam.gui.userprofile.OtherProfileSettings
 import it.polito.uniteam.gui.userprofile.ProfileSettings
 import it.polito.uniteam.gui.userprofile.SetupProfileData
@@ -366,7 +368,8 @@ class MainActivity : ComponentActivity() {
                                                             startDestination = "Teams"
                                                         ) {
                                                             composable("Teams") {
-                                                                CalendarAppContainer(
+                                                                SetupTaskData()
+                                                                TaskScreen(
                                                                     vm = viewModel(
                                                                         factory = Factory(
                                                                             LocalContext.current
@@ -662,7 +665,7 @@ class MainActivity : ComponentActivity() {
                 Manifest.permission.READ_EXTERNAL_STORAGE
             )
         }*/
-        val permissions = arrayOf(Manifest.permission.CAMERA)
+        val permissions = arrayOf(Manifest.permission.CAMERA,Manifest.permission.POST_NOTIFICATIONS)
 
         var launch = false
         for (permission in permissions) {

@@ -1,10 +1,23 @@
 package it.polito.uniteam.firebase
 
+import android.Manifest
+import android.app.Activity
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
-import android.util.Base64
+import android.os.Environment
+import android.provider.DocumentsContract
 import android.util.Log
 import androidx.compose.runtime.MutableState
-import androidx.core.net.toUri
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
@@ -35,6 +48,7 @@ import it.polito.uniteam.classes.parseToLocalDate
 import it.polito.uniteam.classes.permissionRole
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.awaitClose
@@ -45,6 +59,8 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
+import java.io.FileOutputStream
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -56,6 +72,93 @@ suspend fun getImageToFirebaseStorage(fileName: String): Uri? {
     } catch (e: Exception) {
         e.printStackTrace()
         null
+    }
+}
+
+fun createNotificationChannel(context: Context, channelName: String, channelDescription: String, channelId: String) {
+    val importance = NotificationManager.IMPORTANCE_LOW
+    val channel = NotificationChannel(channelId, channelName, importance).apply {
+        description = channelDescription
+    }
+    // Register the channel with the system
+    val notificationManager: NotificationManager =
+        context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    notificationManager.createNotificationChannel(channel)
+}
+
+suspend fun downloadFileAndSaveToDownloads(context: Context, fileStorageName: String, fileName: String) {
+    if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+        ActivityCompat.requestPermissions(context as Activity, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1)
+        return // Return and wait for the permission to be granted
+    }
+    val storage = FirebaseStorage.getInstance()
+    val fileRef = storage.reference.child("files/$fileStorageName")
+
+    // Create the notification channel
+    createNotificationChannel(context, "Download Channel","Channel for file download notifications","DOWNLOAD_CHANNEL")
+
+    // Initialize the NotificationManager and NotificationCompat.Builder
+    val notificationManager = NotificationManagerCompat.from(context)
+    val builder = NotificationCompat.Builder(context, "DOWNLOAD_CHANNEL")
+        .setContentTitle("Downloading File")
+        .setContentText("Download in progress")
+        .setSmallIcon(android.R.drawable.stat_sys_download)
+        .setPriority(NotificationCompat.PRIORITY_LOW)
+        .setOngoing(true)
+        .setProgress(0, 0, true) // Indeterminate progress initially
+
+    // Start the notification
+
+    try {
+        // Download the file as bytes with progress updates
+        val MAX_DOWNLOAD_SIZE = 1024 * 1024 * 100L // Adjust as needed
+        val stream = fileRef.stream.await().stream
+
+        // Get the Downloads directory
+        val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+
+        // Create a file in the Downloads directory
+        val file = java.io.File(downloadsDir, fileName)
+        withContext(Dispatchers.IO) {
+            FileOutputStream(file).use { fos ->
+                val buffer = ByteArray(1024 * 400) // 400 KB buffer
+                var totalBytesRead = 0L
+                var bytesRead: Int = 0
+
+                while (stream.read(buffer).also { bytesRead = it } != -1) {
+                    fos.write(buffer, 0, bytesRead)
+                    totalBytesRead += bytesRead
+
+                    // Update progress notification
+                    val progress = (totalBytesRead * 100 / MAX_DOWNLOAD_SIZE).toInt()
+                    builder.setProgress(100, progress, false)
+                    notificationManager.notify(1, builder.build())
+                }
+            }
+        }
+        // Create intent to open the Downloads directory
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
+            putExtra(DocumentsContract.EXTRA_INITIAL_URI, Uri.parse("content://com.android.externalstorage.documents/document/primary:Download"))
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+
+        val pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+
+        // Download complete, update notification
+        builder.setContentText("$fileName Successfully Downloaded")
+            .setProgress(0, 0, false)
+            .setOngoing(false)
+            .setContentIntent(pendingIntent)
+            .setSmallIcon(android.R.drawable.stat_sys_download_done)
+        notificationManager.notify(1, builder.build())
+
+    } catch (e: Exception) {
+        // Update notification for failure
+        builder.setContentText("Download failed")
+            .setProgress(0, 0, false)
+            .setOngoing(false)
+        notificationManager.notify(1, builder.build())
+
     }
 }
 

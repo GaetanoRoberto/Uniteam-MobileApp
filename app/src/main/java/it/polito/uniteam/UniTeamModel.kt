@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.toMutableStateList
+import androidx.compose.ui.platform.LocalContext
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -107,6 +108,14 @@ class UniTeamModel(val context: Context) {
     fun scheduleTask(task: TaskDBFinal, scheduleDate: LocalDate, hoursToSchedule: Pair<Int,Int>) = it.polito.uniteam.firebase.scheduleTask(db, task, scheduleDate, hoursToSchedule, memberId = loggedMemberFinal.id)
     fun unscheduleTask(task: TaskDBFinal, scheduleDate: LocalDate) = it.polito.uniteam.firebase.unscheduleTask(db,task,scheduleDate, memberId = loggedMemberFinal.id)
     fun updateUserProfile(memberId: String, username: String, fullName: String, email: String, location: String, description: String, profileImage: Uri) = it.polito.uniteam.firebase.updateUserProfile(db, memberId, username, fullName,email, location, description, profileImage)
+    fun updateTask(task: TaskDBFinal) = it.polito.uniteam.firebase.updateTask(db, task)
+    fun addComment(comment: CommentDBFinal, taskId: String) = it.polito.uniteam.firebase.addComment(db, comment, taskId)
+    fun addFile(context: Context, file: FileDBFinal, taskId: String) = it.polito.uniteam.firebase.addFile(db, coroutineScope, context, file, taskId)
+    fun addHistory(history: HistoryDBFinal, taskId: String) = it.polito.uniteam.firebase.addHistory(db, history, taskId)
+    fun deleteComment(commentId: String, taskId: String) = it.polito.uniteam.firebase.deleteComment(db, commentId, taskId)
+    fun deleteFile(fileId: String, fileName: String, taskId: String) = it.polito.uniteam.firebase.deleteFile(db, fileId, fileName, taskId)
+    fun updateComment(comment: CommentDBFinal, taskId: String) = it.polito.uniteam.firebase.updateComment(db, comment, taskId)
+    suspend fun downloadFileAndSaveToDownloads(context: Context, fileStorageName: String, fileName: String) = it.polito.uniteam.firebase.downloadFileAndSaveToDownloads(context, fileStorageName, fileName)
 
         var membersList = mutableListOf<Member>(
         Member().apply {
