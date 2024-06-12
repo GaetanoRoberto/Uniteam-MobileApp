@@ -1374,7 +1374,7 @@ fun getFileName(uri: Uri, contentResolver: ContentResolver): String? {
 @Composable
 fun DeleteTaskDialog(vm: taskDetails) {
     val navController = NavControllerManager.getNavController()
-
+    val teamToWhichRemoveTheTask = AppStateManager.getTeams().find { it.tasks.contains(vm.taskId) }!!
     AlertDialog(
         containerColor = MaterialTheme.colorScheme.background,
         onDismissRequest = { vm.openDeleteTaskDialog = false },
@@ -1384,6 +1384,7 @@ fun DeleteTaskDialog(vm: taskDetails) {
             TextButton(
                 onClick = {
                     vm.openDeleteTaskDialog = false
+                    vm.model.deleteTask(vm.files.toList(),vm.taskId,teamToWhichRemoveTheTask.id)
                     //vm.deleteTask
                     navController.navigate("Team/${vm.model.selectedTeam.value.id}") { launchSingleTop = true }
                 }

@@ -116,6 +116,7 @@ class UniTeamModel(val context: Context) {
     fun deleteFile(file: FileDBFinal, taskId: String) = it.polito.uniteam.firebase.deleteFile(db, file, taskId)
     fun updateComment(comment: CommentDBFinal, taskId: String) = it.polito.uniteam.firebase.updateComment(db, comment, taskId)
     suspend fun downloadFileAndSaveToDownloads(context: Context, fileStorageName: String, fileName: String) = it.polito.uniteam.firebase.downloadFileAndSaveToDownloads(context, fileStorageName, fileName)
+    fun deleteTask(files:List<FileDBFinal>, taskId: String, teamId: String) = it.polito.uniteam.firebase.deleteTask(db, files, taskId, teamId)
 
         var membersList = mutableListOf<Member>(
         Member().apply {
