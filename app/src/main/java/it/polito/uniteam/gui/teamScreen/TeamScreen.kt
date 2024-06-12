@@ -1,6 +1,8 @@
 package it.polito.uniteam.gui.teamScreen
 
+import android.annotation.SuppressLint
 import android.content.Context
+import android.net.Uri
 import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
@@ -108,38 +110,46 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import it.polito.uniteam.AppStateManager
 import it.polito.uniteam.Factory
 import it.polito.uniteam.NavControllerManager
 import it.polito.uniteam.R
 import it.polito.uniteam.UniTeamModel
 import it.polito.uniteam.classes.Category
 import it.polito.uniteam.classes.MemberDB
+import it.polito.uniteam.classes.MemberDBFinal
 import it.polito.uniteam.classes.MemberIcon
 import it.polito.uniteam.classes.Priority
 import it.polito.uniteam.classes.Repetition
 import it.polito.uniteam.classes.Status
 import it.polito.uniteam.classes.TaskDB
+import it.polito.uniteam.classes.TaskDBFinal
 import it.polito.uniteam.classes.TeamDB
+import it.polito.uniteam.classes.TeamDBFinal
+import it.polito.uniteam.classes.TeamIcon
 import it.polito.uniteam.gui.showtaskdetails.CustomDatePicker
 import it.polito.uniteam.isVertical
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.util.Locale
+import kotlin.math.log
 
-
+//TODO QUANDO METTI UN MEMBRO NEL TEAM => AGGIUNGERE UNA CHAT PER OGNI MEMBRO DEL TEAM CON QUEL MEMBRO E
 class TeamScreenViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
     val teamId: String = checkNotNull(savedStateHandle["teamId"])
-    val currentTeam = model.getTeamById(teamId)
+    fun updateTaskAssignee(taskId: String, members: List<String>, loggedUser: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = model.updateTaskAssignee(taskId, members, loggedUser, onSuccess, onFailure)
+    fun leaveTeam(memberId: String, teamId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = model.leaveTeam(memberId, teamId, onSuccess, onFailure)
 
+    val loaded = mutableStateOf(false)
     var expandedSearch by mutableStateOf(false)
     var searchQuery by mutableStateOf("")
     var expandedDropdown by mutableStateOf(false)
     var openAssignDialog by mutableStateOf(false)
     var openLeaveTeamDialog by mutableStateOf(false)
-    var taskToAssign by mutableStateOf<TaskDB?>(null)
+    var taskToAssign by mutableStateOf<TaskDBFinal?>(null)
     var lastAppliedFilters = mutableStateOf<Map<String, Any>>(mapOf())
-    var lastSearchQuery = mutableStateOf<String>("")
+    var lastSearchQuery = mutableStateOf("")
     var membersError by mutableStateOf("")
     //Stati per la gestione degli ExpandableRow
     val assigneeExpanded = mutableStateOf(false)
@@ -150,7 +160,9 @@ class TeamScreenViewModel(val model: UniTeamModel, val savedStateHandle: SavedSt
     val deadlineExpanded = mutableStateOf(false)
     val sortByExpanded = mutableStateOf(false)
     //Stati per la gestione dei filtri
-    val selectedMembers = mutableStateMapOf<MemberDB, Boolean>()
+    var tasksList: List<TaskDBFinal> = listOf()
+    var filteredTasksList = mutableStateOf(tasksList.map { it.copy() })
+    val selectedMembers = mutableStateMapOf<MemberDBFinal, Boolean>()
     val selectedCategory = mutableStateMapOf<Category, Boolean>()
     val selectedPriority = mutableStateMapOf<Priority, Boolean>()
     val selectedStatus = mutableStateMapOf<Status, Boolean>()
@@ -160,6 +172,7 @@ class TeamScreenViewModel(val model: UniTeamModel, val savedStateHandle: SavedSt
 }
 
 
+@SuppressLint("UnrememberedMutableState")
 @Composable
 fun TeamScreen(vm: TeamScreenViewModel = viewModel(factory = Factory(LocalContext.current))) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -169,12 +182,19 @@ fun TeamScreen(vm: TeamScreenViewModel = viewModel(factory = Factory(LocalContex
     val view = LocalView.current
     val radioOptions = listOf("Creation date", "Deadline", "Priority", "Estimated hours", "Spent hours")
     val (selectedOption, onOptionSelected) = remember { mutableStateOf(radioOptions[0]) }
-    val currentTeam = vm.currentTeam.collectAsState(initial = TeamDB())
-    Log.d("TeamScreen", currentTeam.value.toString())
-    val membersList = currentTeam.value.members
-    val tasksList = currentTeam.value.tasks
-    //Stati vari
-    var filteredTasksList = remember {mutableStateOf<List<TaskDB>>(tasksList.sortedByDescending { it.creationDate })}
+    // Stati per team, membri e task
+    val teams = AppStateManager.getTeams()
+    val members = AppStateManager.getMembers()
+    val tasks = AppStateManager.getTasks()
+    val currentTeam = teams.find { it.id == vm.teamId }!!
+    val membersList = currentTeam.members.map { memberId -> members.find { it.id == memberId }!! }
+    vm.tasksList = currentTeam.tasks.map { taskId -> tasks.find { it.id == taskId }!! }
+    vm.filteredTasksList = mutableStateOf(vm.tasksList.sortedByDescending { it.creationDate })
+
+//    LaunchedEffect(tasksList) {
+//        vm.loaded.value = true
+//        filteredTasksList.value = tasksList?.sortedByDescending { it?.creationDate }
+//    }
 
     //Drawer dei filtri
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
@@ -678,12 +698,12 @@ fun TeamScreen(vm: TeamScreenViewModel = viewModel(factory = Factory(LocalContex
                                         vm.deadlineExpanded.value = false
                                         vm.sortByExpanded.value = false
                                         scope.launch { scrollState.animateScrollTo(0) }
-                                        filteredTasksList.value = tasksList.filter { task ->
+                                        vm.filteredTasksList.value = vm.tasksList.filter { task ->
                                             applyFilters(task, vm.lastAppliedFilters.value, vm.lastSearchQuery.value)
                                         }
                                         onOptionSelected(radioOptions[0])
                                         vm.selectedChip = "First"
-                                        sortTasks(radioOptions[0], "First", vm, filteredTasksList)
+                                        sortTasks(radioOptions[0], "First", vm.filteredTasksList)
                                     }) {
                                         Text("Reset")
                                     }
@@ -698,10 +718,10 @@ fun TeamScreen(vm: TeamScreenViewModel = viewModel(factory = Factory(LocalContex
                                         "selectedStatus" to vm.selectedStatus,
                                         "selectedRepetition" to vm.selectedRepetition
                                     )
-                                    filteredTasksList.value = tasksList.filter { task ->
+                                    vm.filteredTasksList.value = vm.tasksList.filter { task ->
                                         applyFilters(task, vm.lastAppliedFilters.value, vm.lastSearchQuery.value)
                                     }
-                                    sortTasks(selectedOption, vm.selectedChip, vm, filteredTasksList)
+                                    sortTasks(selectedOption, vm.selectedChip, vm.filteredTasksList)
                                     scope.launch { drawerState.close() }
                                 }) {
                                     Text("Apply")
@@ -718,9 +738,9 @@ fun TeamScreen(vm: TeamScreenViewModel = viewModel(factory = Factory(LocalContex
                         floatingActionButton = { FAB(vm) },
                         content = { paddingValue ->
                             if (isVertical())
-                                VerticalTaskListView(vm, drawerState, scope, context, view, selectedOption, vm.selectedChip, paddingValue, currentTeam.value, membersList, tasksList, filteredTasksList)
+                                VerticalTaskListView(vm, drawerState, scope, context, view, selectedOption, vm.selectedChip, paddingValue, currentTeam, membersList, vm.tasksList, vm.filteredTasksList)
                             else
-                                HorizontalTaskListView(vm, drawerState, scope, context, view, selectedOption, vm.selectedChip, paddingValue, currentTeam.value, membersList, tasksList, filteredTasksList)
+                                HorizontalTaskListView(vm, drawerState, scope, context, view, selectedOption, vm.selectedChip, paddingValue, currentTeam, membersList, vm.tasksList, vm.filteredTasksList)
                         }
                     )
                 }
@@ -733,7 +753,7 @@ fun TeamScreen(vm: TeamScreenViewModel = viewModel(factory = Factory(LocalContex
                 //Dialog per l'uscita dal team
                 when {
                     vm.openLeaveTeamDialog -> {
-                        LeaveTeamDialog(vm, currentTeam.value)
+                        LeaveTeamDialog(vm, currentTeam)
                     }
                 }
             } }
@@ -744,7 +764,7 @@ fun TeamScreen(vm: TeamScreenViewModel = viewModel(factory = Factory(LocalContex
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun VerticalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, scope: CoroutineScope, context: Context, view: View, selectedOption: String, selectedChip: String, paddingValue: PaddingValues, currentTeam: TeamDB, membersList: List<MemberDB>, tasksList: List<TaskDB>, filteredTasksList: MutableState<List<TaskDB>>) {
+fun VerticalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, scope: CoroutineScope, context: Context, view: View, selectedOption: String, selectedChip: String, paddingValue: PaddingValues, currentTeam: TeamDBFinal, membersList: List<MemberDBFinal>, tasksList: List<TaskDBFinal>, filteredTasksList: MutableState<List<TaskDBFinal>>) {
     val navController = NavControllerManager.getNavController()
     val screenWidthDp = LocalConfiguration.current.screenWidthDp
     var textExpanded by remember { mutableStateOf(false) }
@@ -761,15 +781,15 @@ fun VerticalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, scop
             horizontalArrangement = Arrangement.Center,
 //            verticalAlignment = Alignment.CenterVertically
         ) {
-            /*TeamIcon(
-                team = vm.currentTeam,
-                modifierPadding = if(vm.currentTeam.image != Uri.EMPTY) Modifier.padding(12.dp, 12.dp, 12.dp, 7.dp) else Modifier.padding(12.dp, 12.dp, 12.dp, 0.dp),
-                modifierScale = if(vm.currentTeam.image != Uri.EMPTY) Modifier.scale(2f) else Modifier.scale(1f)
-            )*/
+            TeamIcon(
+                team = currentTeam,
+                modifierPadding = if(currentTeam.image != Uri.EMPTY) Modifier.padding(12.dp, 12.dp, 12.dp, 7.dp) else Modifier.padding(12.dp, 12.dp, 12.dp, 0.dp),
+                modifierScale = if(currentTeam.image != Uri.EMPTY) Modifier.scale(2f) else Modifier.scale(1f)
+            )
             Spacer(modifier = Modifier.padding(5.dp))
             Text(
                 text = currentTeam.name,
-                style = MaterialTheme.typography.displaySmall,
+                style = MaterialTheme.typography.headlineMedium,
                 maxLines = if (textExpanded) Int.MAX_VALUE else 1,
                 overflow = if (textExpanded) TextOverflow.Clip else TextOverflow.Ellipsis,
                 onTextLayout = { textLayoutResult: TextLayoutResult ->
@@ -825,7 +845,7 @@ fun VerticalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, scop
                                 style = MaterialTheme.typography.titleMedium
                             )
                         },
-                        onClick = { vm.expandedDropdown = false; navController.navigate("ChangeAvailability/${vm.teamId}") { launchSingleTop = true } },
+                        onClick = { vm.expandedDropdown = false; navController.navigate("ChangeAvailability/${vm.teamId}/${currentTeam.name}") { launchSingleTop = true } },
                         leadingIcon = {
                             Icon(
                                 painter = painterResource(id = R.drawable.availability),
@@ -912,10 +932,10 @@ fun VerticalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, scop
                 membersList
             for ((index, member) in membersToShow.withIndex()) {
                 val endPadding = if (index == membersToShow.lastIndex) 16.dp else 20.dp
-                /*MemberIcon(
+                MemberIcon(
                     modifierPadding = Modifier.padding(0.dp, 0.dp, endPadding, 0.dp),
                     member = member
-                )*/
+                )
             }
             if (membersList.size > 5) {
                 Text(
@@ -973,12 +993,13 @@ fun VerticalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, scop
                     SearchBarDefaults.InputField(
                         query = vm.searchQuery,
                         onQueryChange = {
+                            vm.loaded.value = false
                             vm.searchQuery = it
                             vm.lastSearchQuery.value = vm.searchQuery.trim()
                             filteredTasksList.value = tasksList.filter { task ->
                                 applyFilters(task, vm.lastAppliedFilters.value, vm.lastSearchQuery.value)
                             }
-                            sortTasks(selectedOption, selectedChip, vm, filteredTasksList)
+                            sortTasks(selectedOption, selectedChip, filteredTasksList)
                         },
                         onSearch = {
                             val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
@@ -1004,7 +1025,7 @@ fun VerticalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, scop
                                         filteredTasksList.value = tasksList.filter { task ->
                                             applyFilters(task, vm.lastAppliedFilters.value, vm.lastSearchQuery.value)
                                         }
-                                        sortTasks(selectedOption, selectedChip, vm, filteredTasksList)
+                                        sortTasks(selectedOption, selectedChip, filteredTasksList)
                                     }
                                 )
                             }
@@ -1060,7 +1081,9 @@ fun VerticalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, scop
                 Text(
                     text =
                         if (tasksList.isEmpty())
-                            "${currentTeam.name} team\nhas no tasks yet.\nCreate the first!"
+                            "The team has no tasks yet.\nCreate the first!"
+                        else if (vm.loaded.value)
+                            ""
                         else
                             "No tasks found!",
                     style = MaterialTheme.typography.headlineSmall,
@@ -1093,7 +1116,7 @@ fun VerticalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, scop
                                     Text(" nobody assigned", style = MaterialTheme.typography.labelMedium)
                                 } else {
                                     for (member in membersToShow) {
-                                        //MemberIcon(Modifier.scale(0.7f), Modifier.padding(5.dp, 0.dp, 10.dp, 0.dp), member)
+                                        MemberIcon(Modifier.scale(0.7f), Modifier.padding(5.dp, 0.dp, 10.dp, 0.dp), membersList.find { it.id == member }!!)
                                     }
                                 }
                                 if (task.members.size > 4) {
@@ -1157,7 +1180,7 @@ fun VerticalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, scop
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HorizontalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, scope: CoroutineScope, context: Context, view: View, selectedOption: String, selectedChip: String, paddingValue: PaddingValues, currentTeam: TeamDB, membersList: List<MemberDB>, tasksList: List<TaskDB>, filteredTasksList: MutableState<List<TaskDB>>) {
+fun HorizontalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, scope: CoroutineScope, context: Context, view: View, selectedOption: String, selectedChip: String, paddingValue: PaddingValues, currentTeam: TeamDBFinal, membersList: List<MemberDBFinal>, tasksList: List<TaskDBFinal>, filteredTasksList: MutableState<List<TaskDBFinal>>) {
     val navController = NavControllerManager.getNavController()
     val screenWidthDp = LocalConfiguration.current.screenWidthDp
     var textExpanded by remember { mutableStateOf(false) }
@@ -1179,15 +1202,15 @@ fun HorizontalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, sc
                 horizontalArrangement = Arrangement.Center,
 //            verticalAlignment = Alignment.CenterVertically
             ) {
-                /*TeamIcon(
-                    team = vm.currentTeam,
-                    modifierPadding = if(vm.currentTeam.image != Uri.EMPTY) Modifier.padding(12.dp, 12.dp, 12.dp, 7.dp) else Modifier.padding(12.dp, 12.dp, 12.dp, 0.dp),
-                    modifierScale = if(vm.currentTeam.image != Uri.EMPTY) Modifier.scale(2f) else Modifier.scale(1f)
-                )*/
+                TeamIcon(
+                    team = currentTeam,
+                    modifierPadding = if(currentTeam.image != Uri.EMPTY) Modifier.padding(12.dp, 12.dp, 12.dp, 7.dp) else Modifier.padding(12.dp, 12.dp, 12.dp, 0.dp),
+                    modifierScale = if(currentTeam.image != Uri.EMPTY) Modifier.scale(2f) else Modifier.scale(1f)
+                )
                 Spacer(modifier = Modifier.padding(5.dp))
                 Text(
                     text = currentTeam.name,
-                    style = MaterialTheme.typography.displaySmall,
+                    style = MaterialTheme.typography.headlineMedium,
                     maxLines = if (textExpanded) Int.MAX_VALUE else 1,
                     overflow = if (textExpanded) TextOverflow.Clip else TextOverflow.Ellipsis,
                     onTextLayout = { textLayoutResult: TextLayoutResult ->
@@ -1243,7 +1266,7 @@ fun HorizontalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, sc
                                     style = MaterialTheme.typography.titleMedium
                                 )
                             },
-                            onClick = { vm.expandedDropdown = false; navController.navigate("ChangeAvailability/${vm.teamId}") { launchSingleTop = true } },
+                            onClick = { vm.expandedDropdown = false; navController.navigate("ChangeAvailability/${vm.teamId}/${currentTeam.name}") { launchSingleTop = true } },
                             leadingIcon = {
                                 Icon(
                                     painter = painterResource(id = R.drawable.availability),
@@ -1330,10 +1353,10 @@ fun HorizontalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, sc
                     membersList
                 for ((index, member) in membersToShow.withIndex()) {
                     val endPadding = if (index == membersToShow.lastIndex) 16.dp else 20.dp
-                    /*MemberIcon(
+                    MemberIcon(
                         modifierPadding = Modifier.padding(0.dp, 0.dp, endPadding, 0.dp),
                         member = member
-                    )*/
+                    )
                 }
                 if (membersList.size > 5) {
                     Text(
@@ -1363,12 +1386,13 @@ fun HorizontalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, sc
                         SearchBarDefaults.InputField(
                             query = vm.searchQuery,
                             onQueryChange = {
+                                vm.loaded.value = false
                                 vm.searchQuery = it
                                 vm.lastSearchQuery.value = vm.searchQuery.trim()
                                 filteredTasksList.value = tasksList.filter { task ->
                                     applyFilters(task, vm.lastAppliedFilters.value, vm.lastSearchQuery.value)
                                 }
-                                sortTasks(selectedOption, selectedChip, vm, filteredTasksList)
+                                sortTasks(selectedOption, selectedChip, filteredTasksList)
                             },
                             onSearch = {
                                 val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
@@ -1394,7 +1418,7 @@ fun HorizontalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, sc
                                             filteredTasksList.value = tasksList.filter { task ->
                                                 applyFilters(task, vm.lastAppliedFilters.value, vm.lastSearchQuery.value)
                                             }
-                                            sortTasks(selectedOption, selectedChip, vm, filteredTasksList)
+                                            sortTasks(selectedOption, selectedChip, filteredTasksList)
                                         }
                                     )
                                 }
@@ -1488,10 +1512,12 @@ fun HorizontalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, sc
                 ) {
                     Text(
                         text =
-                        if (tasksList.isEmpty())
-                            "${currentTeam.name} team\nhas no tasks yet.\nCreate the first!"
-                        else
-                            "No tasks found!",
+                            if (tasksList.isEmpty())
+                                "The team has no tasks yet.\nCreate the first!"
+                            else if (vm.loaded.value)
+                                ""
+                            else
+                                "No tasks found!",
                         style = MaterialTheme.typography.headlineSmall,
                         modifier = Modifier.padding(top = 16.dp)
                     )
@@ -1522,7 +1548,7 @@ fun HorizontalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, sc
                                         Text(" nobody assigned", style = MaterialTheme.typography.labelMedium)
                                     } else {
                                         for (member in membersToShow) {
-                                            //MemberIcon(Modifier.scale(0.7f), Modifier.padding(5.dp, 0.dp, 10.dp, 0.dp), member)
+                                            MemberIcon(Modifier.scale(0.7f), Modifier.padding(5.dp, 0.dp, 10.dp, 0.dp), membersList.find { it.id == member }!!)
                                         }
                                     }
                                     if (task.members.size > 4) {
@@ -1606,12 +1632,14 @@ fun FAB(vm: TeamScreenViewModel){
 }
 
 @Composable
-fun AssignDialog(vm: TeamScreenViewModel, membersList: MutableList<MemberDB>) {
+fun AssignDialog(vm: TeamScreenViewModel, membersList: List<MemberDBFinal>) {
     val screenHeightDp = LocalConfiguration.current.screenHeightDp
+    val loggedMember = AppStateManager.getLoggedMember()
+
     if (vm.taskToAssign != null) {
-        val selectedMembers = remember { mutableStateMapOf<MemberDB, Boolean>() }
+        val selectedMembers = remember { mutableStateMapOf<MemberDBFinal, Boolean>() }
         membersList.forEach { member ->
-            selectedMembers[member] = vm.taskToAssign!!.members.contains(member)
+            selectedMembers[member] = vm.taskToAssign!!.members.any { it == member.id }
         }
         Dialog(onDismissRequest = { vm.openAssignDialog = false }) {
             Card(modifier = Modifier
@@ -1679,9 +1707,20 @@ fun AssignDialog(vm: TeamScreenViewModel, membersList: MutableList<MemberDB>) {
                             if(selectedMembers.all { !it.value }) {
                                 vm.membersError = "You Must Select at Least One Member"
                             } else {
-                                vm.taskToAssign!!.members = selectedMembers.filterValues { it }.keys.toMutableList()
+//                                vm.taskToAssign!!.members = selectedMembers.filterValues { it }.keys.map { it.id }.toMutableList()
                                 vm.openAssignDialog = false
                                 vm.membersError = ""
+                                val selectedMemberIds = selectedMembers.filterValues { it }.keys.map { it.id }
+                                vm.updateTaskAssignee(
+                                    taskId = vm.taskToAssign!!.id,
+                                    members = selectedMemberIds,
+                                    loggedUser = loggedMember.id,
+                                    onSuccess = {
+                                    },
+                                    onFailure = {
+                                        vm.membersError = "Failed to update members: ${it.message}"
+                                    }
+                                )
                             }
                         } ) {
                             Text("Confirm")
@@ -1689,14 +1728,14 @@ fun AssignDialog(vm: TeamScreenViewModel, membersList: MutableList<MemberDB>) {
                     }
                 }
             }
-
         }
     }
 }
 
 @Composable
-fun LeaveTeamDialog(vm: TeamScreenViewModel, currentTeam: TeamDB) {
+fun LeaveTeamDialog(vm: TeamScreenViewModel, currentTeam: TeamDBFinal) {
     val navController = NavControllerManager.getNavController()
+    val loggedMember = AppStateManager.getLoggedMember()
 
     AlertDialog(
         containerColor = MaterialTheme.colorScheme.background,
@@ -1704,11 +1743,16 @@ fun LeaveTeamDialog(vm: TeamScreenViewModel, currentTeam: TeamDB) {
         icon = { Icon(Icons.Default.Warning, contentDescription = "Warning", tint = MaterialTheme.colorScheme.primary) },
         title = { Text("Are you sure you want to leave the team: ${currentTeam.name} ?") },
         confirmButton = {
-            TextButton(
-                onClick = {
-                    vm.openLeaveTeamDialog = false
-                    //vm.deleteTeamMember
-                    navController.navigate("Teams") { launchSingleTop = true }
+            TextButton(onClick = {
+                    vm.leaveTeam(
+                        memberId = loggedMember.id,
+                        teamId = currentTeam.id,
+                        onSuccess = {
+                            vm.openLeaveTeamDialog = false
+                            navController.navigate("Teams") { launchSingleTop = true }
+                        },
+                        onFailure = {}
+                    )
                 }
             ) {
                 Text("Confirm", color = MaterialTheme.colorScheme.primary)
@@ -1778,23 +1822,25 @@ fun ExpandableRow(
 }
 
 
-fun applyFilters(task: TaskDB, lastAppliedFilters: Map<String, Any>, lastSearchQuery: String): Boolean {
+fun applyFilters(task: TaskDBFinal, lastAppliedFilters: Map<String, Any>, lastSearchQuery: String): Boolean {
     var keep = true
 
     val selectedDeadline = lastAppliedFilters["selectedDeadline"] as LocalDate?
-    val selectedMembers = lastAppliedFilters["selectedMembers"] as? Map<*, *> ?: emptyMap<MemberDB, Boolean>()
+    val selectedMembers = lastAppliedFilters["selectedMembers"] as? Map<*, *> ?: emptyMap<MemberDBFinal, Boolean>()
     val selectedCategory = lastAppliedFilters["selectedCategory"] as? Map<*, *> ?: emptyMap<Category, Boolean>()
     val selectedPriority = lastAppliedFilters["selectedPriority"] as? Map<*, *> ?: emptyMap<Priority, Boolean>()
     val selectedStatus = lastAppliedFilters["selectedStatus"] as? Map<*, *> ?: emptyMap<Status, Boolean>()
     val selectedRepetition = lastAppliedFilters["selectedRepetition"] as? Map<*, *> ?: emptyMap<Repetition, Boolean>()
 
     if (selectedDeadline != null) {
-        keep = keep && task.deadline!! <= selectedDeadline
+        keep = keep && task.deadline <= selectedDeadline
         //TODO: controllare task schedulate
     }
 
-    if (selectedMembers.isNotEmpty())
-        keep = keep && task.members.any { selectedMembers.containsKey(it) }
+    if (selectedMembers.isNotEmpty()) {
+        val selectedMembers2 = selectedMembers as Map<MemberDBFinal, Boolean>
+        keep = keep && task.members.any { memberId -> selectedMembers2.any { it.key.id == memberId } }
+    }
     if (selectedCategory.isNotEmpty())
         keep = keep && selectedCategory.filterValues{ it as Boolean }.keys.contains(task.category)
     if (selectedPriority.isNotEmpty())
@@ -1810,7 +1856,7 @@ fun applyFilters(task: TaskDB, lastAppliedFilters: Map<String, Any>, lastSearchQ
 }
 
 
-fun sortTasks(selectedOption: String, selectedChip: String, vm: TeamScreenViewModel, filteredTasksList: MutableState<List<TaskDB>>) {
+fun sortTasks(selectedOption: String, selectedChip: String, filteredTasksList: MutableState<List<TaskDBFinal>>) {
     when (selectedOption) {
         "Creation date" -> {
             if (selectedChip == "Second") {
