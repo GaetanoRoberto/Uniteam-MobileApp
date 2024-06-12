@@ -138,8 +138,8 @@ import kotlin.math.log
 //TODO QUANDO METTI UN MEMBRO NEL TEAM => AGGIUNGERE UNA CHAT PER OGNI MEMBRO DEL TEAM CON QUEL MEMBRO E
 class TeamScreenViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
     val teamId: String = checkNotNull(savedStateHandle["teamId"])
-    fun updateTaskAssignee(taskId: String, members: List<String>, loggedUser: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = model.updateTaskAssignee(taskId, members, loggedUser, onSuccess, onFailure)
-    fun leaveTeam(memberId: String, teamId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = model.leaveTeam(memberId, teamId, onSuccess, onFailure)
+    //fun updateTaskAssignee(taskId: String, members: List<String>, loggedUser: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = model.updateTaskAssignee(taskId, members, loggedUser, onSuccess, onFailure)
+    //fun leaveTeam(memberId: String, teamId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = model.leaveTeam(memberId, teamId, onSuccess, onFailure)
 
     val loaded = mutableStateOf(false)
     var expandedSearch by mutableStateOf(false)
@@ -1634,7 +1634,7 @@ fun FAB(vm: TeamScreenViewModel){
 @Composable
 fun AssignDialog(vm: TeamScreenViewModel, membersList: List<MemberDBFinal>) {
     val screenHeightDp = LocalConfiguration.current.screenHeightDp
-    val loggedMember = AppStateManager.getLoggedMember()
+    //val loggedMember = AppStateManager.getLoggedMember()
 
     if (vm.taskToAssign != null) {
         val selectedMembers = remember { mutableStateMapOf<MemberDBFinal, Boolean>() }
@@ -1711,7 +1711,7 @@ fun AssignDialog(vm: TeamScreenViewModel, membersList: List<MemberDBFinal>) {
                                 vm.openAssignDialog = false
                                 vm.membersError = ""
                                 val selectedMemberIds = selectedMembers.filterValues { it }.keys.map { it.id }
-                                vm.updateTaskAssignee(
+                                /*vm.updateTaskAssignee(
                                     taskId = vm.taskToAssign!!.id,
                                     members = selectedMemberIds,
                                     loggedUser = loggedMember.id,
@@ -1720,7 +1720,7 @@ fun AssignDialog(vm: TeamScreenViewModel, membersList: List<MemberDBFinal>) {
                                     onFailure = {
                                         vm.membersError = "Failed to update members: ${it.message}"
                                     }
-                                )
+                                )*/
                             }
                         } ) {
                             Text("Confirm")
@@ -1735,7 +1735,7 @@ fun AssignDialog(vm: TeamScreenViewModel, membersList: List<MemberDBFinal>) {
 @Composable
 fun LeaveTeamDialog(vm: TeamScreenViewModel, currentTeam: TeamDBFinal) {
     val navController = NavControllerManager.getNavController()
-    val loggedMember = AppStateManager.getLoggedMember()
+    //val loggedMember = AppStateManager.getLoggedMember()
 
     AlertDialog(
         containerColor = MaterialTheme.colorScheme.background,
@@ -1744,7 +1744,7 @@ fun LeaveTeamDialog(vm: TeamScreenViewModel, currentTeam: TeamDBFinal) {
         title = { Text("Are you sure you want to leave the team: ${currentTeam.name} ?") },
         confirmButton = {
             TextButton(onClick = {
-                    vm.leaveTeam(
+                    /*vm.leaveTeam(
                         memberId = loggedMember.id,
                         teamId = currentTeam.id,
                         onSuccess = {
@@ -1752,7 +1752,7 @@ fun LeaveTeamDialog(vm: TeamScreenViewModel, currentTeam: TeamDBFinal) {
                             navController.navigate("Teams") { launchSingleTop = true }
                         },
                         onFailure = {}
-                    )
+                    )*/
                 }
             ) {
                 Text("Confirm", color = MaterialTheme.colorScheme.primary)
