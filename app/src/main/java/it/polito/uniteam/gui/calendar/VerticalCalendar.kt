@@ -57,6 +57,7 @@ import it.polito.uniteam.AppStateManager
 import it.polito.uniteam.Factory
 import it.polito.uniteam.NavControllerManager
 import it.polito.uniteam.classes.MemberIcon
+import it.polito.uniteam.classes.Repetition
 import it.polito.uniteam.classes.Status
 import it.polito.uniteam.classes.TaskDBFinal
 import it.polito.uniteam.classes.TextTrim
@@ -343,8 +344,9 @@ fun EventItem(vm: Calendar = viewModel(factory = Factory(LocalContext.current)),
 
         Row(
             modifier = Modifier
-                .padding(horizontal = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(horizontal = 8.dp).fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
             val navController = NavControllerManager.getNavController()
             if (memberTime!=null) {
@@ -365,6 +367,8 @@ fun EventItem(vm: Calendar = viewModel(factory = Factory(LocalContext.current)),
                     loggedMemberAction = {navController.navigate("Profile")}
                 )
             }
+            if(task.repetition != Repetition.NONE)
+                Text(text = task.repetition.toString(), style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
