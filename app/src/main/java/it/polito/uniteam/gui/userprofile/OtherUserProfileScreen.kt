@@ -83,8 +83,8 @@ fun computeKPI(memberId: String): String {
         if(completedTask.members.contains(memberId))
             memberCompletedTasks+=1
     }
-
-    return "${(memberCompletedTasks/overallCompletedTasks) * 100} % on all Completed Tasks."
+    val retValue = if(memberCompletedTasks == 0 || overallCompletedTasks == 0) 0 else memberCompletedTasks/overallCompletedTasks
+    return "${retValue * 100} % on all Completed Tasks."
 }
 
 @Composable

@@ -54,8 +54,6 @@ import com.maxkeppeler.sheets.calendar.CalendarDialog
 import com.maxkeppeler.sheets.calendar.models.CalendarConfig
 import com.maxkeppeler.sheets.calendar.models.CalendarSelection
 import com.maxkeppeler.sheets.calendar.models.CalendarStyle
-import it.polito.uniteam.classes.File
-import it.polito.uniteam.classes.History
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import androidx.compose.material.icons.Icons
@@ -107,7 +105,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.lifecycle.viewModelScope
-import com.maxkeppeker.sheets.core.icons.sharp.Apps
 import it.polito.uniteam.AppStateManager
 import it.polito.uniteam.Factory
 import it.polito.uniteam.NavControllerManager
@@ -115,7 +112,6 @@ import it.polito.uniteam.classes.Category
 import it.polito.uniteam.classes.FileDBFinal
 import it.polito.uniteam.classes.HistoryDBFinal
 import it.polito.uniteam.classes.HourMinutesPicker
-import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.MemberDBFinal
 import it.polito.uniteam.classes.MemberIcon
 import it.polito.uniteam.classes.Priority
@@ -127,44 +123,37 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun SetupTaskData(vm: taskDetails = viewModel(factory = Factory(LocalContext.current))) {
-    val task = AppStateManager.getTasks().find { it.id == vm.taskId }!!
-    val members = AppStateManager.getMembers()
-    if(!isTaskChanges()) {
-        vm.taskName = task.name
-        vm.description = task.description.toString()
-        vm.category = task.category.toString()
-        vm.priority = task.priority.toString()
-        vm.deadline = task.deadline.toString()
-        vm.estimatedHours.value = task.estimatedTime.first.toString()
-        vm.estimatedMinutes.value = task.estimatedTime.second.toString()
-        vm.spentTime = task.spentTime
-        vm.repeatable = task.repetition.toString()
-        vm.status = task.status.toString()
+    if(!vm.isTaskDeleted) {
+        val members = AppStateManager.getMembers()
+        val team = AppStateManager.getTeams().find { it.id == vm.teamId }!!
+        if(!vm.newTask) {
+            val task = AppStateManager.getTasks().find { it.id == vm.taskId }!!
+            if(!isTaskEditing()) {
+                vm.taskName = task.name
+                vm.description = task.description.toString()
+                vm.category = task.category.toString()
+                vm.priority = task.priority.toString()
+                vm.deadline = task.deadline.toString()
+                vm.estimatedHours.value = task.estimatedTime.first.toString()
+                vm.estimatedMinutes.value = task.estimatedTime.second.toString()
+                vm.spentTime = task.spentTime
+                vm.repeatable = task.repetition.toString()
+                vm.status = task.status.toString()
+            }
+            vm.members = members.filter { task.members.contains(it.id) }.toMutableStateList()
+            vm.possibleMembers = members.filter { team.members.contains(it.id) }
+            vm.files = AppStateManager.getFiles().filter { task.taskFiles.contains(it.id) }.toMutableStateList()
+            vm.comments = AppStateManager.getComments().filter { task.taskComments.contains(it.id) }.toMutableStateList()
+            vm.history = AppStateManager.getHistories().filter { task.taskHistory.contains(it.id) }.toMutableStateList()
+        } else {
+            vm.possibleMembers = members.filter { team.members.contains(it.id) }
+        }
     }
-    vm.members = members.filter { task.members.contains(it.id) }.toMutableStateList()
-    val team = AppStateManager.getTeams().find { it.tasks.contains(task.id) }!!
-    vm.possibleMembers = members.filter { team.members.contains(it.id) }
-    vm.files = AppStateManager.getFiles().filter { task.taskFiles.contains(it.id) }.toMutableStateList()
-    vm.comments = AppStateManager.getComments().filter { task.taskComments.contains(it.id) }.toMutableStateList()
-    vm.history = AppStateManager.getHistories().filter { task.taskHistory.contains(it.id) }.toMutableStateList()
 }
 
 @Composable
-fun isTaskChanges(vm: taskDetails = viewModel(factory = Factory(LocalContext.current))): Boolean {
-    val task = AppStateManager.getTasks().find { it.id == vm.taskId }!!
-    return (vm.taskName.isNotEmpty() && vm.taskName != task.name) ||
-            (vm.description.isNotEmpty() && vm.description != task.description) ||
-            (vm.category != Category.NONE.toString() && vm.category != task.category.toString()) ||
-            (vm.priority != Priority.LOW.toString() && vm.priority != task.priority.toString()) ||
-            (vm.deadline != LocalDate.now().toString() && vm.deadline != task.deadline.toString()) ||
-            (vm.estimatedHours.value != "0" && vm.estimatedHours.value != task.estimatedTime.first.toString()) ||
-            (vm.estimatedMinutes.value != "0" && vm.estimatedMinutes.value != task.estimatedTime.second.toString()) ||
-            (vm.spentTime.isNotEmpty() && vm.spentTime != task.spentTime) ||
-            (vm.repeatable != Repetition.NONE.toString() && vm.repeatable != task.repetition.toString()) ||
-            (vm.status != Status.TODO.toString() && vm.status != task.status.toString()) ||
-            (vm.comments.isNotEmpty() && vm.comments != AppStateManager.getComments().filter { task.taskComments.contains(it.id) }.toMutableStateList()) ||
-            (vm.files.isNotEmpty() && vm.files != AppStateManager.getFiles().filter { task.taskFiles.contains(it.id) }.toMutableStateList()) ||
-            (vm.history.isNotEmpty() && vm.history != AppStateManager.getHistories().filter { task.taskHistory.contains(it.id) }.toMutableStateList())
+fun isTaskEditing(vm: taskDetails = viewModel(factory = Factory(LocalContext.current))): Boolean {
+    return vm.editing
 }
 
 @Composable
@@ -316,6 +305,7 @@ fun TaskDetailsView(vm: taskDetails = viewModel(factory = Factory(LocalContext.c
 fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.current))) {
     /*vm.changeEditing()
     vm.enterEditingMode()*/
+    val context = LocalContext.current
     val controller = NavControllerManager.getNavController()
     BackHandler(onBack = {
         vm.validate()
@@ -323,8 +313,8 @@ fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.curr
             if(vm.newTask) {
                 vm.handleHistory()
                 // TODO save now navigate
-                /*vm.model.addTeamTask(vm.model.selectedTeam.value.id, Task(
-                    id = ++DummyDataProvider.taskId,
+                vm.model.addTask(context,vm.teamId,TaskDBFinal(
+                    id = vm.taskId,
                     name = vm.taskName,
                     description = vm.description,
                     category = Category.valueOf(vm.category),
@@ -335,12 +325,8 @@ fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.curr
                     spentTime = HashMap(vm.spentTime),
                     status = if(vm.status == "IN PROGRESS") Status.IN_PROGRESS else Status.valueOf(vm.status),
                     repetition = Repetition.valueOf(vm.repeatable),
-                    members = vm.members,
-                    schedules = hashMapOf(),
-                    taskFiles = vm.files,
-                    taskComments = vm.comments,
-                    taskHistory = vm.history
-                ))*/
+                    members = vm.members.map{it.id}.toMutableList()
+                ),vm.comments,vm.files,vm.history)
                 controller.popBackStack()
             } else {
                 vm.handleHistory()
@@ -357,11 +343,7 @@ fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.curr
                     spentTime = HashMap(vm.spentTime),
                     status = if(vm.status == "IN PROGRESS") Status.IN_PROGRESS else Status.valueOf(vm.status),
                     repetition = Repetition.valueOf(vm.repeatable),
-                    members = vm.members.map{it.id}.toMutableList(),
-                    schedules = hashMapOf(),
-                    taskFiles = vm.files.map{it.id}.toMutableList(),
-                    taskComments = vm.comments.map{it.id}.toMutableList(),
-                    taskHistory = vm.history.map{it.id}.toMutableList()
+                    members = vm.members.map{it.id}.toMutableList()
                 ))
             }
             /*navController.navigate("Tasks"){
@@ -460,8 +442,8 @@ fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.curr
                                         if(vm.newTask) {
                                             vm.handleHistory()
                                             // TODO save now navigate
-                                            /*vm.model.addTeamTask(vm.model.selectedTeam.value.id, Task(
-                                                id = ++DummyDataProvider.taskId,
+                                            vm.model.addTask(context,vm.teamId,TaskDBFinal(
+                                                id = vm.taskId,
                                                 name = vm.taskName,
                                                 description = vm.description,
                                                 category = Category.valueOf(vm.category),
@@ -472,12 +454,8 @@ fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.curr
                                                 spentTime = HashMap(vm.spentTime),
                                                 status = if(vm.status == "IN PROGRESS") Status.IN_PROGRESS else Status.valueOf(vm.status),
                                                 repetition = Repetition.valueOf(vm.repeatable),
-                                                members = vm.members,
-                                                schedules = hashMapOf(),
-                                                taskFiles = vm.files,
-                                                taskComments = vm.comments,
-                                                taskHistory = vm.history
-                                            ))*/
+                                                members = vm.members.map{it.id}.toMutableList()
+                                            ),vm.comments,vm.files,vm.history)
                                             controller.popBackStack()
                                         } else {
                                             vm.handleHistory()
@@ -494,11 +472,7 @@ fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.curr
                                                 spentTime = HashMap(vm.spentTime),
                                                 status = if(vm.status == "IN PROGRESS") Status.IN_PROGRESS else Status.valueOf(vm.status),
                                                 repetition = Repetition.valueOf(vm.repeatable),
-                                                members = vm.members.map{it.id}.toMutableList(),
-                                                schedules = hashMapOf(),
-                                                taskFiles = vm.files.map{it.id}.toMutableList(),
-                                                taskComments = vm.comments.map{it.id}.toMutableList(),
-                                                taskHistory = vm.history.map{it.id}.toMutableList()
+                                                members = vm.members.map{it.id}.toMutableList()
                                             ))
                                         }
                                         /*navController.navigate("Tasks"){
@@ -573,8 +547,8 @@ fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.curr
                                     if(vm.newTask) {
                                         vm.handleHistory()
                                         // TODO save now navigate
-                                        /*vm.model.addTeamTask(vm.model.selectedTeam.value.id, Task(
-                                            id = ++DummyDataProvider.taskId,
+                                        vm.model.addTask(context,vm.teamId,TaskDBFinal(
+                                            id = vm.taskId,
                                             name = vm.taskName,
                                             description = vm.description,
                                             category = Category.valueOf(vm.category),
@@ -585,12 +559,8 @@ fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.curr
                                             spentTime = HashMap(vm.spentTime),
                                             status = if(vm.status == "IN PROGRESS") Status.IN_PROGRESS else Status.valueOf(vm.status),
                                             repetition = Repetition.valueOf(vm.repeatable),
-                                            members = vm.members,
-                                            schedules = hashMapOf(),
-                                            taskFiles = vm.files,
-                                            taskComments = vm.comments,
-                                            taskHistory = vm.history
-                                        ))*/
+                                            members = vm.members.map{it.id}.toMutableList()
+                                        ),vm.comments,vm.files,vm.history)
                                         controller.popBackStack()
                                     } else {
                                         vm.handleHistory()
@@ -607,11 +577,7 @@ fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.curr
                                             spentTime = HashMap(vm.spentTime),
                                             status = if(vm.status == "IN PROGRESS") Status.IN_PROGRESS else Status.valueOf(vm.status),
                                             repetition = Repetition.valueOf(vm.repeatable),
-                                            members = vm.members.map{it.id}.toMutableList(),
-                                            schedules = hashMapOf(),
-                                            taskFiles = vm.files.map{it.id}.toMutableList(),
-                                            taskComments = vm.comments.map{it.id}.toMutableList(),
-                                            taskHistory = vm.history.map{it.id}.toMutableList()
+                                            members = vm.members.map{it.id}.toMutableList()
                                         ))
                                     }
                                     /*navController.navigate("Tasks"){
@@ -1125,7 +1091,7 @@ fun CommentsView(
                             enabled = (comment.user == vm.loggedMember),// <- Add this to make click event work
                             value = comment.commentValue,
                             onValueChange = {value ->
-                                vm.model.updateComment(comment.copy(commentValue = handleInputString(value)),vm.taskId)
+                                vm.updateComment(comment.copy(commentValue = handleInputString(value)))
                             },
                             trailingIcon = {
                                 Text(text = comment.hour, textAlign = TextAlign.End)
@@ -1296,7 +1262,7 @@ fun FilesView(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .align(Alignment.CenterVertically),
-                            onClick = { vm.model.deleteFile(file,vm.taskId) }) {
+                            onClick = { vm.deleteFile(file) }) {
                             Icon(
                                 imageVector = Icons.Default.Delete,
                                 contentDescription = "Delete File",
@@ -1329,22 +1295,15 @@ fun FileUpload(vm: taskDetails = viewModel(factory = Factory(LocalContext.curren
             // Extract filename from URI
             selectedFileName = getFileName(uri, contentResolver)
 
-            vm.model.addFile(context,FileDBFinal(
-                id = (vm.temporaryId++).toString(),
-                user = vm.loggedMember,
-                filename = selectedFileName ?: uri.path.toString(),
-                date = LocalDate.now(),
-                uri = uri
-            ),vm.taskId)
-            /*vm.addFile(
+            vm.addFile(
                 FileDBFinal(
                     id = (vm.temporaryId++).toString(),
                     user = vm.loggedMember,
                     filename = selectedFileName ?: uri.path.toString(),
                     date = LocalDate.now(),
                     uri = uri
-                )
-            )*/
+                ), context
+            )
         }
     }
 
@@ -1383,10 +1342,11 @@ fun DeleteTaskDialog(vm: taskDetails) {
         confirmButton = {
             TextButton(
                 onClick = {
+                    vm.isTaskDeleted = true
                     vm.openDeleteTaskDialog = false
                     vm.model.deleteTask(vm.files.toList(),vm.taskId,teamToWhichRemoveTheTask.id)
                     //vm.deleteTask
-                    navController.navigate("Team/${vm.model.selectedTeam.value.id}") { launchSingleTop = true }
+                    navController.navigate("Team/${vm.teamId}") { launchSingleTop = true }
                 }
             ) {
                 Text("Confirm", color = MaterialTheme.colorScheme.primary)

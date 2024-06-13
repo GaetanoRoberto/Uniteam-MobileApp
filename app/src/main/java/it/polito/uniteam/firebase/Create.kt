@@ -18,6 +18,7 @@ import com.google.firebase.storage.UploadTask
 import it.polito.uniteam.classes.CommentDBFinal
 import it.polito.uniteam.classes.FileDBFinal
 import it.polito.uniteam.classes.HistoryDBFinal
+import it.polito.uniteam.classes.TaskDBFinal
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -199,8 +200,109 @@ fun addHistories(db: FirebaseFirestore, histories: List<HistoryDBFinal>, taskId:
     val taskRef = db.collection("Task").document(taskId)
     db.runTransaction { transaction ->
         histories.forEach { history ->
-            try {
-                history.id.toInt()
+            if(history.id.toIntOrNull() != null) {
+                // if parse successfully, int ids so entry to add into the db
+                val data = mapOf(
+                    "comment" to history.comment,
+                    "date" to Timestamp(
+                        Date.from(
+                            history.date.atStartOfDay(ZoneId.systemDefault()).toInstant()
+                        )
+                    ),
+                    "user" to history.user
+                )
+                val historyRef = db.collection("History").document()
+                // Set the new history document
+                transaction.set(historyRef, data)
+                // Get the new history document ID
+                val historyId = historyRef.id
+                // Update the task with the new history ID
+                transaction.update(taskRef, "taskHistory", FieldValue.arrayUnion(historyId))
+            }
+        }
+    }
+}
+
+fun addTask(db: FirebaseFirestore, coroutineScope: CoroutineScope, context: Context, teamId: String, task: TaskDBFinal, comments: List<CommentDBFinal>, files: List<FileDBFinal>, histories: List<HistoryDBFinal>) {
+    val fieldsToAdd = mapOf(
+        "name" to task.name,
+        "description" to task.description,
+        "category" to task.category,
+        "priority" to task.priority,
+        "deadline" to Timestamp(Date.from(task.deadline.atStartOfDay(ZoneId.systemDefault()).toInstant())),
+        "estimatedTime" to task.estimatedTime,
+        "spentTime" to task.spentTime.map { entry ->
+            hashMapOf(
+                "member" to entry.key,
+                "spentTime" to hashMapOf(
+                    "hours" to entry.value.first,
+                    "minutes" to entry.value.second
+                )
+            )
+        },
+        "repetition" to task.repetition,
+        "status" to task.status,
+        "creationDate" to Timestamp(Date.from(task.creationDate.atStartOfDay(ZoneId.systemDefault()).toInstant())),
+        "members" to task.members,
+        "schedules" to emptyList<Any>(),
+        "taskComments" to emptyList<String>(),
+        "taskFiles" to emptyList<String>(),
+        "taskHistory" to emptyList<String>()
+    )
+    val taskRef = db.collection("Task").document()
+    val teamRef = db.collection("Team").document(teamId)
+    db.runTransaction { transaction ->
+        transaction.set(taskRef,fieldsToAdd)
+        // Add Comments
+        comments.forEach { comment ->
+            val data = mapOf(
+                "commentValue" to comment.commentValue,
+                "date" to Timestamp(Date.from(comment.date.atStartOfDay(ZoneId.systemDefault()).toInstant())),
+                "user" to comment.user
+            )
+
+            val commentRef = db.collection("Comment").document()
+            // Set the new comment document
+            transaction.set(commentRef, data)
+            // Get the new comment document ID
+            val commentId = commentRef.id
+            // Update the task with the new comment ID
+            transaction.update(taskRef, "taskComments", FieldValue.arrayUnion(commentId))
+        }
+        // Add files
+        files.forEach { file ->
+            val fileData = mapOf(
+                "filename" to file.filename,
+                "date" to Timestamp(Date.from(file.date.atStartOfDay(ZoneId.systemDefault()).toInstant())),
+                "user" to file.user
+            )
+            val fileHistoryData = mapOf(
+                "comment" to "File ${file.filename} uploaded.",
+                "date" to Timestamp(Date.from(file.date.atStartOfDay(ZoneId.systemDefault()).toInstant())),
+                "user" to file.user
+            )
+            val fileRef = db.collection("File").document()
+            val historyRef = db.collection("History").document()
+            // Set the new file document
+            transaction.set(fileRef, fileData)
+            // Get the new file document ID
+            val fileId = fileRef.id
+            // Update the task with the new file ID
+            transaction.update(taskRef, "taskFiles", FieldValue.arrayUnion(fileId))
+            // Set the new history document
+            transaction.set(historyRef, fileHistoryData)
+            // Get the new history document ID
+            val fileHistoryId = historyRef.id
+            // Update the task with the new history ID
+            transaction.update(taskRef, "taskHistory", FieldValue.arrayUnion(fileHistoryId))
+            // upload the corresponding file
+            coroutineScope.launch {
+                uploadFile(context,file.uri,fileId + "." + file.filename.split(".")[1])
+            }
+        }
+        // Add histories
+        histories.forEach { history ->
+            if(history.id.toIntOrNull() != null) {
                 // if parse successfully, int ids so entry to add into the db
                 val data = mapOf(
                     "comment" to history.comment,
@@ -214,9 +316,9 @@ fun addHistories(db: FirebaseFirestore, histories: List<HistoryDBFinal>, taskId:
                 val historyId = historyRef.id
                 // Update the task with the new history ID
                 transaction.update(taskRef, "taskHistory", FieldValue.arrayUnion(historyId))
-            } catch (e: Exception) {
-                // parse failed, db entry already exists, skip entry
             }
         }
+        // link task to team
+        transaction.update(teamRef, "tasks", FieldValue.arrayUnion(taskRef.id))
     }
 }

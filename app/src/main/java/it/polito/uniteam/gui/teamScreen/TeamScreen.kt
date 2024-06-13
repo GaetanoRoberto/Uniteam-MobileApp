@@ -137,7 +137,7 @@ import kotlin.math.log
 
 //TODO QUANDO METTI UN MEMBRO NEL TEAM => AGGIUNGERE UNA CHAT PER OGNI MEMBRO DEL TEAM CON QUEL MEMBRO E
 class TeamScreenViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
-    val teamId: String = checkNotNull(savedStateHandle["teamId"])
+    val teamId: String = "8Kil7wNz6eF1ZD2Lf19K" //checkNotNull(savedStateHandle["teamId"])
     //fun updateTaskAssignee(taskId: String, members: List<String>, loggedUser: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = model.updateTaskAssignee(taskId, members, loggedUser, onSuccess, onFailure)
     //fun leaveTeam(memberId: String, teamId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = model.leaveTeam(memberId, teamId, onSuccess, onFailure)
 
@@ -188,7 +188,7 @@ fun TeamScreen(vm: TeamScreenViewModel = viewModel(factory = Factory(LocalContex
     val tasks = AppStateManager.getTasks()
     val currentTeam = teams.find { it.id == vm.teamId }!!
     val membersList = currentTeam.members.map { memberId -> members.find { it.id == memberId }!! }
-    vm.tasksList = currentTeam.tasks.map { taskId -> tasks.find { it.id == taskId }!! }
+    vm.tasksList = currentTeam.tasks.map { taskId -> tasks.find { it.id == taskId } ?: TaskDBFinal() }.filter { it.id.isNotEmpty() }
     vm.filteredTasksList = mutableStateOf(vm.tasksList.sortedByDescending { it.creationDate })
 
 //    LaunchedEffect(tasksList) {
@@ -960,7 +960,7 @@ fun VerticalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, scop
                 modifier = Modifier.weight(1f)
             )
             FilledTonalButton(
-                onClick = {navController.navigate("Task/0"){
+                onClick = {navController.navigate("Task/0/${currentTeam.id}"){
                     /*popUpTo(navController.graph.findStartDestination().id) {
                         saveState = true
                     }*/
@@ -1094,7 +1094,7 @@ fun VerticalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, scop
             LazyColumn {
                 itemsIndexed(filteredTasksList.value) {index, task ->
                     ListItem(
-                        modifier = Modifier.clickable { navController.navigate("Task/${task.id}") },
+                        modifier = Modifier.clickable { navController.navigate("Task/${task.id}/${currentTeam.id}") },
                         headlineContent = {
                             Text(
                                 task.name,
@@ -1483,7 +1483,7 @@ fun HorizontalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, sc
                     modifier = Modifier.weight(1f)
                 )
                 FilledTonalButton(
-                    onClick = {navController.navigate("Task/0"){
+                    onClick = {navController.navigate("Task/0/${currentTeam.id}"){
                         /*popUpTo(navController.graph.findStartDestination().id) {
                             saveState = true
                         }*/
@@ -1526,7 +1526,7 @@ fun HorizontalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, sc
                 LazyColumn {
                     itemsIndexed(filteredTasksList.value) { index, task ->
                         ListItem(
-                            modifier = Modifier.clickable { navController.navigate("Task/${task.id}") },
+                            modifier = Modifier.clickable { navController.navigate("Task/${task.id}/${currentTeam.id}") },
                             headlineContent = {
                                 Text(
                                     task.name,

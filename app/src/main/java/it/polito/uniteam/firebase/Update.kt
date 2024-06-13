@@ -159,19 +159,8 @@ fun updateTask(db: FirebaseFirestore, task: TaskDBFinal) {
         "members" to task.members
     )
 
+    // here not care about comments, history, files (already added since edit)
     db.collection("Task").document(task.id).update(fieldsToUpdate)
-    /*db.runTransaction { transaction ->
-        // TODO ADD comments history files
-
-        //fieldsToUpdate.put("taskComments",task.taskComments)
-        //fieldsToUpdate.put("taskHistory",task.taskHistory)
-        //fieldsToUpdate.put("taskFiles",task.taskFiles)
-        transaction.update(taskRef, fieldsToUpdate)
-    }.addOnSuccessListener {
-        Log.d("DB", "Task Updated Successfully.")
-    }.addOnFailureListener {
-        Log.d("DB", "Failed to Update The Task: $it")
-    }*/
 }
 
 fun updateComment(db: FirebaseFirestore, comment: CommentDBFinal, taskId: String) {

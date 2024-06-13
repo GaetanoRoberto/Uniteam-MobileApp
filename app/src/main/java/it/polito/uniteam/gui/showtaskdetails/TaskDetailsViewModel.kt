@@ -1,6 +1,7 @@
 package it.polito.uniteam.gui.showtaskdetails
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.getValue
@@ -37,8 +38,10 @@ import java.util.Locale
 class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
     var loggedMember = model.loggedMemberFinal.id // TODO hardcoded
         private set
-    val taskId: String = "ycfdFu7LuWGGJZvmwWKX"//checkNotNull(savedStateHandle["taskId"])
+    val taskId: String = checkNotNull(savedStateHandle["taskId"])
+    val teamId: String = checkNotNull(savedStateHandle["teamId"])
     val newTask = taskId.length == 1 // navigate with 0, so length 1
+    var isTaskDeleted = false
     var temporaryId: Int = 1
     fun getTask(taskId: Int) = model.getTask(taskId)
     fun getTeamRelatedToTask(taskId: Int) = model.getTeamRelatedToTask(taskId)
@@ -319,8 +322,11 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
             entryToAdd.forEach{ entry->
                 history.add(entry)
             }
+            // Add history directly in edit (I have firebase taskId)
+            model.addHistories(history,taskId)
         } else {
-            // add creation task history
+            // task add creation task history
+            // in View not reachable
             history.add(HistoryDBFinal(
                 id = (temporaryId++).toString(),
                 comment = "Task ${taskName} created.",
@@ -328,7 +334,6 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
                 user = loggedMember
             ))
         }
-        model.addHistories(history,taskId)
     }
 
     fun validate() {
@@ -436,7 +441,13 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
     fun addNewComment() {
         if (addComment.commentValue.trim() != "") {
             addComment.commentValue = handleInputString(addComment.commentValue)
-            model.addComment(addComment,taskId)
+            if(editing || !newTask) {
+                // edit/view so call the db ( I know the taskId)
+                model.addComment(addComment,taskId)
+            } else {
+                // add save into the state
+                comments.add(addComment)
+            }
         }
         addComment = CommentDBFinal(
             id = (temporaryId++).toString(),
@@ -447,31 +458,64 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
         )
     }
 
+    fun updateComment(c: CommentDBFinal) {
+        if (editing || !newTask) {
+            // edit view so have the taskId
+            model.updateComment(c,taskId)
+        } else {
+            // remove from the state
+            comments.replaceAll {
+                if (it.id == c.id) {
+                    c
+                } else {
+                    it
+                }
+            }
+        }
+    }
     fun deleteComment(c: CommentDBFinal) {
-        model.deleteComment(c.id,taskId)
+        if (editing || !newTask) {
+            // edit view so have the taskId
+            model.deleteComment(c.id,taskId)
+        } else {
+            // remove from the state
+            comments.remove(c)
+        }
     }
 
     var files = mutableStateListOf<FileDBFinal>()
-    fun addFile(f: FileDBFinal) {
-        files.add(f)
-        // add history entry
-        history.add(HistoryDBFinal(
-            id = (temporaryId++).toString(),
-            comment = "File ${f.filename} uploaded.",
-            date = LocalDate.now(),
-            user = loggedMember
-        ))
+    fun addFile(f: FileDBFinal, context: Context) {
+        if(editing || !newTask) {
+            // edit/view, so call the db (I have the taskId)
+            model.addFile(context,f,taskId)
+        } else {
+            // add save in states
+            files.add(f)
+            // add history entry
+            history.add(HistoryDBFinal(
+                id = (temporaryId++).toString(),
+                comment = "File ${f.filename} uploaded.",
+                date = LocalDate.now(),
+                user = loggedMember
+            ))
+        }
     }
 
-    fun removeFile(f: FileDBFinal) {
-        files.remove(f)
-        // add history entry
-        history.add(HistoryDBFinal(
-            id = (temporaryId++).toString(),
-            comment = "File ${f.filename} deleted.",
-            date = LocalDate.now(),
-            user = loggedMember
-        ))
+    fun deleteFile(f: FileDBFinal) {
+        if(editing || !newTask) {
+            // edit/view, so call the db (I have the taskId)
+            model.deleteFile(f,taskId)
+        } else {
+            // add save in states
+            files.remove(f)
+            // add history entry
+            history.add(HistoryDBFinal(
+                id = (temporaryId++).toString(),
+                comment = "File ${f.filename} deleted.",
+                date = LocalDate.now(),
+                user = loggedMember
+            ))
+        }
     }
 
     var history = mutableStateListOf<HistoryDBFinal>()

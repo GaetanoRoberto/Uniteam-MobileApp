@@ -9,18 +9,15 @@ import android.util.Log
 import it.polito.uniteam.classes.CommentDBFinal
 import it.polito.uniteam.classes.FileDBFinal
 import it.polito.uniteam.classes.HistoryDBFinal
-import it.polito.uniteam.classes.LoadingSpinner
 import it.polito.uniteam.classes.MemberDBFinal
 import it.polito.uniteam.classes.TaskDBFinal
 import it.polito.uniteam.classes.TeamDBFinal
 import it.polito.uniteam.gui.showtaskdetails.SetupTaskData
-import it.polito.uniteam.gui.showtaskdetails.isTaskChanges
 import it.polito.uniteam.gui.userprofile.isProfileChanges
 import it.polito.uniteam.gui.userprofile.SetupProfileData
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.viewModels
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -45,7 +42,6 @@ import androidx.compose.material.icons.outlined.ManageAccounts
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -105,7 +101,6 @@ import it.polito.uniteam.gui.notifications.Notifications
 import it.polito.uniteam.gui.showtaskdetails.TaskScreen
 import it.polito.uniteam.gui.statistics.Statistics
 import it.polito.uniteam.gui.teamScreen.TeamScreen
-import it.polito.uniteam.gui.home.Home
 import it.polito.uniteam.gui.notifications.messageUnreadCountForBottomBar
 import it.polito.uniteam.gui.userprofile.OtherProfileSettings
 import it.polito.uniteam.gui.userprofile.ProfileSettings
@@ -116,16 +111,9 @@ import java.io.File
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import androidx.compose.runtime.saveable.Saver
-import androidx.compose.runtime.saveable.listSaver
-import androidx.lifecycle.ViewModel
 import it.polito.uniteam.classes.ChatDBFinal
 import it.polito.uniteam.classes.MessageDB
-import it.polito.uniteam.gui.teamDetails.TeamDetailsView
-import it.polito.uniteam.gui.yourTasksCalendar.YourTasksCalendarView
-import okhttp3.internal.wait
 
 class MainActivity : ComponentActivity() {
 
@@ -402,7 +390,7 @@ class MainActivity : ComponentActivity() {
                                                                         )
                                                                     )
                                                                 }
-                                                                composable("Task/{taskId}") {
+                                                                composable("Task/{taskId}/{teamId}") {
                                                                     TaskScreen(
                                                                         vm = viewModel(
                                                                             factory = Factory(
@@ -462,6 +450,8 @@ class MainActivity : ComponentActivity() {
                                                                     )
                                                                 }
                                                                 composable("Profile") {
+                                                                    if (!isProfileChanges())
+                                                                        SetupProfileData()
                                                                     ProfileSettings(
                                                                         vm = viewModel(
                                                                             factory = Factory(
@@ -704,13 +694,21 @@ class MainActivity : ComponentActivity() {
                                                         startDestination = "Teams"
                                                     ) {
                                                         composable("Teams") {
-                                                            CalendarAppContainer(
+                                                            TeamScreen(
                                                                 vm = viewModel(
                                                                     factory = Factory(
                                                                         LocalContext.current
                                                                     )
                                                                 )
                                                             )
+                                                            /*SetupTaskData()
+                                                            TaskScreen(
+                                                                vm = viewModel(
+                                                                    factory = Factory(
+                                                                        LocalContext.current
+                                                                    )
+                                                                )
+                                                            )*/
                                                         }
                                                         composable(
                                                             "Team/{teamId}",
@@ -726,7 +724,7 @@ class MainActivity : ComponentActivity() {
                                                                 )
                                                             )
                                                         }
-                                                        composable("Task/{taskId}") {
+                                                        composable("Task/{taskId}/{teamId}") {
                                                             SetupTaskData()
                                                             TaskScreen(
                                                                 vm = viewModel(

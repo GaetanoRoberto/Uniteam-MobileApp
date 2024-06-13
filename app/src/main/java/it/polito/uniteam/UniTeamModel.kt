@@ -108,6 +108,7 @@ class UniTeamModel(val context: Context) {
     fun scheduleTask(task: TaskDBFinal, scheduleDate: LocalDate, hoursToSchedule: Pair<Int,Int>) = it.polito.uniteam.firebase.scheduleTask(db, task, scheduleDate, hoursToSchedule, memberId = loggedMemberFinal.id)
     fun unscheduleTask(task: TaskDBFinal, scheduleDate: LocalDate) = it.polito.uniteam.firebase.unscheduleTask(db,task,scheduleDate, memberId = loggedMemberFinal.id)
     fun updateUserProfile(memberId: String, username: String, fullName: String, email: String, location: String, description: String, profileImage: Uri) = it.polito.uniteam.firebase.updateUserProfile(db, memberId, username, fullName,email, location, description, profileImage)
+    fun addTask(context: Context, teamId: String, task: TaskDBFinal, comments: List<CommentDBFinal>, files: List<FileDBFinal>, histories: List<HistoryDBFinal>) = it.polito.uniteam.firebase.addTask(db, coroutineScope, context, teamId, task, comments, files, histories)
     fun updateTask(task: TaskDBFinal) = it.polito.uniteam.firebase.updateTask(db, task)
     fun addComment(comment: CommentDBFinal, taskId: String) = it.polito.uniteam.firebase.addComment(db, comment, taskId)
     fun addFile(context: Context, file: FileDBFinal, taskId: String) = it.polito.uniteam.firebase.addFile(db, coroutineScope, context, file, taskId)

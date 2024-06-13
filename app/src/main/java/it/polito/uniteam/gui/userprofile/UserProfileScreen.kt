@@ -801,14 +801,7 @@ fun SetupProfileData(vm: UserProfileScreen = viewModel(factory = Factory(LocalCo
 
 @Composable
 fun isProfileChanges(vm: UserProfileScreen = viewModel(factory = Factory(LocalContext.current))): Boolean {
-    val loggedMember = AppStateManager.getMembers().find { it.id == vm.loggedMember }!!
-    return (vm.nameValue.isNotEmpty() && vm.nameValue != loggedMember.fullName) ||
-            (vm.usernameValue.isNotEmpty() && vm.usernameValue != loggedMember.username) ||
-            (vm.emailValue.isNotEmpty() && vm.emailValue != loggedMember.email) ||
-            (vm.descriptionValue.isNotEmpty() && vm.descriptionValue != loggedMember.description) ||
-            (vm.locationValue.isNotEmpty() && vm.locationValue != loggedMember.location) ||
-            //(vm.KPIValue.isNotEmpty() && vm.KPIValue != computeKPI(memberId = vm.loggedMember)) ||
-            (vm.photoUri != Uri.EMPTY && vm.photoUri != loggedMember.profileImage)
+    return vm.isEditing
 }
 
 @Composable

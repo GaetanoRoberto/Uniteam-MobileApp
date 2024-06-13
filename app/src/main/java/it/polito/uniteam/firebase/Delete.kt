@@ -75,5 +75,7 @@ fun deleteTask(db: FirebaseFirestore, files:List<FileDBFinal>, taskId: String, t
         // remove the task from the team
         val teamRef = db.collection("Team").document(teamId)
         transaction.update(teamRef,"tasks",FieldValue.arrayRemove(taskId))
+        // delete the task
+        transaction.delete(taskRef)
     }
 }
