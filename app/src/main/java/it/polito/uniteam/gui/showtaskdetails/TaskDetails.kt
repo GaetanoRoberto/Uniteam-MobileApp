@@ -120,6 +120,7 @@ import it.polito.uniteam.classes.Status
 import it.polito.uniteam.classes.TaskDBFinal
 import it.polito.uniteam.classes.handleInputString
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
 
 @Composable
 fun SetupTaskData(vm: taskDetails = viewModel(factory = Factory(LocalContext.current))) {
@@ -1049,7 +1050,7 @@ fun CustomDatePickerPreview(label: String, value: String, onChange: (String) -> 
 fun CommentsView(
     vm: taskDetails = viewModel(factory = Factory(LocalContext.current))
 ) {
-    var date = LocalDate.now()
+    var date: LocalDate? = null
     val screenHeightDp = LocalConfiguration.current.screenHeightDp
 
     Box(
@@ -1062,10 +1063,10 @@ fun CommentsView(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height((screenHeightDp * 0.5).dp)
-                    .verticalScroll(rememberScrollState(initial = Int.MAX_VALUE))
+                    .verticalScroll(rememberScrollState())
                     .border(BorderStroke(1.dp, MaterialTheme.colorScheme.onPrimary))
             ) {
-                vm.comments.forEachIndexed { index, comment ->
+                vm.comments.sortedByDescending { it.date }.forEachIndexed { index, comment ->
                     if (comment.date != date) {
                         Row(modifier = Modifier.fillMaxWidth()) {
                             Text(
@@ -1146,7 +1147,7 @@ fun HistoryView(
     history: MutableList<HistoryDBFinal>,
     customHeight: Float = 0.7f
 ) {
-    var date = LocalDate.now()
+    var date: LocalDate? = null
     val screenHeightDp = LocalConfiguration.current.screenHeightDp
 
     Box(
@@ -1159,18 +1160,18 @@ fun HistoryView(
                     .fillMaxWidth(0.95f)
                     .height((screenHeightDp * customHeight).dp)
                     .padding(0.dp, 10.dp, 0.dp, 0.dp)
-                    .verticalScroll(rememberScrollState(initial = Int.MAX_VALUE))
+                    .verticalScroll(rememberScrollState())
             ) {
-                history.forEachIndexed { index, history ->
+                history.sortedByDescending { it.date }.forEachIndexed { index, history ->
 
-                    if (history.date != date) {
+                    if (history.date.toLocalDate() != date) {
                         Row(modifier = Modifier.fillMaxWidth()) {
                             Text(
-                                text = history.date.toString(),
+                                text = history.date.toLocalDate().toString(),
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.fillMaxWidth()
                             )
-                            date = history.date
+                            date = history.date.toLocalDate()
                         }
 
                     }
@@ -1207,7 +1208,7 @@ fun HistoryView(
 fun FilesView(
     vm: taskDetails = viewModel(factory = Factory(LocalContext.current)),
 ) {
-    var date = LocalDate.now()
+    var date: LocalDate? = null
     val screenHeightDp = LocalConfiguration.current.screenHeightDp
 
     Box(
@@ -1219,10 +1220,10 @@ fun FilesView(
             modifier = Modifier
                 .fillMaxWidth()
                 .height((screenHeightDp * 0.6).dp)
-                .verticalScroll(rememberScrollState(initial = Int.MAX_VALUE))
+                .verticalScroll(rememberScrollState())
                 .border(BorderStroke(1.dp, MaterialTheme.colorScheme.onPrimary))
         ) {
-             vm.files.forEachIndexed { index, file ->
+             vm.files.sortedByDescending { it.date }.forEachIndexed { index, file ->
 
                 if (file.date != date) {
                     Row(modifier = Modifier.fillMaxWidth()) {

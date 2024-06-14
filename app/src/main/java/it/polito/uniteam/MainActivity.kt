@@ -114,6 +114,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import it.polito.uniteam.classes.ChatDBFinal
 import it.polito.uniteam.classes.MessageDB
+import it.polito.uniteam.gui.notifications.SetupNotificationsData
 
 class MainActivity : ComponentActivity() {
 

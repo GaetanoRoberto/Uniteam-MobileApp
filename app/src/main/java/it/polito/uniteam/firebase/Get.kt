@@ -392,7 +392,7 @@ fun getAllHistories(db: FirebaseFirestore): Flow<List<HistoryDBFinal>> = callbac
                     id = history.id,
                     comment = history.getString("comment") ?: "",
                     date = history.getTimestamp("date") ?.let { parseToLocalDate(it.toDate(),
-                        parseReturnType.DATE) } as LocalDate,
+                        parseReturnType.DATETIME) } as LocalDateTime,
                     user = userId
                 )
                 histories.add(h)
@@ -416,7 +416,7 @@ fun getAllHistoriesFinal(db: FirebaseFirestore): Flow<List<HistoryDBFinal>> = ca
                     id = history.id,
                     comment = history.getString("comment") ?: "",
                     date = history.getTimestamp("date") ?.let { parseToLocalDate(it.toDate(),
-                        parseReturnType.DATE) } as LocalDate,
+                        parseReturnType.DATETIME) } as LocalDateTime,
                     user = userId
                 )
                 histories.add(h)

@@ -367,7 +367,7 @@ fun EventItem(vm: Calendar = viewModel(factory = Factory(LocalContext.current)),
                     loggedMemberAction = {navController.navigate("Profile")}
                 )
             }
-            if(task.repetition != Repetition.NONE)
+            if(task.repetition != Repetition.NONE && !isScheduled)
                 Text(text = task.repetition.toString(), style = MaterialTheme.typography.bodyMedium)
         }
     }

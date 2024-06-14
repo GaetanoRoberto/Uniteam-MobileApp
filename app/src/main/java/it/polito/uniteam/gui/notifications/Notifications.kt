@@ -32,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -78,6 +79,8 @@ fun SetupNotificationsData(vm: NotificationsViewModel = viewModel(factory = Fact
     val teams = AppStateManager.getTeams()
     val messages = AppStateManager.getMessages()
     val members = AppStateManager.getMembers()
+    val histories = AppStateManager.getHistories()
+    vm.unreadMessages.clear()
     // teamsMessages
     val userTeamsMessages = teams.filter { it.members.contains(vm.loggedMember)}
         .map { userTeam -> Pair(userTeam,chats.find {chat -> chat.id == userTeam.chat }) }
@@ -85,10 +88,12 @@ fun SetupNotificationsData(vm: NotificationsViewModel = viewModel(factory = Fact
         .map { userTeamMessagesIds ->
             val teamMessages = messages.filter { userTeamMessagesIds.second?.contains(it.id)!! }
             Pair(userTeamMessagesIds.first,teamMessages)
-        }
-    vm.teamsMessages = userTeamsMessages.map {
-        Pair(it.first,vm.getUnreadMessagesTeamDB(it.second,vm.loggedMember))
-    }.filter { it.second > 0 }
+        }.map {
+            val count = vm.getUnreadMessagesTeamDB(it.second,vm.loggedMember)
+            val newestCreationDate = it.second.maxOfOrNull { it.creationDate }
+            MessagesInfos(teamMemberName = it.first.name, date = newestCreationDate, chatId = it.first.chat!!, unreadMessages = count)
+        }.filter { it.unreadMessages > 0 }
+    vm.unreadMessages.addAll(userTeamsMessages)
     // membersChatMessages
     val directChats = chats.filter { chat -> chat.receiver == vm.loggedMember || chat.sender == vm.loggedMember }
         .map { chat ->
@@ -104,16 +109,27 @@ fun SetupNotificationsData(vm: NotificationsViewModel = viewModel(factory = Fact
         .map { memberChatIdMessagesId ->
             val userMessages = messages.filter { memberChatIdMessagesId.third.contains(it.id) }
             Triple(memberChatIdMessagesId.first,memberChatIdMessagesId.second,userMessages)
-        }
-    vm.membersChatMessages = directChats.map { memberChatIdMessages ->
-        Triple(memberChatIdMessages.first,memberChatIdMessages.second,vm.getUnreadMessagesUserDB(memberChatIdMessages.third,vm.loggedMember))
-    }.filter { it.third > 0 }
+        }.map {
+            val count = vm.getUnreadMessagesUserDB(it.third,vm.loggedMember)
+            val newestCreationDate = it.third.maxOfOrNull { it.creationDate }
+            MessagesInfos(teamMemberName = it.first.username, date = newestCreationDate, chatId = it.second, unreadMessages = count)
+        }.filter { it.unreadMessages > 0 }
+    vm.unreadMessages.addAll(directChats)
 
+    vm.teamsHistories.clear()
+    // teams histories
     val userTeams = teams.filter { it.members.contains(vm.loggedMember)}
-    vm.teamsHistories = userTeams.map { userTeam ->
-        val teamHistories = AppStateManager.getHistories().filter { userTeam.teamHistory.contains(it.id) }
+    vm.teamsHistories.addAll(userTeams.map { userTeam ->
+        val teamHistories = histories.filter { userTeam.teamHistory.contains(it.id) }
         Pair(userTeam,teamHistories)
-    }
+    }.flatMap { it.second.map { history->
+        Pair(it.first,history)
+    } })
+    // TODO histories no more from the teams (removed from the team, team deleted)
+    val noTeamHistories = histories.filter { it.comment.contains("removed from the team, team deleted") && it.user == vm.loggedMember }
+    vm.teamsHistories.addAll(noTeamHistories.map {
+        Pair(null,it)
+    })
 }
 
 @Composable
@@ -162,12 +178,9 @@ fun Notifications(vm: NotificationsViewModel = viewModel(factory = Factory(Local
 @Composable
 fun MessagesSection(vm: NotificationsViewModel = viewModel(factory = Factory(LocalContext.current))) {
     LazyColumn {
-        item(vm.teamsMessages.size + vm.membersChatMessages.size) {
-            vm.teamsMessages.forEach { (team,count) ->
-                MessageItem(teamMemberName = team.name, teamMemberChatId = team.chat!!, nOfMessages = count)
-            }
-            vm.membersChatMessages.forEach { (member,chatId,count)->
-                MessageItem(teamMemberName = member.username, teamMemberChatId = chatId, nOfMessages = count)
+        item(vm.unreadMessages.size) {
+            vm.unreadMessages.sortedByDescending { it.date }.forEach { (name,_,chatId,count) ->
+                MessageItem(teamMemberName = name, teamMemberChatId = chatId, nOfMessages = count)
             }
         }
     }
@@ -209,36 +222,51 @@ fun MessageItem(teamMemberName: String, teamMemberChatId:String, nOfMessages: In
 @Composable
 fun ActivitiesSection(vm: NotificationsViewModel = viewModel(factory = Factory(LocalContext.current))) {
     LazyColumn {
-        items(vm.teamsHistories) { (team,histories) ->
-            histories.forEach { history ->
+        items(1) {
+            vm.teamsHistories.sortedByDescending { it.second.date }.forEach { (team,history) ->
                 val comment = if(history.comment == "Team Joined.") {
                     val member = AppStateManager.getMembers().find { it.id == history.user }!!
-                    "${member.username} Joined The Team."
+                    if(member.id != vm.loggedMember)
+                        "${member.username} Joined The Team."
+                    else
+                        "You Joined The Team."
                 } else if(history.comment == "Team Left.") {
                     val member = AppStateManager.getMembers().find { it.id == history.user }!!
-                    "${member.username} Left The Team."
+                    if(member.id != vm.loggedMember)
+                        "${member.username} Left The Team."
+                    else
+                        "You Left The Team."
                 } else {
                     history.comment
                 }
-                ActivityItem(teamName = team.name, teamId = team.id, Activity = comment)
+                ActivityItem(teamName = team?.name, teamId = team?.id, Activity = comment)
             }
         }
     }
 }
 
 @Composable
-fun ActivityItem(teamName: String, teamId:String, Activity: String) {
+fun ActivityItem(teamName: String?, teamId:String?, Activity: String) {
     val navController = NavControllerManager.getNavController()
     Row(
-        modifier = Modifier
+        modifier = if(teamId!=null)
+            Modifier
             .clickable { navController.navigate("Team/${teamId}") }
             .fillMaxWidth()
             .border(0.5.dp, MaterialTheme.colorScheme.onPrimary)
             .padding(10.dp)
             .heightIn(min = 40.dp)
-            .wrapContentHeight(),
+            .wrapContentHeight()
+        else
+            Modifier
+                .fillMaxWidth()
+                .background(Color.Red.copy(alpha = 0.3f))
+                .border(0.5.dp, MaterialTheme.colorScheme.onPrimary)
+                .padding(10.dp)
+                .heightIn(min = 40.dp)
+                .wrapContentHeight(),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Start
     ) {
-        Text(text = teamName + " -> " + Activity)
+        Text(text = if(teamName!=null) "$teamName -> $Activity" else Activity)
     }
 }

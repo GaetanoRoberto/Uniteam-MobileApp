@@ -1,6 +1,7 @@
 package it.polito.uniteam.classes
 
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 data class History (
     var id: Int = 0,
@@ -18,6 +19,6 @@ data class HistoryDB (
 data class HistoryDBFinal (
     var id: String = "",
     var comment: String,
-    var date: LocalDate,
+    var date: LocalDateTime,
     var user: String
 )

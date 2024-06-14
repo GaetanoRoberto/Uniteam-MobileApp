@@ -206,7 +206,7 @@ fun addHistories(db: FirebaseFirestore, histories: List<HistoryDBFinal>, taskId:
                     "comment" to history.comment,
                     "date" to Timestamp(
                         Date.from(
-                            history.date.atStartOfDay(ZoneId.systemDefault()).toInstant()
+                            history.date.atZone(ZoneId.systemDefault()).toInstant()
                         )
                     ),
                     "user" to history.user
@@ -306,7 +306,7 @@ fun addTask(db: FirebaseFirestore, coroutineScope: CoroutineScope, context: Cont
                 // if parse successfully, int ids so entry to add into the db
                 val data = mapOf(
                     "comment" to history.comment,
-                    "date" to Timestamp(Date.from(history.date.atStartOfDay(ZoneId.systemDefault()).toInstant())),
+                    "date" to Timestamp(Date.from(history.date.atZone(ZoneId.systemDefault()).toInstant())),
                     "user" to history.user
                 )
                 val historyRef = db.collection("History").document()

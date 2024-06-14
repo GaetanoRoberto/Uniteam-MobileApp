@@ -30,6 +30,7 @@ import it.polito.uniteam.classes.MemberDBFinal
 import it.polito.uniteam.classes.handleInputString
 import java.text.SimpleDateFormat
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -251,7 +252,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
                 entryToAdd.add(HistoryDBFinal(
                     id = (temporaryId++).toString(),
                     comment = "Task Edited.",
-                    date = LocalDate.now(),
+                    date = LocalDateTime.now(),
                     user = loggedMember
                 ))
             }
@@ -279,7 +280,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
                     HistoryDBFinal(
                         id = (temporaryId++).toString(),
                         comment = comment,
-                        date = LocalDate.now(),
+                        date = LocalDateTime.now(),
                         user = loggedMember
                     )
                 )
@@ -288,7 +289,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
                 entryToAdd.add(HistoryDBFinal(
                     id = (temporaryId++).toString(),
                     comment = comment,
-                    date = LocalDate.now(),
+                    date = LocalDateTime.now(),
                     user = loggedMember
                 ))
             } else if (addedMembers.isNotEmpty()) {
@@ -296,7 +297,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
                 entryToAdd.add(HistoryDBFinal(
                     id = (temporaryId++).toString(),
                     comment = comment,
-                    date = LocalDate.now(),
+                    date = LocalDateTime.now(),
                     user = loggedMember
                 ))
             }
@@ -305,7 +306,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
                 entryToAdd.add(HistoryDBFinal(
                     id = (temporaryId++).toString(),
                     comment = "Task status changed from ${statusBefore} to ${status}.",
-                    date = LocalDate.now(),
+                    date = LocalDateTime.now(),
                     user = loggedMember
                 ))
             }
@@ -314,7 +315,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
                 entryToAdd.add(HistoryDBFinal(
                     id = (temporaryId++).toString(),
                     comment = "Task priority changed from ${priorityBefore} to ${priority}.",
-                    date = LocalDate.now(),
+                    date = LocalDateTime.now(),
                     user = loggedMember
                 ))
             }
@@ -330,7 +331,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
             history.add(HistoryDBFinal(
                 id = (temporaryId++).toString(),
                 comment = "Task ${taskName} created.",
-                date = LocalDate.now(),
+                date = LocalDateTime.now(),
                 user = loggedMember
             ))
         }
@@ -495,7 +496,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
             history.add(HistoryDBFinal(
                 id = (temporaryId++).toString(),
                 comment = "File ${f.filename} uploaded.",
-                date = LocalDate.now(),
+                date = LocalDateTime.now(),
                 user = loggedMember
             ))
         }
@@ -512,7 +513,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
             history.add(HistoryDBFinal(
                 id = (temporaryId++).toString(),
                 comment = "File ${f.filename} deleted.",
-                date = LocalDate.now(),
+                date = LocalDateTime.now(),
                 user = loggedMember
             ))
         }

@@ -17,6 +17,13 @@ import it.polito.uniteam.classes.messageStatus
 import java.time.LocalDate
 import java.time.LocalDateTime
 
+data class MessagesInfos(
+    val teamMemberName: String,
+    val date: LocalDateTime?,
+    val chatId: String,
+    val unreadMessages: Int
+)
+
 class NotificationsViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
     val loggedMember = model.loggedMemberFinal.id // TODO hardcoded
     fun getUsersChat(member: Member) = model.getUsersChat(member)
@@ -27,12 +34,12 @@ class NotificationsViewModel(val model: UniTeamModel, val savedStateHandle: Save
     fun getUnreadMessagesUserDB(messages: List<MessageDB>, loggedMemberId: String): Int = model.getUnreadMessagesUserDB(messages,loggedMemberId)
     fun getUnreadMessagesTeamDB(messages: List<MessageDB>, loggedMemberId: String): Int = model.getUnreadMessagesTeamDB(messages,loggedMemberId)
 
-    var teamsHistories: List<Pair<TeamDBFinal, List<HistoryDBFinal>>> = listOf()
+    var teamsHistories: MutableList<Pair<TeamDBFinal?, HistoryDBFinal>> = mutableListOf()
 
-    var teamsMessages: List<Pair<TeamDBFinal, Int>> = listOf()
+    var unreadMessages: MutableList<MessagesInfos> = mutableListOf()
 
     // Each Element: Member,chatId with the member, N_unread_messages
-    var membersChatMessages: List<Triple<MemberDBFinal, String, Int>> = listOf()
+    //var membersChatMessages: List<Triple<MemberDBFinal, String, Int>> = listOf()
 
     var tabState by mutableIntStateOf(0)
         private set
