@@ -64,14 +64,14 @@ import java.io.FileOutputStream
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-suspend fun getImageToFirebaseStorage(fileName: String): Uri? {
+suspend fun getImageToFirebaseStorage(fileName: String): Uri {
     val storage = FirebaseStorage.getInstance()
     val imageRef = storage.reference.child("images/${fileName}.jpg")
     return try {
         imageRef.downloadUrl.await()
     } catch (e: Exception) {
         e.printStackTrace()
-        null
+        Uri.EMPTY
     }
 }
 

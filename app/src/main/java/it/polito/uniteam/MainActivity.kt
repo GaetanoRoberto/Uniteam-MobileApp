@@ -114,7 +114,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import it.polito.uniteam.classes.ChatDBFinal
 import it.polito.uniteam.classes.MessageDB
+import it.polito.uniteam.gui.home.Home
 import it.polito.uniteam.gui.notifications.SetupNotificationsData
+import it.polito.uniteam.gui.teamDetails.SetupTeamData
+import it.polito.uniteam.gui.teamDetails.isTeamChanges
 
 class MainActivity : ComponentActivity() {
 
@@ -702,14 +705,6 @@ class MainActivity : ComponentActivity() {
                                                                     )
                                                                 )
                                                             )
-                                                            /*SetupTaskData()
-                                                            TaskScreen(
-                                                                vm = viewModel(
-                                                                    factory = Factory(
-                                                                        LocalContext.current
-                                                                    )
-                                                                )
-                                                            )*/
                                                         }
                                                         composable(
                                                             "Team/{teamId}",
@@ -866,6 +861,8 @@ class MainActivity : ComponentActivity() {
                                                                 type = NavType.StringType
                                                             })
                                                         ) {
+                                                            if(!isTeamChanges())
+                                                                SetupTeamData()
                                                             TeamViewScreen(
                                                                 vm = viewModel(
                                                                     factory = Factory(

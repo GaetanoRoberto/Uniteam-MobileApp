@@ -8,8 +8,8 @@ import com.google.firebase.Timestamp
 import it.polito.uniteam.classes.TaskDBFinal
 import com.google.firebase.storage.FirebaseStorage
 import it.polito.uniteam.classes.CommentDBFinal
-import it.polito.uniteam.classes.FileDBFinal
 import it.polito.uniteam.classes.HistoryDBFinal
+import it.polito.uniteam.classes.TeamDBFinal
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Date
@@ -171,4 +171,31 @@ fun updateComment(db: FirebaseFirestore, comment: CommentDBFinal, taskId: String
     )
 
     db.collection("Comment").document(comment.id).update(data)
+}
+
+fun updateTeam(db: FirebaseFirestore, teamId:String, teamName: String, teamDescription:String, teamMembers:List<String>, teamHistory : List<HistoryDBFinal>) {
+
+    db.runTransaction { transaction ->
+        val teamRef = db.collection("Team").document(teamId)
+        transaction.update(teamRef, "name",teamName)
+        transaction.update(teamRef, "description",teamDescription)
+        transaction.update(teamRef, "members",teamMembers)
+
+        //ADD TEAM HISTORY
+        teamHistory.forEach { history ->
+            val historyDB = mapOf(
+                "comment" to history.comment,
+                "date" to Timestamp.now(),
+                "user" to history.user
+            )
+            val histRef = db.collection("History").document()
+            transaction.set(histRef, historyDB)
+            // Update the team document with the history ID
+            transaction.update(teamRef, "teamHistory", FieldValue.arrayUnion(histRef.id))
+        }
+    }.addOnSuccessListener {
+        Log.d("DB", "Team updated successfully")
+    }.addOnFailureListener { e ->
+        Log.w("DB", "Error updating team", e)
+    }
 }

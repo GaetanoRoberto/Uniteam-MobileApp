@@ -73,17 +73,11 @@ class UniTeamModel(val context: Context) {
         location = "Turin",
         description = "Computer Engineer student at Polytechnic of Turin",
         teamsInfo = hashMapOf(
-            "sok0izxut65rpQtTR8rO" to MemberTeamInfo(
-                role = CategoryRole.PROGRAMMER,
-                weeklyAvailabilityTimes = 3,
-                weeklyAvailabilityHours = Pair(2, 30),
+            "8Kil7wNz6eF1ZD2Lf19K" to MemberTeamInfo(
+                role = CategoryRole.NONE,
+                weeklyAvailabilityTimes = 2,
+                weeklyAvailabilityHours = Pair(0, 45),
                 permissionrole = permissionRole.ADMIN
-            ),
-            "WUdvXpDpgGqd2XPUV7Quh" to MemberTeamInfo(
-                role = CategoryRole.PROGRAMMER,
-                weeklyAvailabilityTimes = 1,
-                weeklyAvailabilityHours = Pair(1, 0),
-                permissionrole = permissionRole.USER
             )
         ),
         chats = mutableListOf("xZCNWiCeTOvitmu4qygp")//TODO FORSE NON SERVE
@@ -118,6 +112,7 @@ class UniTeamModel(val context: Context) {
     fun updateComment(comment: CommentDBFinal, taskId: String) = it.polito.uniteam.firebase.updateComment(db, comment, taskId)
     suspend fun downloadFileAndSaveToDownloads(context: Context, fileStorageName: String, fileName: String) = it.polito.uniteam.firebase.downloadFileAndSaveToDownloads(context, fileStorageName, fileName)
     fun deleteTask(files:List<FileDBFinal>, taskId: String, teamId: String) = it.polito.uniteam.firebase.deleteTask(db, files, taskId, teamId)
+    fun updateTeam(teamId:String, teamName: String, teamDescription:String, teamMembers:List<String>, teamHistory : List<HistoryDBFinal>) = it.polito.uniteam.firebase.updateTeam(db, teamId, teamName, teamDescription, teamMembers, teamHistory)
 
     var membersList = mutableListOf<Member>(
         Member().apply {

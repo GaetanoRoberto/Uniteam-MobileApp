@@ -33,20 +33,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Comment
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -61,20 +56,13 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
-import androidx.compose.material3.TabRowDefaults
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -87,235 +75,46 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
-import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
+import it.polito.uniteam.AppStateManager
 import it.polito.uniteam.Factory
 import it.polito.uniteam.NavControllerManager
 import it.polito.uniteam.R
-import it.polito.uniteam.UniTeamModel
-import it.polito.uniteam.classes.CategoryRole
-import it.polito.uniteam.classes.Chat
 import it.polito.uniteam.classes.CompressImage
-import it.polito.uniteam.classes.DummyDataProvider
-import it.polito.uniteam.classes.History
-import it.polito.uniteam.classes.HistoryDBFinal
-import it.polito.uniteam.classes.HourMinutesPicker
-import it.polito.uniteam.classes.Member
-import it.polito.uniteam.classes.MemberIcon
-import it.polito.uniteam.classes.MemberTeamInfo
-import it.polito.uniteam.classes.Status
-import it.polito.uniteam.classes.Team
-import it.polito.uniteam.classes.TeamIcon
-import it.polito.uniteam.classes.handleInputString
-import it.polito.uniteam.classes.permissionRole
-import it.polito.uniteam.gui.showtaskdetails.CommentsView
-import it.polito.uniteam.gui.showtaskdetails.CustomDatePickerPreview
-import it.polito.uniteam.gui.showtaskdetails.Demo_ExposedDropdownMenuBox
+import it.polito.uniteam.classes.MemberDBFinal
 import it.polito.uniteam.gui.showtaskdetails.EditRowItem
-import it.polito.uniteam.gui.showtaskdetails.FilesView
 import it.polito.uniteam.gui.showtaskdetails.HistoryView
-import it.polito.uniteam.gui.showtaskdetails.MembersDropdownMenuBox
 import it.polito.uniteam.gui.showtaskdetails.RowItem
-import it.polito.uniteam.gui.showtaskdetails.RowMemberItem
-import it.polito.uniteam.gui.teamScreen.LeaveTeamDialog
-import it.polito.uniteam.gui.teamScreen.TeamScreenViewModel
 import it.polito.uniteam.gui.userprofile.AlertDialogExample
-import it.polito.uniteam.gui.userprofile.DefaultImage
 import it.polito.uniteam.gui.userprofile.getCameraProvider
 import it.polito.uniteam.gui.userprofile.takePhoto
 import it.polito.uniteam.isVertical
 import it.polito.uniteam.ui.theme.Orange
 import java.io.File
-import java.time.LocalDate
 import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
 
-class TeamDetailsViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHandle): ViewModel() {
-    // from model
-    val member = model.loggedMember
-    val teamId = checkNotNull(savedStateHandle["teamId"]).toString().toInt()
-    val isAdmin = member.value.teamsInfo?.get(teamId)?.permissionrole == permissionRole.ADMIN
-    var editing by mutableStateOf(false)
-    var newTeam by mutableStateOf(false)
-    var selectedTeam = mutableStateOf(
-        if (teamId == 0){
-            changeEditing()
-            onNew()
-        } else {
-            model.selectTeam(teamId)
-            model.getTeam(teamId)
-        }
-    )
-    var beforeSelectedTeam = selectedTeam.value
-    var history = mutableListOf<HistoryDBFinal>()//if (teamId == 0) mutableListOf() else model.getTeam(teamId).teamHistory
-    fun addTeamHistory(teamId: Int, history: History){
-        model.addTeamHistory(teamId, history)
-    }
-    fun addTeam(team: Team) = model.addTeam(team)
-    // internal
-    var teamNameError by mutableStateOf("")
-        private set
-    fun changeTeamName(s: String) {
-        selectedTeam.value = selectedTeam.value.copy(name = handleInputString(s))
-    }
+@Composable
+fun SetupTeamData(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalContext.current.applicationContext))) {
+    val team = AppStateManager.getTeams().find { it.id == vm.teamId }!!
+    val teamMembers = AppStateManager.getMembers().filter { team.members.contains(it.id) }
+    vm.teamName.value = team.name
+    vm.teamDescription.value = team.description
+    vm.teamProfileImage.value = team.image
+    vm.teamCreationDate = team.creationDate
+    vm.teamMembers = teamMembers.toMutableStateList()
+}
 
-    private fun checkTeamName() {
-        if (selectedTeam.value.name.isBlank())
-            teamNameError = "Task name cannot be blank!"
-        else
-            teamNameError = ""
-    }
-
-    var descriptionError by mutableStateOf("")
-        private set
-
-    fun changeDescription(s: String) {
-        selectedTeam.value = selectedTeam.value.copy(description = handleInputString(s))
-    }
-    fun setUri(uri: Uri) {
-        selectedTeam.value.image = uri
-    }
-
-    private fun checkDescription() {
-        if (selectedTeam.value.description.isBlank())
-            descriptionError = "Task description cannot be blank!"
-        else
-            descriptionError = ""
-    }
-
-    fun validate() {
-        checkTeamName()
-        checkDescription()
-        if (teamNameError.isEmpty() && descriptionError.isEmpty()) {
-            model.changeSelectedTeamName(selectedTeam.value.name)
-            model.changeSelectedTeamDescription(selectedTeam.value.description)
-            val existingTeams = model.getAllTeams().map { it.id }
-            // new team creation
-            if(!existingTeams.contains(selectedTeam.value.id)){
-                selectedTeam.value.members.addAll(DummyDataProvider.getMembers())
-                selectedTeam.value.chat = Chat(
-                    id = ++DummyDataProvider.chatId,
-                    sender = member.value,
-                    teamId = selectedTeam.value.id,
-                    messages = mutableStateListOf()
-                )
-                model.addTeam(selectedTeam.value)
-                model.addTeamInfo(selectedTeam.value.id, MemberTeamInfo().apply {
-                    role = CategoryRole.PROGRAMMER
-                    weeklyAvailabilityTimes = 5
-                    weeklyAvailabilityHours = Pair(3, 0)
-                    permissionrole = permissionRole.ADMIN
-                })
-            }
-
-        }
-
-    }
-    fun changeEditing() {
-        if(editing == true){
-            selectedTeam.value = beforeSelectedTeam
-            teamMembersBeforeEditing = selectedTeam.value.members.toList()
-            teamImageBeforeEditing = selectedTeam.value.image
-        }
-        //selectedTeam.value = model.selectedTeam
-        //Log.d("model", model.selectedTeam.toString())
-        editing = !editing
-    }
-
-    fun teamCreation(flag: Boolean){
-        newTeam = flag
-    }
-
-    fun onCancel(){
-        Log.d("oncancel", teamMembersBeforeEditing.toString())
-
-        selectedTeam.value.members = teamMembersBeforeEditing.toMutableList()
-        selectedTeam.value.image = teamImageBeforeEditing
-        /*model.changeSelectedTeamMembers(teamMembersBeforeEditing)
-        model.changeSelectedTeamImage(teamImageBeforeEditing)*/
-    }
-
-    fun onNew(): Team {
-        val x = model.newTeam()
-        teamCreation(true)
-        return x
-    }
-
-    var openAssignDialog = mutableStateOf(false)
-
-    var possibleMembers = DummyDataProvider.getMembers()
-
-    var teamMembersBeforeEditing = selectedTeam.value.members.toList()
-    var teamImageBeforeEditing = selectedTeam.value.image
-
-
-
-    var cameraPressed by mutableStateOf(false)
-        private set
-
-    fun toggleCameraButtonPressed() {
-        cameraPressed = !cameraPressed
-    }
-
-    var showCamera by mutableStateOf(false)
-        private set
-    fun showCamera(boolean: Boolean) {
-        showCamera = boolean
-    }
-
-    var temporaryUri = Uri.EMPTY
-        private set
-
-    fun setTemporaryUri(uri: Uri) {
-        temporaryUri = uri
-    }
-
-    var showPhoto by mutableStateOf(false)
-        private set
-
-    fun showPhoto(boolean: Boolean) {
-        showPhoto = boolean
-    }
-    var isFrontCamera by mutableStateOf(true)
-        private set
-
-    fun setIsFrontCamera(boolean: Boolean) {
-        isFrontCamera = boolean
-    }
-    var openGallery by mutableStateOf(false)
-        private set
-
-    fun openGallery(boolean: Boolean) {
-        openGallery = boolean
-    }
-
-    fun handleImageCapture(uri: Uri) {
-        Log.i("kilo", "Image captured: $uri")
-        showCamera = false
-
-        temporaryUri = uri
-        showPhoto = true
-    }
-
-    var showConfirmationDialog by mutableStateOf(false)
-        private set
-
-    fun toggleDialog() {
-        showConfirmationDialog = !showConfirmationDialog
-    }
-
-    var openDeleteTeamDialog by mutableStateOf(false)
-
+@Composable
+fun isTeamChanges(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalContext.current.applicationContext))): Boolean {
+    return vm.editing
 }
 
 @Composable
@@ -328,12 +127,18 @@ fun TeamViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalC
         vm.validate()
         if (vm.teamNameError == "" && vm.descriptionError == "") {
             // TODO finish save team logic with db
-            if(vm.newTeam){
+            if(vm.addTeam){
                 controller.navigate("Teams")
-                vm.addTeamHistory(vm.selectedTeam.value.id, History(comment = "Team created successfully", date = LocalDate.now().toString(), user = vm.member.value))
+                //vm.handleTeamHistory(vm.selectedTeam.value.id, History(comment = "Team created successfully", date = LocalDate.now().toString(), user = vm.member.value))
                 //vm.teamCreation(false)
             }else{
-                vm.addTeamHistory(vm.teamId, History(comment = "Team details updated", date = LocalDate.now().toString(), user = vm.member.value))
+                vm.model.updateTeam(
+                    vm.teamId,
+                    vm.teamName.value,
+                    vm.teamDescription.value,
+                    vm.teamMembers.map { it.id },
+                    vm.history,
+                )
                 vm.changeEditing()
             }
             /*vm.changeEditing()
@@ -580,9 +385,8 @@ fun TeamViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalC
                                 horizontalArrangement = Arrangement.Center
                             ) {
 
-                                key(vm.selectedTeam.value.image){
+                                key(vm.teamProfileImage.value){
                                     DefaultImageForEditingTeam(vm)
-
                                 }
 
 
@@ -616,9 +420,8 @@ fun TeamViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalC
                                         verticalArrangement = Arrangement.Center,
                                         horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
-                                        key(vm.selectedTeam){
+                                        key(vm.teamId){
                                             DefaultImageForEditingTeam(vm)
-
                                         }
                                     }
                                     Column(
@@ -832,13 +635,13 @@ fun TeamDetailsView(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
         .fillMaxSize()
         .verticalScroll(rememberScrollState())) {
         Spacer(modifier = Modifier.padding(16.dp))
-
-        RowItem(title = "Name:", value = vm.selectedTeam.value.name)
-        RowItem(title = "Description:", value = vm.selectedTeam.value.description.toString())
+        Log.i("Prova",vm.teamName.value)
+        RowItem(title = "Name:", value = vm.teamName.value)
+        RowItem(title = "Description:", value = vm.teamDescription.value)
         //RowMemberItem( title = "Members:", value = vm.selectedTeam.value.members)
-        RowItem(title = "Creation Date:", value = vm.selectedTeam.value.creationDate.toString())
+        RowItem(title = "Creation Date:", value = vm.teamCreationDate)
         val icon = Icons.Filled.History
-        val title = " Team History"
+        val title = "Team History"
         Row(horizontalArrangement = Arrangement.Start, modifier = Modifier.fillMaxWidth()) {
             Tab(selected = true,
                 enabled = false,
@@ -866,7 +669,6 @@ fun TeamDetailsView(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
 @Composable
 fun TeamDetailsEdit(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalContext.current.applicationContext))){
     val controller = NavControllerManager.getNavController()
-    val selectedTeam = vm.selectedTeam.value
     Row(){
         Column(modifier = Modifier.fillMaxSize(),  verticalArrangement = Arrangement.Bottom) {
             Row(modifier = Modifier.fillMaxHeight(0.8f)) {
@@ -878,7 +680,7 @@ fun TeamDetailsEdit(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
                 ) {
                     Box{
                         Image(
-                            painter = rememberAsyncImagePainter(vm.selectedTeam.value.image),
+                            painter = rememberAsyncImagePainter(vm.teamProfileImage.value),
                             contentDescription = null,
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -890,21 +692,21 @@ fun TeamDetailsEdit(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
                     Spacer(modifier = Modifier.padding(10.dp))
                     EditRowItem(
                         label = "Name:",
-                        value = selectedTeam.name,
+                        value = vm.teamName.value,
                         errorText = vm.teamNameError,
                         onChange = vm::changeTeamName
                     )
                     EditRowItem(
                         label = "Description:",
-                        value = selectedTeam.description,
+                        value = vm.teamDescription.value,
                         errorText = vm.descriptionError,
                         onChange = vm::changeDescription
                     )
-                    if (!vm.newTeam) {
+                    if (!vm.addTeam) {
                         TeamMembersDropdownMenuBox(
                             vm,
                             "Manage Members",
-                            selectedTeam.members
+                            vm.teamMembers
                         )
                     }
                     Spacer(modifier = Modifier.height(10.dp))
@@ -925,11 +727,11 @@ fun TeamDetailsEdit(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
                                         restoreState = true
                                     }*/
 
-                                    if(vm.newTeam){
+                                    if(vm.addTeam){
                                         controller.navigate("Teams")
                                     } else {
-                                        vm.onCancel()
-                                        vm.teamCreation(false)
+                                        vm.cancel()
+                                        //vm.teamCreation(false)
                                         vm.changeEditing()
                                     }
                                 }, modifier = Modifier.fillMaxWidth()) {
@@ -943,12 +745,18 @@ fun TeamDetailsEdit(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
                                     vm.validate()
                                     if (vm.teamNameError == "" && vm.descriptionError == "") {
                                         // TODO finish save team logic with db
-                                        if(vm.newTeam){
+                                        vm.handleTeamHistory()
+                                        if(vm.addTeam){
                                             controller.navigate("Teams")
-                                            vm.addTeamHistory(selectedTeam.id, History(comment = "Team created successfully", date = LocalDate.now().toString(), user = vm.member.value))
                                             //vm.teamCreation(false)
                                         }else{
-                                            vm.addTeamHistory(vm.teamId, History(comment = "Team details updated", date = LocalDate.now().toString(), user = vm.member.value))
+                                            vm.model.updateTeam(
+                                                vm.teamId,
+                                                vm.teamName.value,
+                                                vm.teamDescription.value,
+                                                vm.teamMembers.map { it.id },
+                                                vm.history,
+                                            )
                                             vm.changeEditing()
                                         }
                                         /*vm.changeEditing()
@@ -986,11 +794,11 @@ fun TeamDetailsEdit(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Button(colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
-                            if(vm.newTeam){
+                            if(vm.addTeam){
                                 controller.navigate("Teams")
                             } else {
-                                vm.onCancel()
-                                vm.teamCreation(false)
+                                vm.cancel()
+                                //vm.teamCreation(false)
                                 vm.changeEditing()
                             }
                             /*navController.navigate("Tasks"){
@@ -1011,12 +819,18 @@ fun TeamDetailsEdit(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
                             vm.validate()
                             if (vm.teamNameError == "" && vm.descriptionError == "" ) {
                                 // TODO finish save team logic with db
-                                if(vm.newTeam){
+                                if(vm.addTeam){
                                     controller.navigate("Teams")
-                                    vm.addTeamHistory(selectedTeam.id, History(comment = "Team created successfully", date = LocalDate.now().toString(), user = vm.member.value))
+                                    //vm.handleTeamHistory(selectedTeam.id, History(comment = "Team created successfully", date = LocalDate.now().toString(), user = vm.member.value))
                                     //vm.teamCreation(false)
                                 }else{
-                                    vm.addTeamHistory(vm.teamId, History(comment = "Team details updated", date = LocalDate.now().toString(), user = vm.member.value))
+                                    vm.model.updateTeam(
+                                        vm.teamId,
+                                        vm.teamName.value,
+                                        vm.teamDescription.value,
+                                        vm.teamMembers.map { it.id },
+                                        vm.history,
+                                    )
                                     vm.changeEditing()
                                 }
                                 /*vm.changeEditing()
@@ -1050,7 +864,7 @@ fun TeamDetailsEdit(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
 fun TeamMembersDropdownMenuBox(
     vm: TeamDetailsViewModel,
     label: String,
-    currentMembers: List<Member>
+    currentMembers: List<MemberDBFinal>
 ) {
 
     Box(
@@ -1123,11 +937,9 @@ fun TeamMembersDropdownMenuBox(
 
 @Composable
 fun TeamAssignMemberDialog(vm: TeamDetailsViewModel) {
-    val selectedTeam = vm.selectedTeam.value
-
-    val selectedMembers = remember { mutableStateMapOf<Member, Boolean>() }
-    vm.possibleMembers.forEach { member ->
-        selectedMembers[member] = vm.selectedTeam.value.members.toMutableList().contains(member)
+    val selectedMembers = remember { mutableStateMapOf<MemberDBFinal, Boolean>() }
+    vm.teamMembers.forEach { member ->
+        selectedMembers[member] = vm.teamMembers.toMutableList().contains(member)
     }
     Dialog(onDismissRequest = { vm.openAssignDialog.value = false }) {
         Card(
@@ -1147,13 +959,13 @@ fun TeamAssignMemberDialog(vm: TeamDetailsViewModel) {
                 ) {
                     if (isVertical())
                         Text(
-                            text = selectedTeam.name,
+                            text = vm.teamName.value,
                             style = MaterialTheme.typography.headlineSmall,
                             textAlign = TextAlign.Center
                         )
                     else
                         Text(
-                            text = selectedTeam.name,
+                            text = vm.teamName.value,
                             style = MaterialTheme.typography.headlineSmall,
                             textAlign = TextAlign.Center,
                             overflow = TextOverflow.Ellipsis,
@@ -1175,7 +987,7 @@ fun TeamAssignMemberDialog(vm: TeamDetailsViewModel) {
                     ) else Modifier.heightIn(0.dp, 165.dp)
                 ) {
                     item(1) {
-                        vm.possibleMembers.forEach { member ->
+                        vm.teamMembers.forEach { member ->
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -1205,8 +1017,8 @@ fun TeamAssignMemberDialog(vm: TeamDetailsViewModel) {
                     }
                     Spacer(modifier = Modifier.padding(10.dp))
                     TextButton(onClick = {
-                        vm.selectedTeam.value.members.clear()
-                        vm.selectedTeam.value.members.addAll(selectedMembers.filterValues { it }.keys.toMutableStateList())
+                        vm.teamMembers.clear()
+                        vm.teamMembers.addAll(selectedMembers.filterValues { it }.keys.toMutableStateList())
                         vm.openAssignDialog.value = false
                     }
                     ) {
@@ -1225,9 +1037,8 @@ fun TeamAssignMemberDialog(vm: TeamDetailsViewModel) {
 @Preview
 @Composable
 fun DefaultImageForTeamScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalContext.current.applicationContext))) {
-    val name = vm.selectedTeam.value.name
-    println(name)
-    if (name.isNotBlank() || vm.selectedTeam.value.image != Uri.EMPTY) {
+    val name = vm.teamName.value
+    if (name.isNotBlank() || vm.teamProfileImage.value != Uri.EMPTY) {
 
         Card(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
             Row(
@@ -1239,9 +1050,9 @@ fun DefaultImageForTeamScreen(vm: TeamDetailsViewModel = viewModel(factory = Fac
 
                 // Box per contenere l'icona della fotocamera
                 Box(modifier = Modifier.size(200.dp), contentAlignment = Alignment.Center) {
-                    if (vm.selectedTeam.value.image != Uri.EMPTY) {
+                    if (vm.teamProfileImage.value != Uri.EMPTY) {
                         Image(
-                            painter = rememberAsyncImagePainter(vm.selectedTeam.value.image),
+                            painter = rememberAsyncImagePainter(vm.teamProfileImage.value),
                             contentDescription = null,
                             modifier = Modifier
                                 .size(160.dp)
@@ -1278,8 +1089,8 @@ fun DefaultImageForTeamScreen(vm: TeamDetailsViewModel = viewModel(factory = Fac
 @Preview
 @Composable
 fun DefaultImageForEditingTeam(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalContext.current.applicationContext))) {
-    val name = vm.selectedTeam.value.name
-    if (name.isNotBlank() || vm.selectedTeam.value.image != Uri.EMPTY) {
+    val name = vm.teamName.value
+    if (name.isNotBlank() || vm.teamProfileImage.value != Uri.EMPTY) {
 
         Card(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
             Row(
@@ -1291,9 +1102,9 @@ fun DefaultImageForEditingTeam(vm: TeamDetailsViewModel = viewModel(factory = Fa
 
                 // Box per contenere l'icona della fotocamera
                 Box(modifier = Modifier.size(200.dp), contentAlignment = Alignment.Center) {
-                    if (vm.selectedTeam.value.image != Uri.EMPTY) {
+                    if (vm.teamProfileImage.value != Uri.EMPTY) {
                         Image(
-                            painter = rememberAsyncImagePainter(vm.selectedTeam.value.image),
+                            painter = rememberAsyncImagePainter(vm.teamProfileImage.value),
                             contentDescription = null,
                             modifier = if (!isVertical()) {
                                 Modifier
@@ -1414,7 +1225,7 @@ fun DefaultImageForEditingTeam(vm: TeamDetailsViewModel = viewModel(factory = Fa
                                             Icon(modifier = Modifier.scale(0.8f), painter = painterResource(id = R.drawable.gallery), contentDescription = "choose from gallery",tint = MaterialTheme.colorScheme.onSecondary)
                                         }
                                     }
-                                    if (vm.selectedTeam.value.image != Uri.EMPTY) {
+                                    if (vm.teamProfileImage.value != Uri.EMPTY) {
                                         Spacer(modifier = Modifier.padding(3.dp))
                                         Row {
                                             FloatingActionButton(
@@ -1501,7 +1312,7 @@ fun DefaultImageForEditingTeam(vm: TeamDetailsViewModel = viewModel(factory = Fa
                                 Icon(modifier = Modifier.scale(0.8f), painter = painterResource(id = R.drawable.gallery), contentDescription = "choose from gallery",tint = MaterialTheme.colorScheme.onSecondary)
                             }
                         }
-                        if (vm.selectedTeam.value.image != Uri.EMPTY) {
+                        if (vm.teamProfileImage.value != Uri.EMPTY) {
                             Spacer(modifier = Modifier.padding(3.dp))
                             Row {
                                 FloatingActionButton(
@@ -1535,7 +1346,7 @@ fun DeleteTeamDialog(vm: TeamDetailsViewModel) {
         containerColor = MaterialTheme.colorScheme.background,
         onDismissRequest = { vm.openDeleteTeamDialog = false },
         icon = { Icon(Icons.Default.Warning, contentDescription = "Warning", tint = MaterialTheme.colorScheme.primary) },
-        title = { Text("Are you sure you want to delete the team: ${vm.selectedTeam.value.name} ?") },
+        title = { Text("Are you sure you want to delete the team: ${vm.teamName.value} ?") },
         confirmButton = {
             TextButton(
                 onClick = {
