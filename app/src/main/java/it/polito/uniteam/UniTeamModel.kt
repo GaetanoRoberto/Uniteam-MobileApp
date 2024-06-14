@@ -6,7 +6,6 @@ import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.toMutableStateList
-import androidx.compose.ui.platform.LocalContext
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -27,7 +26,6 @@ import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.MemberDB
 import it.polito.uniteam.classes.MemberDBFinal
 import it.polito.uniteam.classes.MemberTeamInfo
-import it.polito.uniteam.classes.Message
 import it.polito.uniteam.classes.MessageDB
 import it.polito.uniteam.classes.Task
 import it.polito.uniteam.classes.TaskDBFinal
@@ -121,13 +119,18 @@ class UniTeamModel(val context: Context) {
     fun updateTask(task: TaskDBFinal) = it.polito.uniteam.firebase.updateTask(db, task)
     fun addComment(comment: CommentDBFinal, taskId: String) = it.polito.uniteam.firebase.addComment(db, comment, taskId)
     fun addFile(context: Context, file: FileDBFinal, taskId: String) = it.polito.uniteam.firebase.addFile(db, coroutineScope, context, file, taskId)
-    fun addHistories(histories: List<HistoryDBFinal>, taskId: String) = it.polito.uniteam.firebase.addHistories(db, histories, taskId)
+    fun addHistories(histories: List<HistoryDBFinal>, taskId: String) = it.polito.uniteam.firebase.addTaskHistories(db, histories, taskId)
     fun deleteComment(commentId: String, taskId: String) = it.polito.uniteam.firebase.deleteComment(db, commentId, taskId)
     fun deleteFile(file: FileDBFinal, taskId: String) = it.polito.uniteam.firebase.deleteFile(db, file, taskId)
     fun updateComment(comment: CommentDBFinal, taskId: String) = it.polito.uniteam.firebase.updateComment(db, comment, taskId)
     suspend fun downloadFileAndSaveToDownloads(context: Context, fileStorageName: String, fileName: String) = it.polito.uniteam.firebase.downloadFileAndSaveToDownloads(context, fileStorageName, fileName)
     fun deleteTask(files:List<FileDBFinal>, taskId: String, teamId: String) = it.polito.uniteam.firebase.deleteTask(db, files, taskId, teamId)
-    fun updateTeam(teamId:String, teamName: String, teamDescription:String, teamMembers:List<String>, teamHistory : List<HistoryDBFinal>) = it.polito.uniteam.firebase.updateTeam(db, teamId, teamName, teamDescription, teamMembers, teamHistory)
+    fun createTeam(team: TeamDBFinal, memberInfo : MemberTeamInfo, history: HistoryDBFinal) = it.polito.uniteam.firebase.createTeam(db, team, memberInfo, history)
+    fun updateTeam(teamId:String, teamName: String, teamDescription:String, teamImage: Uri, teamMembers:List<String>, teamHistory : List<HistoryDBFinal>) = it.polito.uniteam.firebase.updateTeam(db, teamId, teamName, teamDescription, teamImage, teamMembers, teamHistory)
+    fun deleteTeam(teamId: String, files:List<FileDBFinal>, user: String) = it.polito.uniteam.firebase.deleteTeam(db, teamId, files, user)
+
+    var timesError = mutableStateOf("")
+    var timeError = mutableStateOf("")
 
     var membersList = mutableListOf<Member>(
         Member().apply {

@@ -1,6 +1,7 @@
 package it.polito.uniteam.gui.teamDetails
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -8,6 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import it.polito.uniteam.UniTeamModel
+import it.polito.uniteam.classes.CategoryRole
 import it.polito.uniteam.classes.HistoryDBFinal
 import it.polito.uniteam.classes.MemberDBFinal
 import it.polito.uniteam.classes.handleInputString
@@ -17,11 +19,11 @@ import java.time.LocalDateTime
 
 class TeamDetailsViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHandle): ViewModel() {
     // from model
-    val loggedMember = model.loggedMemberFinal
+    var loggedMember = MemberDBFinal()
     val teamId: String = checkNotNull(savedStateHandle["teamId"])
-    val isAdmin = loggedMember.teamsInfo?.get(teamId)?.permissionrole == permissionRole.ADMIN
-    var editing by mutableStateOf(false)
+    var isAdmin:Boolean? = null//loggedMember.teamsInfo?.get(teamId)?.permissionrole == permissionRole.ADMIN
     var addTeam = teamId.length == 1 // pass 0 when add so length 1
+    var editing by mutableStateOf(teamId.length == 1)
     var temporaryId: Int = 1
 
     var teamName = mutableStateOf("")
@@ -35,6 +37,57 @@ class TeamDetailsViewModel(val model: UniTeamModel, val savedStateHandle: SavedS
     var beforeTeamDescription = teamDescription.value
     var beforeTeamProfileImage = teamProfileImage.value
 
+    // add team memberinfo
+    var memberRole = mutableStateOf(CategoryRole.NONE)
+    var times = mutableStateOf("0")
+    var hours = mutableStateOf("0")
+    var minutes = mutableStateOf("0")
+
+    fun setRole(role: CategoryRole) {
+        memberRole.value = role
+        Log.i("change",memberRole.value.toString())
+    }
+    fun setTimes(timess: String) {
+        times.value = timess
+    }
+    fun setHours(hourss: String) {
+        hours.value = hourss
+    }
+    fun setMinutes(minutess:String) {
+        minutes.value = minutess
+    }
+    fun checkTimes() {
+        try {
+            val timesInt = times.value.toUInt().toInt()
+            if (timesInt == 0) {
+                model.timesError.value = "You Need To Schedule A Positive Number."
+            } else {
+                model.timesError.value = ""
+                times.value = timesInt.toString()
+            }
+        } catch (e: RuntimeException) {
+            model.timesError.value = "Valid Positive Number Must Be Provided."
+        }
+    }
+
+    fun checkTime() {
+        try {
+            val hoursInt = hours.value.toUInt().toInt()
+            val minutesInt = minutes.value.toUInt().toInt()
+            if (hoursInt == 0 && minutesInt == 0) {
+                model.timeError.value = "You Need To Schedule A Positive Time Interval."
+            } else if (minutesInt >= 60) {
+                model.timeError.value = "Invalid Minute Value."
+            } else {
+                model.timeError.value = ""
+                hours.value = hoursInt.toString()
+                minutes.value = minutesInt.toString()
+            }
+        } catch (e: RuntimeException) {
+            model.timeError.value = "Valid Positive Numbers Must Be Provided."
+        }
+    }
+
     var history = mutableListOf<HistoryDBFinal>()
     fun hasChanged(oldValue: String, newValue: String): Boolean {
         return oldValue != newValue
@@ -42,8 +95,9 @@ class TeamDetailsViewModel(val model: UniTeamModel, val savedStateHandle: SavedS
 
     fun handleTeamHistory(){
         val entryToAdd: MutableList<HistoryDBFinal> = mutableListOf()
-        if(editing) {
-            if(hasChanged(beforeTeamName,teamName.value) || hasChanged(beforeTeamDescription,teamDescription.value)) {
+        if(!addTeam) {
+            if(hasChanged(beforeTeamName,teamName.value) || hasChanged(beforeTeamDescription,teamDescription.value)
+                || teamProfileImage != beforeTeamProfileImage) {
                 // general editing
                 entryToAdd.add(HistoryDBFinal(
                     id = (temporaryId++).toString(),
@@ -53,59 +107,35 @@ class TeamDetailsViewModel(val model: UniTeamModel, val savedStateHandle: SavedS
                 ))
             }
             // members
-            val removedComment = "Members removed: "
-            var removedMembers = ""
-            val addedComment = "Members Added: "
-            var addedMembers = ""
             for (oldMember in beforeTeamMembers) {
                 if(!teamMembers.contains(oldMember)) {
                     // deleted member
-                    removedMembers += oldMember.username + " "
+                    entryToAdd.add(HistoryDBFinal(
+                        id = (temporaryId++).toString(),
+                        comment = "${oldMember.username} removed from the Team.",
+                        date = LocalDateTime.now(),
+                        user = loggedMember.id
+                    ))
                 }
             }
             for (member in teamMembers) {
                 if(!beforeTeamMembers.contains(member)) {
                     // added member
-                    addedMembers += member.username + " "
-                }
-            }
-            if (removedMembers.isNotEmpty() && addedMembers.isNotEmpty()) {
-                val comment = "Team " + removedComment + removedMembers + "\n" +
-                        "Team " + addedComment + addedMembers + "\n"
-                entryToAdd.add(
-                    HistoryDBFinal(
+                    entryToAdd.add(HistoryDBFinal(
                         id = (temporaryId++).toString(),
-                        comment = comment,
+                        comment = "${member.username} added in the Team.",
                         date = LocalDateTime.now(),
                         user = loggedMember.id
-                    )
-                )
-            } else if (removedMembers.isNotEmpty()) {
-                val comment = "Team " + removedComment + removedMembers
-                entryToAdd.add(HistoryDBFinal(
-                    id = (temporaryId++).toString(),
-                    comment = comment,
-                    date = LocalDateTime.now(),
-                    user = loggedMember.id
-                ))
-            } else if (addedMembers.isNotEmpty()) {
-                val comment = "Team " + addedComment + addedMembers
-                entryToAdd.add(HistoryDBFinal(
-                    id = (temporaryId++).toString(),
-                    comment = comment,
-                    date = LocalDateTime.now(),
-                    user = loggedMember.id
-                ))
+                    ))
+                }
             }
             // add to history
             entryToAdd.forEach{ entry->
                 history.add(entry)
             }
-            // TODO Add db history directly in edit (I have firebase teamId)
-            //model.addHistories(history,taskId)
         } else {
             // add team so call after the db
-            entryToAdd.add(HistoryDBFinal(
+            history.add(HistoryDBFinal(
                 id = (temporaryId++).toString(),
                 comment = "Team Created.",
                 date = LocalDateTime.now(),
@@ -144,6 +174,8 @@ class TeamDetailsViewModel(val model: UniTeamModel, val savedStateHandle: SavedS
     fun validate() {
         checkTeamName()
         checkDescription()
+        checkTime()
+        checkTimes()
     }
 
     fun cancel(){

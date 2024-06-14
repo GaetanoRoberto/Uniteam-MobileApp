@@ -1,5 +1,6 @@
 package it.polito.uniteam.firebase
 
+import android.util.Log
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -77,5 +78,62 @@ fun deleteTask(db: FirebaseFirestore, files:List<FileDBFinal>, taskId: String, t
         transaction.update(teamRef,"tasks",FieldValue.arrayRemove(taskId))
         // delete the task
         transaction.delete(taskRef)
+    }
+}
+
+fun deleteTeam(db: FirebaseFirestore, teamId: String, files:List<FileDBFinal>, /*members: List<String>,*/ user: String) {
+
+    db.runTransaction { transaction ->
+        val teamRef = db.collection("Team").document(teamId)
+        // Get the team data
+        val team = transaction.get(teamRef)
+        val chatId = team.getString("chat") ?: ""
+        val chatRef = db.collection("Chat").document(chatId)
+        val chat = transaction.get(chatRef)
+        val messagesId = chat.get("messages") as? List<String> ?: listOf()
+        val tasks = team.get("tasks") as List<String>
+        val members = team.get("members") as List<String>
+        val historyRef = db.collection("History").document()
+
+        // Remove members' teamsInfo
+        members.forEach { memberId ->
+            val memberRef = db.collection("Member").document(memberId)
+            val member = transaction.get(memberRef)
+            val teamsInfo = member.get("teamsInfo") as? List<Map<String, Any>> ?: emptyList()
+
+            // Filter out the teamsInfo entry associated with the teamId
+            val updatedTeamsInfo = teamsInfo.filterNot { it["teamId"] == teamId }
+
+            transaction.update(memberRef, "teamsInfo", updatedTeamsInfo)
+        }
+        // Delete chat and messages
+        messagesId.forEach { messageId ->
+            val messageRef = db.collection("Message").document(messageId)
+            transaction.delete(messageRef)
+        }
+        transaction.delete(chatRef)
+
+        // Delete tasks and related files
+        tasks.forEach { taskId ->
+            deleteTask(db, files, taskId, teamId)
+        }
+        // Add to history
+        val historyData = mapOf(
+            "comment" to "Team ${team.get("name")} deleted.",
+            "date" to Timestamp(Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant())),
+            "user" to user,
+            "oldMembers" to members
+        )
+        transaction.set(historyRef, historyData)
+        // Delete the team
+        transaction.delete(teamRef)
+        // delete teamImage
+        val storage = FirebaseStorage.getInstance()
+        val teamImageRef = storage.reference.child("images/${teamId}.jpg")
+        teamImageRef.delete()
+    }.addOnSuccessListener {
+        Log.d("DB", "Team deleted successfully")
+    }.addOnFailureListener { e ->
+        Log.w("DB", "Error deleting team", e)
     }
 }

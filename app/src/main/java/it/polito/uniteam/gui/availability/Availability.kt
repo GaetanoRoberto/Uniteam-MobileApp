@@ -38,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -57,30 +58,26 @@ import kotlin.enums.EnumEntries
 
 
 class AvailabilityViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHandle): ViewModel() {
-    val teamId: String = checkNotNull(savedStateHandle["teamId"])
-    val teamName: String = checkNotNull(savedStateHandle["teamName"])
+    val teamId: String? = savedStateHandle["teamId"]
+    val teamName: String? = savedStateHandle["teamName"]
     fun updateLoggedMemberTeamInfo(memberId: String, teamId: String, newRole: String, newHours: Number, newMinutes: Number, newTimes: Number) = model.updateLoggedMemberTeamInfo(memberId,teamId,newRole,newHours,newMinutes,newTimes)
 
     val roleValues = CategoryRole.entries
-    var timesError = mutableStateOf("")
-        private set
-    var timeError = mutableStateOf("")
-        private set
 
     var role = mutableStateOf(CategoryRole.NONE)
 }
 
 
 @Composable
-fun Availability(vm: AvailabilityViewModel = viewModel(factory = Factory(LocalContext.current))) {
+fun Availability(vm: AvailabilityViewModel = viewModel(factory = Factory(LocalContext.current)), roleCallback: (role:CategoryRole) -> Unit = {}, timesCallback: (times:String) -> Unit = {}, hoursCallback: (hours:String) -> Unit = {}, minutesCallback: (minutes:String) -> Unit = {}) {
     val navController = NavControllerManager.getNavController()
     val loggedMember = AppStateManager.getLoggedMember()
-    Log.d("Availability", "Logged member: $loggedMember")
-    val initialRole = loggedMember.teamsInfo?.get(vm.teamId)?.role!!
+    Log.d("Availability", vm.teamId.toString())
+    val initialRole = if(vm.teamId != "0") loggedMember.teamsInfo?.get(vm.teamId)?.role!! else CategoryRole.NONE
     val currentRoleState = rememberSaveable { mutableStateOf(initialRole) }
-    val times = remember { mutableStateOf(loggedMember.teamsInfo?.get(vm.teamId)?.weeklyAvailabilityTimes.toString()) }
-    val hours = remember { mutableStateOf(loggedMember.teamsInfo?.get(vm.teamId)?.weeklyAvailabilityHours?.first.toString()) }
-    val minutes = remember { mutableStateOf(loggedMember.teamsInfo?.get(vm.teamId)?.weeklyAvailabilityHours?.second.toString()) }
+    val times = remember { mutableStateOf(if(vm.teamId != "0") loggedMember.teamsInfo?.get(vm.teamId)?.weeklyAvailabilityTimes.toString() else "0") }
+    val hours = remember { mutableStateOf(if(vm.teamId != "0") loggedMember.teamsInfo?.get(vm.teamId)?.weeklyAvailabilityHours?.first.toString() else "0")}
+    val minutes = remember { mutableStateOf(if(vm.teamId != "0") loggedMember.teamsInfo?.get(vm.teamId)?.weeklyAvailabilityHours?.second.toString() else "0")}
 
     LaunchedEffect(Unit) {
         vm.role.value = currentRoleState.value
@@ -89,19 +86,20 @@ fun Availability(vm: AvailabilityViewModel = viewModel(factory = Factory(LocalCo
     fun changeRole(categoryRole: CategoryRole) {
         currentRoleState.value = categoryRole
         vm.role.value = categoryRole
+        roleCallback(categoryRole)
     }
 
     fun checkTimes() {
         try {
             val timesInt = times.value.toUInt().toInt()
             if (timesInt == 0) {
-                vm.timesError.value = "You Need To Schedule A Positive Number."
+                vm.model.timesError.value = "You Need To Schedule A Positive Number."
             } else {
-                vm.timesError.value = ""
+                vm.model.timesError.value = ""
                 times.value = timesInt.toString()
             }
         } catch (e: RuntimeException) {
-            vm.timesError.value = "Valid Positive Number Must Be Provided."
+            vm.model.timesError.value = "Valid Positive Number Must Be Provided."
         }
     }
 
@@ -110,29 +108,29 @@ fun Availability(vm: AvailabilityViewModel = viewModel(factory = Factory(LocalCo
             val hoursInt = hours.value.toUInt().toInt()
             val minutesInt = minutes.value.toUInt().toInt()
             if (hoursInt == 0 && minutesInt == 0) {
-                vm.timeError.value = "You Need To Schedule A Positive Time Interval."
+                vm.model.timeError.value = "You Need To Schedule A Positive Time Interval."
             } else if (minutesInt >= 60) {
-                vm.timeError.value = "Invalid Minute Value."
+                vm.model.timeError.value = "Invalid Minute Value."
             } else {
-                vm.timeError.value = ""
+                vm.model.timeError.value = ""
                 hours.value = hoursInt.toString()
                 minutes.value = minutesInt.toString()
             }
         } catch (e: RuntimeException) {
-            vm.timeError.value = "Valid Positive Numbers Must Be Provided."
+            vm.model.timeError.value = "Valid Positive Numbers Must Be Provided."
         }
     }
 
     fun save(): Boolean {
         checkTimes()
         checkTime()
-        if (vm.timesError.value.isEmpty() && vm.timeError.value.isEmpty()) {
+        if (vm.model.timesError.value.isEmpty() && vm.model.timeError.value.isEmpty()) {
             val newTeamInfo = MemberTeamInfo(
                 role = vm.role.value,
                 weeklyAvailabilityTimes = times.value.toInt(),
                 weeklyAvailabilityHours = Pair(hours.value.toInt(), minutes.value.toInt())
             )
-            vm.updateLoggedMemberTeamInfo(loggedMember.id, vm.teamId, newTeamInfo.role.toString(), newTeamInfo.weeklyAvailabilityHours.first, newTeamInfo.weeklyAvailabilityHours.second, newTeamInfo.weeklyAvailabilityTimes)
+            vm.updateLoggedMemberTeamInfo(loggedMember.id, vm.teamId!!, newTeamInfo.role.toString(), newTeamInfo.weeklyAvailabilityHours.first, newTeamInfo.weeklyAvailabilityHours.second, newTeamInfo.weeklyAvailabilityTimes)
             return true
         } else return false
     }
@@ -144,21 +142,25 @@ fun Availability(vm: AvailabilityViewModel = viewModel(factory = Factory(LocalCo
     ) {
         Row(modifier = if (isVertical()) Modifier.fillMaxHeight(0.9f) else Modifier) {
             Column(
-                modifier = Modifier
+                modifier = if(vm.teamId != "0") Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
+                else
+                    Modifier.fillMaxSize()
             ) {
                 //Title
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Change your role and availability in the team:\n ${vm.teamName}",
-                        style = MaterialTheme.typography.headlineSmall,
-                        textAlign = TextAlign.Center
-                    )
+                if (vm.teamId != "0") {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Change your role and availability in the team:\n ${vm.teamName}",
+                            style = MaterialTheme.typography.headlineSmall,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
                 Spacer(modifier = Modifier.padding(8.dp))
                 //Dropdown roles
@@ -200,6 +202,10 @@ fun Availability(vm: AvailabilityViewModel = viewModel(factory = Factory(LocalCo
                             ),
                             onValueChange = { value ->
                                 times.value = value
+                                if(vm.teamId == "0") {
+                                    checkTimes()
+                                    timesCallback(value)
+                                }
                             },
                             modifier = Modifier.weight(1f),
                             colors = TextFieldDefaults.colors(
@@ -213,8 +219,8 @@ fun Availability(vm: AvailabilityViewModel = viewModel(factory = Factory(LocalCo
                             .fillMaxWidth()
                             .padding(top = 8.dp), horizontalArrangement = Arrangement.Center
                     ) {
-                        if (vm.timesError.value.isNotEmpty())
-                            Text(vm.timesError.value, color = MaterialTheme.colorScheme.error)
+                        if (vm.model.timesError.value.isNotEmpty())
+                            Text(vm.model.timesError.value, color = MaterialTheme.colorScheme.error)
                     }
                 }
                 Spacer(modifier = Modifier.padding(5.dp))
@@ -230,8 +236,8 @@ fun Availability(vm: AvailabilityViewModel = viewModel(factory = Factory(LocalCo
                         textAlign = TextAlign.Start
                     )
                 }
-                HourMinutesPicker(hourState = hours, minuteState = minutes, errorMsg = vm.timeError)
-                if (!isVertical()) {
+                HourMinutesPicker(hourState = hours, minuteState = minutes, errorMsg = vm.model.timeError, hoursCallback = {hoursCallback(it); checkTime();}, minutesCallback = {minutesCallback(it); checkTime(); })
+                if (!isVertical() && vm.teamId != "0") {
                     Spacer(modifier = Modifier.padding(16.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -249,7 +255,7 @@ fun Availability(vm: AvailabilityViewModel = viewModel(factory = Factory(LocalCo
                 }
             }
         }
-        if (isVertical()) {
+        if (isVertical() && vm.teamId != "0") {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,

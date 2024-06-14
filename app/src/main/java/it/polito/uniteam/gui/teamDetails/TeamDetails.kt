@@ -51,6 +51,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -89,6 +90,11 @@ import it.polito.uniteam.NavControllerManager
 import it.polito.uniteam.R
 import it.polito.uniteam.classes.CompressImage
 import it.polito.uniteam.classes.MemberDBFinal
+import it.polito.uniteam.classes.MemberTeamInfo
+import it.polito.uniteam.classes.TeamDBFinal
+import it.polito.uniteam.classes.permissionRole
+import it.polito.uniteam.gui.availability.Availability
+import it.polito.uniteam.gui.availability.Join
 import it.polito.uniteam.gui.showtaskdetails.EditRowItem
 import it.polito.uniteam.gui.showtaskdetails.HistoryView
 import it.polito.uniteam.gui.showtaskdetails.RowItem
@@ -98,18 +104,27 @@ import it.polito.uniteam.gui.userprofile.takePhoto
 import it.polito.uniteam.isVertical
 import it.polito.uniteam.ui.theme.Orange
 import java.io.File
+import java.time.LocalDate
 import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
 
 @Composable
 fun SetupTeamData(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalContext.current.applicationContext))) {
-    val team = AppStateManager.getTeams().find { it.id == vm.teamId }!!
-    val teamMembers = AppStateManager.getMembers().filter { team.members.contains(it.id) }
-    vm.teamName.value = team.name
-    vm.teamDescription.value = team.description
-    vm.teamProfileImage.value = team.image
-    vm.teamCreationDate = team.creationDate
-    vm.teamMembers = teamMembers.toMutableStateList()
+    if(!vm.addTeam) {
+        val team = AppStateManager.getTeams().find { it.id == vm.teamId }!!
+        val teamMembers = AppStateManager.getMembers().filter { team.members.contains(it.id) }
+        val teamHistory = AppStateManager.getHistories().filter { team.teamHistory.contains(it.id) }
+        vm.teamName.value = team.name
+        vm.beforeTeamName = team.name
+        vm.teamDescription.value = team.description
+        vm.beforeTeamDescription = team.description
+        vm.teamProfileImage.value = team.image
+        vm.beforeTeamProfileImage = team.image
+        vm.teamCreationDate = team.creationDate
+        vm.teamMembers = teamMembers.toMutableStateList()
+        vm.beforeTeamMembers = teamMembers.toMutableStateList()
+        vm.history = teamHistory.toMutableList()
+    }
 }
 
 @Composable
@@ -122,36 +137,14 @@ fun TeamViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalC
                    outputDirectory: File,
                    cameraExecutor: ExecutorService){
     val controller = NavControllerManager.getNavController()
+    vm.loggedMember = AppStateManager.getLoggedMember()
+    vm.isAdmin = vm.loggedMember.teamsInfo?.get(vm.teamId)?.permissionrole == permissionRole.ADMIN
     // Handle Back Button
     BackHandler(onBack = {
-        vm.validate()
-        if (vm.teamNameError == "" && vm.descriptionError == "") {
-            // TODO finish save team logic with db
-            if(vm.addTeam){
-                controller.navigate("Teams")
-                //vm.handleTeamHistory(vm.selectedTeam.value.id, History(comment = "Team created successfully", date = LocalDate.now().toString(), user = vm.member.value))
-                //vm.teamCreation(false)
-            }else{
-                vm.model.updateTeam(
-                    vm.teamId,
-                    vm.teamName.value,
-                    vm.teamDescription.value,
-                    vm.teamMembers.map { it.id },
-                    vm.history,
-                )
-                vm.changeEditing()
-            }
-            /*vm.changeEditing()
-            vm.teamMembersBeforeEditing = selectedTeam.members
-            vm.teamImageBeforeEditing = selectedTeam.image
-            navController.navigate("Tasks"){
-                popUpTo(navController.graph.findStartDestination().id) {
-                    saveState = true
-                }
-                launchSingleTop = true
-                restoreState = true
-            }*/
-        }
+        if(vm.editing)
+            vm.changeEditing()
+        else
+            controller.navigate("Team/${vm.teamId}")
     })
     val context = LocalContext.current
     val pickImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { activity: ActivityResult? ->
@@ -336,7 +329,7 @@ fun TeamViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalC
                 //
                 BoxWithConstraints {
                     if (this.maxHeight > this.maxWidth) {
-                        if (!vm.editing && vm.isAdmin) {
+                        if (!vm.editing && vm.isAdmin!!) {
                         Box(
                             contentAlignment = Alignment.TopEnd,
                             modifier = Modifier.fillMaxSize()
@@ -429,7 +422,7 @@ fun TeamViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalC
                                         verticalArrangement = Arrangement.Top,
                                         horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
-                                        if (!vm.editing && vm.isAdmin) {
+                                        if (!vm.editing && vm.isAdmin!!) {
                                             FloatingActionButton(
                                                 onClick = { vm.changeEditing() },
                                                 containerColor = MaterialTheme.colorScheme.primary,
@@ -484,66 +477,6 @@ fun TeamViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalC
         }
     }
 }}
-
-@Composable
-fun TeamEditViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalContext.current.applicationContext)), outputDirectory: File,
-                       cameraExecutor: ExecutorService
-){
-
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            //
-            BoxWithConstraints {
-                if(this.maxHeight > this.maxWidth) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(0.8f),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            DefaultImageForEditingTeam(vm)
-                        }
-
-                        TeamDetailsEdit(vm)
-
-
-                    }
-                } else {
-                    Row(
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth(0.33f)
-                                .fillMaxHeight()
-                                .padding(10.dp, 0.dp, 10.dp, 0.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            DefaultImageForEditingTeam(vm)
-                        }
-                        TeamDetailsEdit(vm)
-
-
-
-                    }
-                }
-            }
-
-
-        }
-    }
-
-
-
 
 @Composable
 fun CameraViewForTeam(
@@ -708,6 +641,19 @@ fun TeamDetailsEdit(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
                             "Manage Members",
                             vm.teamMembers
                         )
+                    } else {
+                        Spacer(modifier = Modifier.height(20.dp))
+                        HorizontalDivider(color = Color.White)
+                        Spacer(modifier = Modifier.height(20.dp))
+                        Text(
+                            text = "Choose Your Role/Availability for The New Team.",
+                            style = MaterialTheme.typography.titleLarge,
+                            textAlign = TextAlign.Center
+                        )
+                        Availability(roleCallback = vm::setRole,
+                        timesCallback = vm::setTimes,
+                        hoursCallback = vm::setHours,
+                        minutesCallback = vm::setMinutes)
                     }
                     Spacer(modifier = Modifier.height(10.dp))
 
@@ -747,28 +693,32 @@ fun TeamDetailsEdit(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
                                         // TODO finish save team logic with db
                                         vm.handleTeamHistory()
                                         if(vm.addTeam){
-                                            controller.navigate("Teams")
-                                            //vm.teamCreation(false)
+                                            if (vm.model.timeError.value == "" && vm.model.timesError.value == "") {
+                                                vm.model.createTeam(TeamDBFinal(
+                                                    name = vm.teamName.value,
+                                                    description = vm.teamDescription.value,
+                                                    image = vm.teamProfileImage.value,
+                                                    creationDate = LocalDate.now(),
+                                                    members = mutableListOf(vm.loggedMember.id)
+                                                ), MemberTeamInfo(
+                                                    role = vm.memberRole.value,
+                                                    weeklyAvailabilityTimes = vm.times.value.toInt(),
+                                                    weeklyAvailabilityHours = Pair(vm.hours.value.toInt(),vm.minutes.value.toInt()),
+                                                    permissionrole = permissionRole.ADMIN
+                                                ),vm.history.first())
+                                                controller.navigate("Teams")
+                                            }
                                         }else{
+                                            vm.changeEditing()
                                             vm.model.updateTeam(
                                                 vm.teamId,
                                                 vm.teamName.value,
                                                 vm.teamDescription.value,
+                                                vm.teamProfileImage.value,
                                                 vm.teamMembers.map { it.id },
-                                                vm.history,
+                                                vm.history
                                             )
-                                            vm.changeEditing()
                                         }
-                                        /*vm.changeEditing()
-                                        vm.teamMembersBeforeEditing = selectedTeam.members
-                                        vm.teamImageBeforeEditing = selectedTeam.image
-                                        navController.navigate("Tasks"){
-                                            popUpTo(navController.graph.findStartDestination().id) {
-                                                saveState = true
-                                            }
-                                            launchSingleTop = true
-                                            restoreState = true
-                                        }*/
                                     }
                                 }, modifier = Modifier
                                     .fillMaxWidth()) {
@@ -817,33 +767,36 @@ fun TeamDetailsEdit(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
                     Column(modifier = Modifier.weight(1f)) {
                         Button(colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
                             vm.validate()
-                            if (vm.teamNameError == "" && vm.descriptionError == "" ) {
+                            if (vm.teamNameError == "" && vm.descriptionError == "") {
                                 // TODO finish save team logic with db
+                                vm.handleTeamHistory()
                                 if(vm.addTeam){
-                                    controller.navigate("Teams")
-                                    //vm.handleTeamHistory(selectedTeam.id, History(comment = "Team created successfully", date = LocalDate.now().toString(), user = vm.member.value))
-                                    //vm.teamCreation(false)
+                                    if (vm.model.timeError.value == "" && vm.model.timesError.value == "") {
+                                        vm.model.createTeam(TeamDBFinal(
+                                            name = vm.teamName.value,
+                                            description = vm.teamDescription.value,
+                                            image = vm.teamProfileImage.value,
+                                            creationDate = LocalDate.now(),
+                                            members = mutableListOf(vm.loggedMember.id)
+                                        ), MemberTeamInfo(
+                                            role = vm.memberRole.value,
+                                            weeklyAvailabilityTimes = vm.times.value.toInt(),
+                                            weeklyAvailabilityHours = Pair(vm.hours.value.toInt(),vm.minutes.value.toInt()),
+                                            permissionrole = permissionRole.ADMIN
+                                        ),vm.history.first())
+                                        controller.navigate("Teams")
+                                    }
                                 }else{
+                                    vm.changeEditing()
                                     vm.model.updateTeam(
                                         vm.teamId,
                                         vm.teamName.value,
                                         vm.teamDescription.value,
+                                        vm.teamProfileImage.value,
                                         vm.teamMembers.map { it.id },
-                                        vm.history,
+                                        vm.history
                                     )
-                                    vm.changeEditing()
                                 }
-                                /*vm.changeEditing()
-                                vm.teamMembersBeforeEditing = selectedTeam.members
-                                vm.teamImageBeforeEditing = selectedTeam.image
-                                navController.navigate("Tasks"){
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }*/
-
                             }
                         }, modifier = Modifier.fillMaxWidth()) {
                             Text(text = "Save", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
@@ -1341,7 +1294,7 @@ fun DefaultImageForEditingTeam(vm: TeamDetailsViewModel = viewModel(factory = Fa
 @Composable
 fun DeleteTeamDialog(vm: TeamDetailsViewModel) {
     val navController = NavControllerManager.getNavController()
-
+    val files = AppStateManager.getFiles()
     AlertDialog(
         containerColor = MaterialTheme.colorScheme.background,
         onDismissRequest = { vm.openDeleteTeamDialog = false },
@@ -1351,7 +1304,7 @@ fun DeleteTeamDialog(vm: TeamDetailsViewModel) {
             TextButton(
                 onClick = {
                     vm.openDeleteTeamDialog = false
-                    //vm.deleteTeam
+                    vm.model.deleteTeam(vm.teamId,files,vm.loggedMember.id)
                     navController.navigate("Teams") { launchSingleTop = true }
                 }
             ) {

@@ -112,6 +112,7 @@ import java.util.concurrent.Executors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import it.polito.uniteam.classes.ChatDBFinal
+import it.polito.uniteam.classes.LoadingSpinner
 import it.polito.uniteam.classes.MemberDB
 import it.polito.uniteam.classes.MessageDB
 import it.polito.uniteam.gui.home.Home
@@ -740,7 +741,7 @@ class MainActivity : ComponentActivity() {
                                                                     )
                                                                 )
                                                             }
-                                                            composable("Task/{taskId}") {
+                                                            composable("Task/{taskId}/{teamId}") {
                                                                 SetupTaskData()
                                                                 TaskScreen(
                                                                     vm = viewModel(
@@ -1222,9 +1223,9 @@ class AppStateManager {
                     && histories.value.isNotEmpty() && files.value.isNotEmpty() && comments.value.isNotEmpty()
                     && chats.value.isNotEmpty() && messages.value.isNotEmpty()) {
                     content()
-                }/* else {
+                } else {
                     LoadingSpinner()
-                }*/
+                }
             }
         }
 

@@ -18,7 +18,9 @@ import com.google.firebase.storage.UploadTask
 import it.polito.uniteam.classes.CommentDBFinal
 import it.polito.uniteam.classes.FileDBFinal
 import it.polito.uniteam.classes.HistoryDBFinal
+import it.polito.uniteam.classes.MemberTeamInfo
 import it.polito.uniteam.classes.TaskDBFinal
+import it.polito.uniteam.classes.TeamDBFinal
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -196,7 +198,7 @@ fun addFile(db: FirebaseFirestore, coroutineScope: CoroutineScope, context: Cont
     }
 }
 
-fun addHistories(db: FirebaseFirestore, histories: List<HistoryDBFinal>, taskId: String) {
+fun addTaskHistories(db: FirebaseFirestore, histories: List<HistoryDBFinal>, taskId: String) {
     val taskRef = db.collection("Task").document(taskId)
     db.runTransaction { transaction ->
         histories.forEach { history ->
@@ -320,5 +322,73 @@ fun addTask(db: FirebaseFirestore, coroutineScope: CoroutineScope, context: Cont
         }
         // link task to team
         transaction.update(teamRef, "tasks", FieldValue.arrayUnion(taskRef.id))
+    }
+}
+
+fun createTeam(db: FirebaseFirestore, team: TeamDBFinal, memberInfo : MemberTeamInfo, history: HistoryDBFinal) {
+
+    db.runTransaction { transaction ->
+        val teamData = mapOf(
+            "name" to team.name,
+            "description" to team.description,
+            "creationDate" to Timestamp.now(),
+            "members" to team.members,
+            "tasks" to team.tasks,
+            "teamHistory" to team.teamHistory
+        )
+
+        val teamRef = db.collection("Team").document()
+        transaction.set(teamRef, teamData)
+        team.id = teamRef.id
+
+
+        // Create the chat document for the team
+        val chatRef = db.collection("Chat").document()
+        val chatData = mapOf(
+            "teamId" to teamRef.id,
+            "sender" to null,
+            "receiver" to null,
+            "messages" to mutableListOf<String>()
+        )
+        transaction.set(chatRef, chatData)
+
+        // Update the team document with the chat ID
+        transaction.update(teamRef, "chat", chatRef.id)
+
+        //ADD TEAM HISTORY
+        val historyDB = mapOf(
+            "comment" to history.comment,
+            "date" to Timestamp.now(),
+            "user" to history.user
+        )
+        val histRef = db.collection("History").document()
+        transaction.set(histRef, historyDB)
+        history.id = histRef.id
+
+        // Update the team document with the history ID
+        transaction.update(teamRef, "teamHistory", FieldValue.arrayUnion(histRef.id))
+
+
+        team.members.forEach { memberId ->
+            val memberRef = db.collection("Member").document(memberId)
+            //ADD TEAM INFO TO MEMBER
+            val teamsInfo = mapOf(
+                "permissionrole" to memberInfo.permissionrole,
+                "role" to memberInfo.role,
+                "teamId" to teamRef.id,
+                "weeklyAvailabilityHours" to mapOf(
+                    "hours" to memberInfo.weeklyAvailabilityHours.first,
+                    "minutes" to memberInfo.weeklyAvailabilityHours.second
+                ),
+                "weeklyAvailabilityTimes" to memberInfo.weeklyAvailabilityTimes
+            )
+            transaction.update(memberRef, "teamsInfo", FieldValue.arrayUnion(teamsInfo))
+        }
+
+        uploadImageToFirebase(teamRef.id, team.image)
+    }.addOnSuccessListener {
+        Log.d("DB", "Team created with ID: ${team.id}")
+    }.addOnFailureListener { e ->
+        Log.w("DB", "Error adding team", e)
     }
 }

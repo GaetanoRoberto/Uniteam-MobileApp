@@ -240,7 +240,7 @@ fun getAllMembers(db: FirebaseFirestore, coroutineScope: CoroutineScope): Flow<L
                                     minutes = dbValue.toInt()
                             }
                             val weeklyAvailabilityHours = Pair(hours, minutes)
-                            val permissionrole = teamInfoMap["permissionRole"] as? String ?: "USER"
+                            val permissionrole = teamInfoMap["permissionrole"] as? String ?: "USER"
 
                             m.teamsInfo?.put(
                                 teamId, MemberTeamInfo(
@@ -559,7 +559,7 @@ fun getMemberFlowById(db: FirebaseFirestore, coroutineScope: CoroutineScope, mem
                             minutes = dbValue.toInt()
                     }
                     val weeklyAvailabilityHours = Pair(hours, minutes)
-                    val permissionrole = teamInfoMap["permissionRole"] as? String ?: "USER"
+                    val permissionrole = teamInfoMap["permissionrole"] as? String ?: "USER"
 
                     m.teamsInfo?.put(teamId, MemberTeamInfo(
                         role = CategoryRole.valueOf(role),

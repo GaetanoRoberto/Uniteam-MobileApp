@@ -173,25 +173,49 @@ fun updateComment(db: FirebaseFirestore, comment: CommentDBFinal, taskId: String
     db.collection("Comment").document(comment.id).update(data)
 }
 
-fun updateTeam(db: FirebaseFirestore, teamId:String, teamName: String, teamDescription:String, teamMembers:List<String>, teamHistory : List<HistoryDBFinal>) {
+fun updateTeam(db: FirebaseFirestore, teamId:String, teamName: String, teamDescription:String, teamImage: Uri, teamMembers:List<String>, teamHistory : List<HistoryDBFinal>) {
 
     db.runTransaction { transaction ->
         val teamRef = db.collection("Team").document(teamId)
+        val teamDoc = transaction.get(teamRef)
+
+        val oldTeamMembers = teamDoc.get("members") as List<String>
+        val teamMembersToRemove = oldTeamMembers.filter { !teamMembers.contains(it) }
+
+        teamMembersToRemove.forEach { memberId ->
+            val memberRef = db.collection("Member").document(memberId)
+            val historyRef = db.collection("History").document()
+            val memberDoc = transaction.get(memberRef)
+            transaction.update(teamRef, "members", FieldValue.arrayRemove(memberId))
+
+            val taskIds = teamDoc.get("tasks") as? List<String> ?: emptyList()
+            taskIds.forEach { taskId ->
+                val taskRef = db.collection("Task").document(taskId)
+                transaction.update(taskRef, "members", FieldValue.arrayRemove(memberId))
+            }
+
+            if (memberDoc.exists()) {
+                val teamsInfo = memberDoc.get("teamsInfo") as? MutableList<Map<String, Any>>
+                val teamInfoToRemove = teamsInfo?.find { it["teamId"] == teamId }
+                transaction.update(memberRef, "teamsInfo", FieldValue.arrayRemove(teamInfoToRemove))
+            }
+
+        }
         transaction.update(teamRef, "name",teamName)
         transaction.update(teamRef, "description",teamDescription)
-        transaction.update(teamRef, "members",teamMembers)
-
-        //ADD TEAM HISTORY
+        uploadImageToFirebase(teamId, teamImage)
         teamHistory.forEach { history ->
-            val historyDB = mapOf(
-                "comment" to history.comment,
-                "date" to Timestamp.now(),
-                "user" to history.user
-            )
-            val histRef = db.collection("History").document()
-            transaction.set(histRef, historyDB)
-            // Update the team document with the history ID
-            transaction.update(teamRef, "teamHistory", FieldValue.arrayUnion(histRef.id))
+            if(history.id.toIntOrNull() != null) {
+                val historyDB = mapOf(
+                    "comment" to history.comment,
+                    "date" to Timestamp.now(),
+                    "user" to history.user
+                )
+                val historyRef = db.collection("History").document()
+                transaction.set(historyRef, historyDB)
+                // Update the team document with the history ID
+                transaction.update(teamRef, "teamHistory", FieldValue.arrayUnion(historyRef.id))
+            }
         }
     }.addOnSuccessListener {
         Log.d("DB", "Team updated successfully")

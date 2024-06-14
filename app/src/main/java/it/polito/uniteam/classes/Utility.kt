@@ -270,7 +270,9 @@ fun TextTrim(inputText: String, desiredLength: Int, modifier: Modifier = Modifie
 fun HourMinutesPicker(
     hourState: MutableState<String>,
     minuteState: MutableState<String>,
-    errorMsg: MutableState<String>
+    errorMsg: MutableState<String>,
+    hoursCallback: (hours:String) -> Unit = {},
+    minutesCallback: (minutes:String) -> Unit = {}
 ) {
     Column {
         Row(modifier = Modifier.fillMaxWidth()) {
@@ -284,6 +286,7 @@ fun HourMinutesPicker(
                 ),
                 onValueChange = { value ->
                     hourState.value = value
+                    hoursCallback(value)
                 },
                 modifier = Modifier.weight(1f),
                 colors = TextFieldDefaults.colors(
@@ -302,6 +305,7 @@ fun HourMinutesPicker(
                 ),
                 onValueChange = { value ->
                     minuteState.value = value
+                    minutesCallback(value)
                 },
                 modifier = Modifier.weight(1f),
                 colors = TextFieldDefaults.colors(
