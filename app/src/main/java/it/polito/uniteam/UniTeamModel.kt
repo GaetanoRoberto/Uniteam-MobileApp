@@ -36,8 +36,17 @@ import it.polito.uniteam.classes.TeamDB
 import it.polito.uniteam.classes.TeamDBFinal
 import it.polito.uniteam.classes.messageStatus
 import it.polito.uniteam.classes.permissionRole
+import it.polito.uniteam.firebase.changeAdminRole
+//import it.polito.uniteam.firebase.addTaskHistory
+import it.polito.uniteam.firebase.getAllTeamsMembersHome
 import it.polito.uniteam.firebase.getMemberById
 import it.polito.uniteam.firebase.getMemberFlowById
+import it.polito.uniteam.firebase.getTeamById
+import it.polito.uniteam.firebase.getTeams
+import it.polito.uniteam.firebase.joinTeam
+import it.polito.uniteam.firebase.leaveTeam
+import it.polito.uniteam.firebase.updateLoggedMemberTeamInfo
+import it.polito.uniteam.firebase.updateTaskAssignee
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -62,9 +71,10 @@ class UniTeamModel(val context: Context) {
 
     //Stato di caricamento dati dal db
     var isLoading = mutableStateOf(true)
+    var isLoading2 = mutableStateOf(true)
 
-    var loggedUser = getMemberById(db, coroutineScope, "2nm8PdGbk5CaROcyWjq7")
-    var loggedUserFlow = getMemberFlowById(db, coroutineScope, "tQLCfuconmcAxnoyMS6w")
+    var loggedUser = getMemberById(db, coroutineScope, "d67br0MqJf6Qs1tzKHhm")
+    fun getLoggedUserFlow(): Flow<MemberDBFinal> = getMemberFlowById(db, coroutineScope,"d67br0MqJf6Qs1tzKHhm")
     val loggedMemberFinal = MemberDBFinal(
         id = "d67br0MqJf6Qs1tzKHhm",
         fullName = "Matteo Nicita",
@@ -82,12 +92,17 @@ class UniTeamModel(val context: Context) {
         ),
         chats = mutableListOf("xZCNWiCeTOvitmu4qygp")//TODO FORSE NON SERVE
     )
-    fun getTeams(): Flow<List<TeamDB>> = it.polito.uniteam.firebase.getTeams(db,coroutineScope,loggedUser,isLoading)
-    fun getAllTeamsMembersHome(): Flow<List<MemberDB>> = it.polito.uniteam.firebase.getAllTeamsMembersHome(db,coroutineScope,loggedUser,isLoading)
-    fun getTeamById(id: String): Flow<TeamDB> = it.polito.uniteam.firebase.getTeamById(db,coroutineScope,id)
+    fun getTeams(): Flow<List<TeamDB>> = getTeams(db,coroutineScope,loggedUser,isLoading)
+    fun getAllTeamsMembersHome(): Flow<List<MemberDB>> = getAllTeamsMembersHome(db,coroutineScope,loggedUser,isLoading)
+    fun getTeamById(id: String): Flow<TeamDB> = getTeamById(db,coroutineScope,id)
+    fun updateTaskAssignee(taskId: String, members: List<String>, loggedUser: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = updateTaskAssignee(db,taskId,members,loggedUser,onSuccess,onFailure)
+    fun joinTeam(memberId: String, teamId: String, newRole: String, newHours: Number, newMinutes: Number, newTimes: Number, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = joinTeam(db,memberId,teamId,newRole,newHours,newMinutes,newTimes,onSuccess,onFailure)
+    fun changeAdminRole(loggedMemberId: String, memberId: String, teamId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = changeAdminRole(db,loggedMemberId,memberId,teamId,onSuccess,onFailure)
+    fun leaveTeam(memberId: String, teamId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = leaveTeam(db,memberId,teamId,onSuccess,onFailure)
+    fun updateLoggedMemberTeamInfo(memberId: String, teamId: String, newRole: String, newHours: Number, newMinutes: Number, newTimes: Number) = updateLoggedMemberTeamInfo(db,memberId,teamId,newRole,newHours,newMinutes,newTimes)
 
-    fun getAllTeams2(): Flow<List<TeamDBFinal>> = it.polito.uniteam.firebase.getAllTeams(db,coroutineScope,loggedUser,isLoading)
-    fun getAllMembers2(): Flow<List<MemberDBFinal>> = it.polito.uniteam.firebase.getAllMembers(db,coroutineScope)
+    fun getAllTeams2(): Flow<List<TeamDBFinal>> = it.polito.uniteam.firebase.getAllTeams(db,coroutineScope,loggedUser,isLoading,isLoading2)
+    fun getAllMembers2(): Flow<List<MemberDBFinal>> = it.polito.uniteam.firebase.getAllMembers(db, coroutineScope)
 
     fun getAllTasks2(): Flow<List<TaskDBFinal>> = it.polito.uniteam.firebase.getAllTasks(db)
 

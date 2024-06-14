@@ -1,5 +1,6 @@
 package it.polito.uniteam.gui.home
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
 import android.view.inputmethod.InputMethodManager
@@ -79,13 +80,17 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import it.polito.uniteam.AppStateManager
 import it.polito.uniteam.Factory
 import it.polito.uniteam.NavControllerManager
 import it.polito.uniteam.R
 import it.polito.uniteam.UniTeamModel
 import it.polito.uniteam.classes.LoadingSpinner
 import it.polito.uniteam.classes.MemberDB
+import it.polito.uniteam.classes.MemberDBFinal
+import it.polito.uniteam.classes.Team
 import it.polito.uniteam.classes.TeamDB
+import it.polito.uniteam.classes.TeamDBFinal
 import it.polito.uniteam.classes.TeamIcon
 import it.polito.uniteam.isVertical
 import kotlinx.coroutines.launch
@@ -98,41 +103,43 @@ class HomeViewModel (val model: UniTeamModel, val savedStateHandle: SavedStateHa
     val isLoading = model.isLoading
     val loaded = mutableStateOf(false)
     //Stati per la gestione dei filtri
-    var lastAppliedFilters = mutableStateOf<Map<String,Any>>(mapOf("selectedMembers" to emptyMap<MemberDB, Boolean>()))
+    var lastAppliedFilters = mutableStateOf<Map<String,Any>>(mapOf("selectedMembers" to emptyMap<MemberDBFinal, Boolean>()))
     var expandedSearch by mutableStateOf(false)
     var searchQuery by mutableStateOf("")
     var lastSearchQuery by mutableStateOf("")
     var descriptionSearched by mutableStateOf(false)
-    val selectedMembers = mutableStateMapOf<MemberDB, Boolean>()
+    val selectedMembers = mutableStateMapOf<MemberDBFinal, Boolean>()
     val radioOptions = listOf("Name", "Creation date")
     var selectedChip by mutableStateOf("First")
+    var teamsList: List<TeamDBFinal> = listOf()
+    var filteredTeamsList = mutableStateOf(teamsList.map { it.copy() })
 //    val teams = model.getTeams()
-    val teams = model.getAllTeams2()
-    val members = model.getAllMembers2()
-    val tasks = model.getAllTasks2()
-    val histories = model.getAllHistories2()
-    val chats = model.getAllChats2()
-    val files = model.getAllFiles2()
-    val comments = model.getAllComments2()
-    val messages = model.getAllMessages2()
-
+//    val teams = model.getAllTeams2()
+//    val members = model.getAllMembers2()
+//    val tasks = model.getAllTasks2()
+//    val histories = model.getAllHistories2()
+//    val chats = model.getAllChats2()
+//    val files = model.getAllFiles2()
+//    val comments = model.getAllComments2()
+//    val messages = model.getAllMessages2()
 }
 
-@Preview
-@Composable
-fun Db(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current))) {
-    val comments by vm.messages.collectAsState(initial = listOf())
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
-        items(comments) {
-            Text(text = it.toString())
-            Spacer(modifier = Modifier.height(8.dp))
-}    }
-}
+//@Preview
+//@Composable
+//fun Db(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current))) {
+//    val comments by vm.messages.collectAsState(initial = listOf())
+//    LazyColumn(modifier = Modifier.fillMaxSize()) {
+//        items(comments) {
+//            Text(text = it.toString())
+//            Spacer(modifier = Modifier.height(8.dp))
+//}    }
+//}
 
 
+@SuppressLint("UnrememberedMutableState")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Home(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current)), teamsList: List<TeamDB>, membersList: List<MemberDB>) {
+fun Home(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current))) {
     val navController = NavControllerManager.getNavController()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scrollState = rememberScrollState()
@@ -141,11 +148,18 @@ fun Home(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current)),
     val view = LocalView.current
     val screenWeightDp = LocalConfiguration.current.screenWidthDp
     val (selectedOption, onOptionSelected) = remember { mutableStateOf(vm.radioOptions[0]) }
-    val filteredTeamsList = remember { mutableStateOf(teamsList.sortedByDescending { it.creationDate }) }
+    // Stati per team e membri
+    val loggedMember = AppStateManager.getLoggedMember()
+    val teams = AppStateManager.getTeams()
+    val membersList = AppStateManager.getMembers()
+    vm.teamsList = teams.filter { team -> team.members.contains(loggedMember.id)}
+    vm.filteredTeamsList = mutableStateOf(vm.teamsList.sortedBy { it.name })
+    val filteredMembersList = membersList.filter { member -> vm.teamsList.flatMap { team -> team.members.filter { it != loggedMember.id } }.toSet().contains(member.id) }
 
-    LaunchedEffect(teamsList) {
+    LaunchedEffect(vm.teamsList) {
         vm.loaded.value = true
-        filteredTeamsList.value = teamsList.sortedByDescending { it.creationDate }
+        vm.isLoading.value = false
+        vm.filteredTeamsList.value = vm.teamsList.sortedBy { it.name }
     }
 
     //Drawer dei filtri
@@ -191,7 +205,7 @@ fun Home(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current)),
                                         .fillMaxHeight(0.75f)
                                         .verticalScroll(scrollState)
                             ) {
-                                membersList.forEach { member ->
+                                filteredMembersList.forEach { member ->
                                     Row(
                                         modifier = if (isVertical())
                                             Modifier
@@ -364,8 +378,8 @@ fun Home(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current)),
                                     onClick = {
                                         vm.selectedMembers.clear()
                                         scope.launch { scrollState.animateScrollTo(0) }
-                                        filteredTeamsList.value =
-                                            teamsList.filter { team ->
+                                        vm.filteredTeamsList.value =
+                                            vm.teamsList.filter { team ->
                                                 applyFilters(
                                                     team,
                                                     vm.lastAppliedFilters.value,
@@ -375,7 +389,7 @@ fun Home(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current)),
                                             }
                                         onOptionSelected(vm.radioOptions[0])
                                         vm.selectedChip = "First"
-                                        sortTeams(vm.radioOptions[0], "First", vm, filteredTeamsList)
+                                        sortTeams(vm.radioOptions[0], "First", vm.filteredTeamsList)
                                     }) {
                                     Text("Reset")
                                 }
@@ -386,7 +400,7 @@ fun Home(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current)),
                                     vm.lastAppliedFilters.value = mapOf(
                                         "selectedMembers" to vm.selectedMembers
                                     )
-                                    filteredTeamsList.value = teamsList.filter { team ->
+                                    vm.filteredTeamsList.value = vm.teamsList.filter { team ->
                                         applyFilters(
                                             team,
                                             vm.lastAppliedFilters.value,
@@ -394,7 +408,7 @@ fun Home(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current)),
                                             vm
                                         )
                                     }
-                                    sortTeams(selectedOption, vm.selectedChip, vm, filteredTeamsList)
+                                    sortTeams(selectedOption, vm.selectedChip, vm.filteredTeamsList)
                                     scope.launch { drawerState.close() }
                                 }) {
                                     Text("Apply")
@@ -442,8 +456,8 @@ fun Home(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current)),
                                                     vm.loaded.value = false
                                                     vm.searchQuery = it
                                                     vm.lastSearchQuery = vm.searchQuery.trim()
-                                                    filteredTeamsList.value =
-                                                        teamsList.filter { team ->
+                                                    vm.filteredTeamsList.value =
+                                                        vm.teamsList.filter { team ->
                                                             applyFilters(
                                                                 team,
                                                                 vm.lastAppliedFilters.value,
@@ -451,7 +465,7 @@ fun Home(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current)),
                                                                 vm
                                                             )
                                                         }
-                                                    sortTeams(selectedOption, vm.selectedChip, vm, filteredTeamsList)
+                                                    sortTeams(selectedOption, vm.selectedChip, vm.filteredTeamsList)
                                                 },
                                                 onSearch = {
                                                     val imm =
@@ -475,8 +489,8 @@ fun Home(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current)),
                                                             modifier = Modifier.clickable {
                                                                 vm.searchQuery = ""
                                                                 vm.lastSearchQuery = vm.searchQuery
-                                                                filteredTeamsList.value =
-                                                                    teamsList.filter { team ->
+                                                                vm.filteredTeamsList.value =
+                                                                    vm.teamsList.filter { team ->
                                                                         applyFilters(
                                                                             team,
                                                                             vm.lastAppliedFilters.value,
@@ -487,8 +501,7 @@ fun Home(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current)),
                                                                 sortTeams(
                                                                     selectedOption,
                                                                     vm.selectedChip,
-                                                                    vm,
-                                                                    filteredTeamsList
+                                                                    vm.filteredTeamsList
                                                                 )
                                                             }
                                                         )
@@ -519,7 +532,7 @@ fun Home(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current)),
                                     //Lista dei team
                                     if (vm.isLoading.value)
                                         LoadingSpinner()
-                                    else if (teamsList.isEmpty() || filteredTeamsList.value.isEmpty()) {
+                                    else if (vm.teamsList.isEmpty() || vm.filteredTeamsList.value.isEmpty()) {
                                         Row(
                                             modifier = Modifier.fillMaxWidth(),
                                             verticalAlignment = Alignment.CenterVertically,
@@ -527,7 +540,7 @@ fun Home(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current)),
                                         ) {
                                             Text(
                                                 text =
-                                                if (teamsList.isEmpty())
+                                                if (vm.teamsList.isEmpty())
                                                     "You are not a member of any team yet.\nCreate or join one!"
                                                 else if (vm.loaded.value)
                                                     ""
@@ -540,7 +553,7 @@ fun Home(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current)),
                                         }
                                     } else {
                                         LazyColumn {
-                                            items(filteredTeamsList.value) { team ->
+                                            items(vm.filteredTeamsList.value) { team ->
                                                 ListItem(
                                                     modifier = Modifier.clickable { /*vm.model.selectTeam(team.id);*/ navController.navigate("Team/${team.id}") { launchSingleTop = true } },
                                                     headlineContent = {
@@ -550,7 +563,7 @@ fun Home(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current)),
                                                         )
                                                     },
                                                     leadingContent = {
-                                                        //TeamIcon(team = team, modifierPadding = if(team.image != Uri.EMPTY) Modifier.padding(5.dp, 0.dp, 15.dp, 0.dp) else Modifier.padding(0.dp, 0.dp, 20.dp, 0.dp))
+                                                        TeamIcon(team = team, modifierPadding = if(team.image != Uri.EMPTY) Modifier.padding(5.dp, 0.dp, 15.dp, 0.dp) else Modifier.padding(0.dp, 0.dp, 20.dp, 0.dp))
                                                     },
                                                     supportingContent = {
                                                         if (vm.descriptionSearched) {
@@ -582,13 +595,15 @@ fun Home(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current)),
 }
 
 
-fun applyFilters(team: TeamDB, lastAppliedFilters: Map<String, Any>, lastSearchQuery: String, vm: HomeViewModel): Boolean {
+fun applyFilters(team: TeamDBFinal, lastAppliedFilters: Map<String, Any>, lastSearchQuery: String, vm: HomeViewModel): Boolean {
     var keep = true
 
-    val selectedMembers = lastAppliedFilters["selectedMembers"] as? Map<*, *> ?: emptyMap<MemberDB, Boolean>()
+    val selectedMembers = lastAppliedFilters["selectedMembers"] as? Map<*, *> ?: emptyMap<MemberDBFinal, Boolean>()
 
-    if (selectedMembers.isNotEmpty())
-        keep = keep && team.members.any { selectedMembers.containsKey(it) }
+    if (selectedMembers.isNotEmpty()) {
+        val selectedMembers2 = selectedMembers as Map<MemberDBFinal, Boolean>
+        keep = keep && team.members.any { memberId -> selectedMembers2.any { it.key.id == memberId } }
+    }
 
     keep = keep && (team.name.contains(lastSearchQuery, ignoreCase = true) || team.description.contains(lastSearchQuery, ignoreCase = true))
 
@@ -600,7 +615,7 @@ fun applyFilters(team: TeamDB, lastAppliedFilters: Map<String, Any>, lastSearchQ
     return keep
 }
 
-fun sortTeams(selectedOption: String, selectedChip: String, vm: HomeViewModel, filteredTeamsList: MutableState<List<TeamDB>>) {
+fun sortTeams(selectedOption: String, selectedChip: String, filteredTeamsList: MutableState<List<TeamDBFinal>>) {
     when (selectedOption) {
         "Name" -> {
             if (selectedChip == "First") {

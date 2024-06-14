@@ -154,6 +154,7 @@ fun CompressImage(context: Context, sourceUri: Uri, maxFileSizeKB: Int = 500): U
 @Composable
 fun MemberIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: Modifier = Modifier.padding(0.dp, 0.dp, 20.dp, 0.dp), member: MemberDBFinal, enableNavigation: Boolean = true, dialogAction: () -> Unit = {}, loggedMemberAction: (() -> Unit?)? = null) {
     val navController = NavControllerManager.getNavController()
+
     Box(modifier = modifierScale) {
         if (member.profileImage != Uri.EMPTY) {
             Image(
@@ -216,6 +217,8 @@ fun TeamIcon(
     modifierPadding: Modifier = Modifier.padding(0.dp, 0.dp, 20.dp, 0.dp),
     modifierScale: Modifier = if (team.image != Uri.EMPTY) Modifier.scale(1.7f) else Modifier.scale(0.8f)
 ) {
+    val navController = NavControllerManager.getNavController()
+
     Box(modifier = modifierScale) {
         if (team.image != Uri.EMPTY) {
             Image(
@@ -224,7 +227,8 @@ fun TeamIcon(
                 modifier = Modifier
                     .then(modifierPadding)
                     .size(22.dp)
-                    .clip(CircleShape),
+                    .clip(CircleShape)
+                    .clickable { navController.navigate("TeamDetails/${team.id}") },
                 contentScale = ContentScale.Crop
             )
         } else {
@@ -238,6 +242,7 @@ fun TeamIcon(
                             radius = this.size.maxDimension
                         )
                     }
+                    .clickable { navController.navigate("TeamDetails/${team.id}") }
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.people),
@@ -319,7 +324,7 @@ fun HourMinutesPicker(
 fun LoadingSpinner() {
     Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Top) {
         Spacer(modifier = Modifier.padding(5.dp))
-        Text(text = "Loading teams...", style = MaterialTheme.typography.headlineSmall)
+        Text(text = "Loading...", style = MaterialTheme.typography.headlineSmall)
         Spacer(modifier = Modifier.padding(5.dp))
         CircularProgressIndicator(
             modifier = Modifier

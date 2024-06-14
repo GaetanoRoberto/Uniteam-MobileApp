@@ -136,6 +136,7 @@ fun TeamRow(vm: ChatListViewModel , team : TeamDBFinal, messages : List<MessageD
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable { navController.navigate("TeamDetails/${team.id}") }
             .padding(2.dp)// LEVA SE VUOI UNIRE LE RIGHE
             .background(MaterialTheme.colorScheme.onSecondaryContainer)
             .padding(16.dp)
@@ -242,6 +243,11 @@ fun UserItem(member : MemberDBFinal, vm : ChatListViewModel, chat : ChatDBFinal,
         ) {
             Text(text = member.username, style = MaterialTheme.typography.bodyLarge) //ROLE IN DUMMY DATA DA CAMBIARE TODO
             val role = member.teamsInfo?.get(vm.teamId)?.role?.toString() ?: "Unknown"
+            if(member.id == "2nm8PdGbk5CaROcyWjq7"){
+                Log.d("ChatList", "Role: $role")
+                Log.d("ChatList", "Member: ${member.teamsInfo}")
+            }
+
             if(member.teamsInfo != null){
                 Text(text =role, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
             }

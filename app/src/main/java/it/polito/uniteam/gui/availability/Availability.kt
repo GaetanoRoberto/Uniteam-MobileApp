@@ -28,10 +28,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import it.polito.uniteam.AppStateManager
 import it.polito.uniteam.Factory
 import it.polito.uniteam.NavControllerManager
 import it.polito.uniteam.UniTeamModel
@@ -56,76 +58,84 @@ import kotlin.enums.EnumEntries
 
 class AvailabilityViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHandle): ViewModel() {
     val teamId: String = checkNotNull(savedStateHandle["teamId"])
-    val teamName = model.getTeam(teamId.toInt()).name
-    init {
-        Log.i("updateTeamInfo", model.loggedMember.value.toString())
-    }
-    var role by mutableStateOf(model.loggedMember.value.teamsInfo?.get(teamId.toInt())?.role)
-        private set
+    val teamName: String = checkNotNull(savedStateHandle["teamName"])
+    fun updateLoggedMemberTeamInfo(memberId: String, teamId: String, newRole: String, newHours: Number, newMinutes: Number, newTimes: Number) = model.updateLoggedMemberTeamInfo(memberId,teamId,newRole,newHours,newMinutes,newTimes)
 
     val roleValues = CategoryRole.entries
-    fun changeRole(categoryRole: CategoryRole) {
-        role = categoryRole
-    }
-    var times = mutableStateOf(model.loggedMember.value.teamsInfo?.get(teamId.toInt())?.weeklyAvailabilityTimes.toString())
-        private set
     var timesError = mutableStateOf("")
-        private set
-    private fun checkTimes() {
-        try {
-            val timesInt = times.value.toUInt().toInt()
-            if (timesInt == 0) {
-                timesError.value = "You Need To Schedule A Positive Number."
-            } else {
-                timesError.value = ""
-                times.value = timesInt.toString()
-            }
-        } catch (e: RuntimeException) {
-            timesError.value = "Valid Positive Number Must Be Provided."
-        }
-    }
-    var hours = mutableStateOf(model.loggedMember.value.teamsInfo?.get(teamId.toInt())?.weeklyAvailabilityHours?.first.toString())
-        private set
-    var minutes = mutableStateOf(model.loggedMember.value.teamsInfo?.get(teamId.toInt())?.weeklyAvailabilityHours?.second.toString())
         private set
     var timeError = mutableStateOf("")
         private set
-    private fun checkTime() {
-        try {
-            val hoursInt = hours.value.toUInt().toInt()
-            val minutesInt = minutes.value.toUInt().toInt()
-            if (hoursInt == 0 && minutesInt == 0) {
-                timeError.value = "You Need To Schedule A Positive Time Interval."
-            } else if (minutesInt >= 60) {
-                timeError.value = "Invalid Minute Value."
-            } else {
-                timeError.value = ""
-                hours.value = hoursInt.toString()
-                minutes.value = minutesInt.toString()
-            }
-        } catch (e: RuntimeException) {
-            timeError.value = "Valid Positive Numbers Must Be Provided."
-        }
-    }
-    fun save(): Boolean {
-        checkTimes()
-        checkTime()
-        if (timesError.value.isEmpty() && timeError.value.isEmpty()) {
-            val newTeamInfo = MemberTeamInfo(
-                    role = role!!,
-                    weeklyAvailabilityTimes = times.value.toInt(),
-                    weeklyAvailabilityHours = Pair(hours.value.toInt(), minutes.value.toInt())
-            )
-            model.updateTeamInfo(teamId = teamId.toInt(), newTeamInfo = newTeamInfo)
-            return true
-        } else return false
-    }
+
+    var role = mutableStateOf(CategoryRole.NONE)
 }
 
 
 @Composable
 fun Availability(vm: AvailabilityViewModel = viewModel(factory = Factory(LocalContext.current))) {
     val navController = NavControllerManager.getNavController()
+    val loggedMember = AppStateManager.getLoggedMember()
+    Log.d("Availability", "Logged member: $loggedMember")
+    val initialRole = loggedMember.teamsInfo?.get(vm.teamId)?.role!!
+    val currentRoleState = rememberSaveable { mutableStateOf(initialRole) }
+    val times = remember { mutableStateOf(loggedMember.teamsInfo?.get(vm.teamId)?.weeklyAvailabilityTimes.toString()) }
+    val hours = remember { mutableStateOf(loggedMember.teamsInfo?.get(vm.teamId)?.weeklyAvailabilityHours?.first.toString()) }
+    val minutes = remember { mutableStateOf(loggedMember.teamsInfo?.get(vm.teamId)?.weeklyAvailabilityHours?.second.toString()) }
+
+    LaunchedEffect(Unit) {
+        vm.role.value = currentRoleState.value
+    }
+
+    fun changeRole(categoryRole: CategoryRole) {
+        currentRoleState.value = categoryRole
+        vm.role.value = categoryRole
+    }
+
+    fun checkTimes() {
+        try {
+            val timesInt = times.value.toUInt().toInt()
+            if (timesInt == 0) {
+                vm.timesError.value = "You Need To Schedule A Positive Number."
+            } else {
+                vm.timesError.value = ""
+                times.value = timesInt.toString()
+            }
+        } catch (e: RuntimeException) {
+            vm.timesError.value = "Valid Positive Number Must Be Provided."
+        }
+    }
+
+    fun checkTime() {
+        try {
+            val hoursInt = hours.value.toUInt().toInt()
+            val minutesInt = minutes.value.toUInt().toInt()
+            if (hoursInt == 0 && minutesInt == 0) {
+                vm.timeError.value = "You Need To Schedule A Positive Time Interval."
+            } else if (minutesInt >= 60) {
+                vm.timeError.value = "Invalid Minute Value."
+            } else {
+                vm.timeError.value = ""
+                hours.value = hoursInt.toString()
+                minutes.value = minutesInt.toString()
+            }
+        } catch (e: RuntimeException) {
+            vm.timeError.value = "Valid Positive Numbers Must Be Provided."
+        }
+    }
+
+    fun save(): Boolean {
+        checkTimes()
+        checkTime()
+        if (vm.timesError.value.isEmpty() && vm.timeError.value.isEmpty()) {
+            val newTeamInfo = MemberTeamInfo(
+                role = vm.role.value,
+                weeklyAvailabilityTimes = times.value.toInt(),
+                weeklyAvailabilityHours = Pair(hours.value.toInt(), minutes.value.toInt())
+            )
+            vm.updateLoggedMemberTeamInfo(loggedMember.id, vm.teamId, newTeamInfo.role.toString(), newTeamInfo.weeklyAvailabilityHours.first, newTeamInfo.weeklyAvailabilityHours.second, newTeamInfo.weeklyAvailabilityTimes)
+            return true
+        } else return false
+    }
 
     Column(
         modifier = Modifier
@@ -145,14 +155,14 @@ fun Availability(vm: AvailabilityViewModel = viewModel(factory = Factory(LocalCo
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = if (isVertical()) "Change your role and availability in the team:\n ${vm.teamName}" else "Change your role and availability in the team: ${vm.teamName}",
+                        text = "Change your role and availability in the team:\n ${vm.teamName}",
                         style = MaterialTheme.typography.headlineSmall,
                         textAlign = TextAlign.Center
                     )
                 }
                 Spacer(modifier = Modifier.padding(8.dp))
                 //Dropdown roles
-                RolesDropdown(vm.role!!, vm.roleValues, vm::changeRole)
+                RolesDropdown(vm.role.value, vm.roleValues, ::changeRole)
                 Spacer(modifier = Modifier.padding(16.dp))
                 //Availability
                 Row(
@@ -182,14 +192,14 @@ fun Availability(vm: AvailabilityViewModel = viewModel(factory = Factory(LocalCo
                 Column {
                     Row(modifier = Modifier.fillMaxWidth()) {
                         TextField(
-                            value = vm.times.value,
+                            value = times.value,
                             keyboardOptions = KeyboardOptions.Default.copy(
                                 autoCorrectEnabled = true,
                                 keyboardType = KeyboardType.Number,
                                 imeAction = ImeAction.Done
                             ),
                             onValueChange = { value ->
-                                vm.times.value = value
+                                times.value = value
                             },
                             modifier = Modifier.weight(1f),
                             colors = TextFieldDefaults.colors(
@@ -220,7 +230,7 @@ fun Availability(vm: AvailabilityViewModel = viewModel(factory = Factory(LocalCo
                         textAlign = TextAlign.Start
                     )
                 }
-                HourMinutesPicker(hourState = vm.hours, minuteState = vm.minutes, errorMsg = vm.timeError)
+                HourMinutesPicker(hourState = hours, minuteState = minutes, errorMsg = vm.timeError)
                 if (!isVertical()) {
                     Spacer(modifier = Modifier.padding(16.dp))
                     Row(
@@ -231,7 +241,7 @@ fun Availability(vm: AvailabilityViewModel = viewModel(factory = Factory(LocalCo
                         //Save button
                         FilledTonalButton(
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                            onClick = { if (vm.save()) navController.navigate("Team/${vm.teamId}") {launchSingleTop = true} }
+                            onClick = { if (save()) navController.navigate("Team/${vm.teamId}") {launchSingleTop = true} }
                         ) {
                             Text(text = "Save", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
                         }
@@ -248,7 +258,7 @@ fun Availability(vm: AvailabilityViewModel = viewModel(factory = Factory(LocalCo
                 //Save button
                 FilledTonalButton(
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                    onClick = { if (vm.save()) navController.navigate("Team/${vm.teamId}") {launchSingleTop = true} }
+                    onClick = { if (save()) navController.navigate("Team/${vm.teamId}") {launchSingleTop = true} }
                 ) {
                     Text(text = "Save", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
                 }
