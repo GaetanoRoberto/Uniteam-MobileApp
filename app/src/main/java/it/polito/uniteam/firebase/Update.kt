@@ -183,3 +183,214 @@ fun updateComment(db: FirebaseFirestore, comment: CommentDBFinal, taskId: String
 
     db.collection("Comment").document(comment.id).update(data)
 }
+fun updateTaskAssignee(db: FirebaseFirestore, taskId: String, members: List<String>, loggedUser: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+    db.runTransaction { transaction ->
+        val taskRef = db.collection("Task").document(taskId)
+        transaction.update(taskRef, "members", members)
+
+        val history = mapOf(
+            "comment" to "Task assigned to new members",
+            "date" to Timestamp.now(),
+            "user" to loggedUser
+        )
+        val historyRef = db.collection("History").document()
+        transaction.set(historyRef, history)
+
+        transaction.update(taskRef, "taskHistory", FieldValue.arrayUnion(historyRef.id))
+    }.addOnSuccessListener {
+        onSuccess()
+        Log.d("DB","Task updated successfully")
+    }.addOnFailureListener { onFailure(it) }
+}
+
+fun joinTeam(db: FirebaseFirestore, memberId: String, teamId: String, newRole: String, newHours: Number, newMinutes: Number, newTimes: Number, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+    val teamRef = db.collection("Team").document(teamId)
+    val memberRef = db.collection("Member").document(memberId)
+
+    teamRef.get().addOnSuccessListener { documentSnapshot ->
+        val members = documentSnapshot.get("members") as List<String>
+
+        db.runTransaction { transaction ->
+            transaction.update(teamRef, "members", FieldValue.arrayUnion(memberId))
+
+            val newTeamInfo = mapOf(
+                "permissionrole" to "USER",
+                "role" to newRole,
+                "teamId" to teamId,
+                "weeklyAvailabilityHours" to mapOf("hours" to newHours, "minutes" to newMinutes),
+                "weeklyAvailabilityTimes" to newTimes
+            )
+            transaction.update(memberRef, "teamsInfo", FieldValue.arrayUnion(newTeamInfo))
+
+            val history = mapOf(
+                "comment" to "Team Joined.",
+                "date" to Timestamp.now(),
+                "user" to memberId
+            )
+            val historyRef = db.collection("History").document()
+            transaction.set(historyRef, history)
+
+            transaction.update(teamRef, "teamHistory", FieldValue.arrayUnion(historyRef.id))
+
+            for (teamMember in members) {
+                if (teamMember != memberId) {
+                    db.collection("Chat")
+                        .whereIn("sender", listOf(memberId, teamMember))
+                        .whereIn("receiver", listOf(memberId, teamMember))
+                        .get()
+                        .addOnSuccessListener { querySnapshot ->
+                            if (querySnapshot.documents.isEmpty()) {
+                                val newChat = mapOf(
+                                    "messages" to emptyList<String>(),
+                                    "receiver" to teamMember,
+                                    "sender" to memberId,
+                                    "teamId" to null
+                                )
+                                db.collection("Chat").add(newChat)
+                            }
+                        }
+                }
+            }
+        }.addOnSuccessListener { onSuccess() }.addOnFailureListener { onFailure(it) }
+    }
+}
+
+fun changeAdminRole(db: FirebaseFirestore, loggedMemberId: String, memberId: String, teamId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+    val teamRef = db.collection("Team").document(teamId)
+    val memberRef = db.collection("Member").document(memberId)
+    val loggedMemberRef = db.collection("Member").document(loggedMemberId)
+    val historyRef = db.collection("History").document()
+
+    db.runTransaction { transaction ->
+        val teamDoc = transaction.get(teamRef)
+        val memberDoc = transaction.get(memberRef)
+        val loggedMemberDoc = transaction.get(loggedMemberRef)
+
+        if (!teamDoc.exists()) {
+            onFailure(Exception("Team not found"))
+        }
+
+        if (memberDoc.exists()) {
+            val teamsInfo = memberDoc.get("teamsInfo") as? MutableList<Map<String, Any>>
+            teamsInfo?.let {
+                val updatedTeamsInfo = it.map { teamInfo ->
+                    if (teamInfo["teamId"] == teamId) {
+                        teamInfo.toMutableMap().apply { put("permissionrole", "ADMIN") }
+                    } else {
+                        teamInfo
+                    }
+                }
+                transaction.update(memberRef, "teamsInfo", updatedTeamsInfo)
+            }
+        }
+        val newAdminHistory = mapOf(
+            "comment" to "New team admin.",
+            "date" to Timestamp.now(),
+            "user" to memberId
+        )
+        transaction.set(historyRef, newAdminHistory)
+
+        transaction.update(teamRef, "teamHistory", FieldValue.arrayUnion(historyRef.id))
+
+        // Start of leaveTeam part
+        transaction.update(teamRef, "members", FieldValue.arrayRemove(loggedMemberId))
+
+        val taskIds = teamDoc.get("tasks") as? List<String> ?: emptyList()
+        taskIds.forEach { taskId ->
+            val taskRef = db.collection("Task").document(taskId)
+            transaction.update(taskRef, "members", FieldValue.arrayRemove(loggedMemberId))
+        }
+
+        if (loggedMemberDoc.exists()) {
+            val teamsInfo = loggedMemberDoc.get("teamsInfo") as? MutableList<Map<String, Any>>
+            val teamInfoToRemove = teamsInfo?.find { it["teamId"] == teamId }
+            transaction.update(loggedMemberRef, "teamsInfo", FieldValue.arrayRemove(teamInfoToRemove))
+        }
+
+        val leaveHistory = mapOf(
+            "comment" to "Team Left.",
+            "date" to Timestamp.now(),
+            "user" to loggedMemberId
+        )
+        val leaveHistoryRef = db.collection("History").document()
+        transaction.set(leaveHistoryRef, leaveHistory)
+
+        transaction.update(teamRef, "teamHistory", FieldValue.arrayUnion(leaveHistoryRef.id))
+    }.addOnSuccessListener {
+        onSuccess()
+        Log.d("DB","Admin role changed successfully")
+    }.addOnFailureListener { onFailure(it) }
+}
+
+fun leaveTeam(db: FirebaseFirestore, memberId: String, teamId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+    val teamRef = db.collection("Team").document(teamId)
+    val memberRef = db.collection("Member").document(memberId)
+    val historyRef = db.collection("History").document()
+
+    db.runTransaction { transaction ->
+        val teamDoc = transaction.get(teamRef)
+        val memberDoc = transaction.get(memberRef)
+
+        if (!teamDoc.exists()) {
+            onFailure(Exception("Team not found"))
+        }
+        transaction.update(teamRef, "members", FieldValue.arrayRemove(memberId))
+
+        val taskIds = teamDoc.get("tasks") as? List<String> ?: emptyList()
+        taskIds.forEach { taskId ->
+            val taskRef = db.collection("Task").document(taskId)
+            transaction.update(taskRef, "members", FieldValue.arrayRemove(memberId))
+        }
+
+        if (memberDoc.exists()) {
+            val teamsInfo = memberDoc.get("teamsInfo") as? MutableList<Map<String, Any>>
+            val teamInfoToRemove = teamsInfo?.find { it["teamId"] == teamId }
+            transaction.update(memberRef, "teamsInfo", FieldValue.arrayRemove(teamInfoToRemove))
+        }
+
+        val history = mapOf(
+            "comment" to "Team Left.",
+            "date" to Timestamp.now(),
+            "user" to memberId
+        )
+        transaction.set(historyRef, history)
+
+        transaction.update(teamRef, "teamHistory", FieldValue.arrayUnion(historyRef.id))
+    }.addOnSuccessListener {
+        onSuccess()
+        Log.d("DB","Team left successfully")
+    }.addOnFailureListener { e ->
+        Log.d("DB","Error leaving team: ${e.message}")
+    }
+}
+
+fun updateLoggedMemberTeamInfo(db: FirebaseFirestore, memberId: String, teamId: String, newRole: String, newHours: Number, newMinutes: Number, newTimes: Number) {
+    val memberRef = db.collection("Member").document(memberId)
+
+    db.runTransaction { transaction ->
+        val document = transaction.get(memberRef)
+        if (document.exists()) {
+            val teamsInfo = document.get("teamsInfo") as? MutableList<Map<String, Any>>
+            teamsInfo?.let {
+                val updatedTeamsInfo = it.map { teamInfo ->
+                    if (teamInfo["teamId"] == teamId) {
+                        teamInfo.toMutableMap().apply {
+                            put("role", newRole)
+                            put("weeklyAvailabilityHours", mapOf("hours" to newHours, "minutes" to newMinutes))
+                            put("weeklyAvailabilityTimes", newTimes)
+                        }
+                    } else {
+                        teamInfo
+                    }
+                }
+                transaction.update(memberRef, "teamsInfo", updatedTeamsInfo)
+            }
+        } else {
+            Log.d("DB","No such document")
+        }
+    }.addOnSuccessListener {
+        Log.d("DB","Member's team info updated successfully")
+    }.addOnFailureListener { e ->
+        Log.d("DB","Error fetching document: ${e.message}")
+    }
+}

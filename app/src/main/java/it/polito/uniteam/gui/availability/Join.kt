@@ -1,5 +1,6 @@
 package it.polito.uniteam.gui.availability
 
+import androidx.annotation.OptIn
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,22 +34,23 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.media3.common.util.Log
+import androidx.media3.common.util.UnstableApi
+import it.polito.uniteam.AppStateManager
 import it.polito.uniteam.Factory
 import it.polito.uniteam.NavControllerManager
 import it.polito.uniteam.UniTeamModel
 import it.polito.uniteam.classes.CategoryRole
 import it.polito.uniteam.classes.HourMinutesPicker
+import it.polito.uniteam.classes.LoadingSpinner
 import it.polito.uniteam.classes.MemberTeamInfo
+import it.polito.uniteam.classes.TeamDBFinal
 import it.polito.uniteam.isVertical
 
 
 class JoinViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHandle): ViewModel() {
     val teamId: String = checkNotNull(savedStateHandle["teamId"])
-    val teamName = model.getTeam(teamId.toInt()).name
-    val loggedMember = model.loggedMember.value.username
-    fun isMemberInTeam(): Boolean {
-        return model.isMemberInTeam(teamId.toInt())
-    }
+    fun joinTeam(memberId: String, teamId: String, newRole: String, newHours: Number, newMinutes: Number, newTimes: Number, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = model.joinTeam(memberId, teamId, newRole, newHours, newMinutes, newTimes, onSuccess, onFailure)
     var role by mutableStateOf(CategoryRole.NONE)
         private set
 
@@ -59,7 +62,7 @@ class JoinViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHan
         private set
     var timesError = mutableStateOf("")
         private set
-    private fun checkTimes() {
+    fun checkTimes() {
         try {
             val timesInt = times.value.toUInt().toInt()
             if (timesInt == 0) {
@@ -78,7 +81,7 @@ class JoinViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHan
         private set
     var timeError = mutableStateOf("")
         private set
-    private fun checkTime() {
+    fun checkTime() {
         try {
             val hoursInt = hours.value.toUInt().toInt()
             val minutesInt = minutes.value.toUInt().toInt()
@@ -95,27 +98,35 @@ class JoinViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHan
             timeError.value = "Valid Positive Numbers Must Be Provided."
         }
     }
-    fun save(): Boolean {
-        checkTimes()
-        checkTime()
-        if (timesError.value.isEmpty() && timeError.value.isEmpty()) {
-            val newTeamInfo = MemberTeamInfo(
-                role = role,
-                weeklyAvailabilityTimes = times.value.toInt(),
-                weeklyAvailabilityHours = Pair(hours.value.toInt(), minutes.value.toInt())
-            )
-            model.updateTeamInfo(teamId = teamId.toInt(), newTeamInfo = newTeamInfo)
-            model.addTeamMember(teamId.toInt(), model.loggedMember.value)
-            return true
-        } else return false
-    }
 }
 
 
+@OptIn(UnstableApi::class)
 @Composable
 fun Join(vm: JoinViewModel = viewModel(factory = Factory(LocalContext.current))) {
     val navController = NavControllerManager.getNavController()
     var clickedJoinButton by remember { mutableStateOf(false) }
+    val teams = AppStateManager.getTeams()
+    val team by remember { mutableStateOf(teams.find { it.id == vm.teamId }) }
+    val loggedMember = AppStateManager.getLoggedMember()
+
+    fun isLoggedMemberInTeam(): Boolean {
+        return team?.members?.contains(loggedMember.id) ?: false
+    }
+
+    fun save(): Boolean {
+        vm.checkTimes()
+        vm.checkTime()
+        if (vm.timesError.value.isEmpty() && vm.timeError.value.isEmpty()) {
+            val newTeamInfo = MemberTeamInfo(
+                role = vm.role,
+                weeklyAvailabilityTimes = vm.times.value.toInt(),
+                weeklyAvailabilityHours = Pair(vm.hours.value.toInt(), vm.minutes.value.toInt())
+            )
+            vm.joinTeam(loggedMember.id, vm.teamId, newTeamInfo.role.toString(), newTeamInfo.weeklyAvailabilityHours.first, newTeamInfo.weeklyAvailabilityHours.second, newTeamInfo.weeklyAvailabilityTimes, {}, { Log.e("DB", "Failed to join team: $it") })
+            return true
+        } else return false
+    }
 
     Column(
         modifier = Modifier
@@ -125,14 +136,14 @@ fun Join(vm: JoinViewModel = viewModel(factory = Factory(LocalContext.current)))
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         //Member already in team
-        if (vm.isMemberInTeam() && !clickedJoinButton) {
+        if (isLoggedMemberInTeam() && !clickedJoinButton) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = if (isVertical()) "${vm.loggedMember}, you are already a member of the team:\n ${vm.teamName}" else "${vm.loggedMember}, you are already a member of the team: ${vm.teamName}",
+                    text = "${loggedMember.username}, you are already a member of the team:\n ${team?.name}",
                     style = MaterialTheme.typography.headlineSmall,
                     textAlign = TextAlign.Center
                 )
@@ -165,7 +176,7 @@ fun Join(vm: JoinViewModel = viewModel(factory = Factory(LocalContext.current)))
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "${vm.loggedMember}, before joining the team: ${vm.teamName}, select your role and your availability",
+                            text = "${loggedMember.username}, before joining the team: ${team?.name}, select your role and your availability",
                             style = MaterialTheme.typography.titleLarge,
                             textAlign = TextAlign.Center
                         )
@@ -251,7 +262,7 @@ fun Join(vm: JoinViewModel = viewModel(factory = Factory(LocalContext.current)))
                             //Save button
                             FilledTonalButton(
                                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                                onClick = {clickedJoinButton = true; if (vm.save()) navController.navigate("Team/${vm.teamId}") {launchSingleTop = true} }
+                                onClick = {clickedJoinButton = true; if (save()) navController.navigate("Teams") {launchSingleTop = true} }
                             ) {
                                 Text(text = "JOIN", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
                             }
@@ -268,7 +279,7 @@ fun Join(vm: JoinViewModel = viewModel(factory = Factory(LocalContext.current)))
                     //Save button
                     FilledTonalButton(
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                        onClick = {clickedJoinButton = true; if (vm.save()) navController.navigate("Team/${vm.teamId}") {launchSingleTop = true} }
+                        onClick = {clickedJoinButton = true; if (save()) navController.navigate("Teams") {launchSingleTop = true} }
                     ) {
                         Text(text = "JOIN", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
                     }

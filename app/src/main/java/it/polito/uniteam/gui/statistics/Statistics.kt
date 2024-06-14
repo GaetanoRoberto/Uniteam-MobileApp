@@ -511,13 +511,11 @@ fun Statistics(vm: StatisticsViewModel = viewModel(factory = Factory(LocalContex
                                         }
                                         task.schedules = newSchedules.toMap(HashMap())
                                         task
-                                    }.filter { task -> task.schedules.isNotEmpty() }
+                                    }
                                     vm.teamMembers.value = vm.initialTeamMembers.filter { member ->
                                         vm.applyMembersFilters(member, vm.lastAppliedFilters.value)
                                     }
 
-                                    Log.i("prova",vm.teamMembers.toString())
-                                    Log.i("prova",vm.teamTasks.toString())
                                     vm.selectedChartValue = ""
                                     scope.launch { drawerState.close() }
                                 }) {

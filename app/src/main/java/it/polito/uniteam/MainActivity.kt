@@ -110,7 +110,6 @@ import it.polito.uniteam.gui.notifications.messageUnreadCountForBottomBar
 import it.polito.uniteam.gui.userprofile.OtherProfileSettings
 import it.polito.uniteam.gui.userprofile.ProfileSettings
 import it.polito.uniteam.gui.userprofile.UserProfileScreen
-import it.polito.uniteam.gui.yourTasksCalendar.YourTasksCalendarView
 import it.polito.uniteam.ui.theme.UniTeamTheme
 import java.io.File
 import java.util.concurrent.ExecutorService
@@ -122,6 +121,7 @@ import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.listSaver
 import androidx.lifecycle.ViewModel
 import it.polito.uniteam.classes.ChatDBFinal
+import it.polito.uniteam.classes.MemberDB
 import it.polito.uniteam.classes.MessageDB
 import it.polito.uniteam.gui.teamDetails.TeamDetailsView
 import it.polito.uniteam.gui.yourTasksCalendar.YourTasksCalendarView
@@ -177,6 +177,9 @@ class MainActivity : ComponentActivity() {
                 val files = it.files.collectAsState(initial = emptyList())
                 val comments = it.comments.collectAsState(initial = emptyList())
                 val chats = it.chats.collectAsState(initial = emptyList())
+
+                Log.d("UniTeam Solo", "Members: ${members.value}")
+
                 AppStateManager.ProvideLocalAppState(it) {
                     val items = listOf(
                         BottomNavigationItem(
@@ -380,7 +383,7 @@ class MainActivity : ComponentActivity() {
                                                                 startDestination = "Teams"
                                                             ) {
                                                                 composable("Teams") {
-                                                                    CalendarAppContainer(
+                                                                    Home(
                                                                         vm = viewModel(
                                                                             factory = Factory(
                                                                                 LocalContext.current
@@ -429,13 +432,6 @@ class MainActivity : ComponentActivity() {
                                                                         )
                                                                     )
                                                                 }
-                                                                /*composable("ChatTeam/{teamId}") {
-                                                                ChatScreen(
-                                                                    vm = viewModel(
-                                                                        factory = Factory(LocalContext.current)
-                                                                    )
-                                                                )
-                                                            }*/
                                                                 composable("Chat/{chatId}") {
 
                                                                     ChatScreen(
@@ -492,7 +488,7 @@ class MainActivity : ComponentActivity() {
                                                                     )
                                                                 }
                                                                 composable(
-                                                                    "ChangeAvailability/{teamId}",
+                                                                    "ChangeAvailability/{teamId}/{teamName}",
                                                                     arguments = listOf(navArgument("teamId") {
                                                                         type = NavType.StringType
                                                                     })
@@ -694,213 +690,231 @@ class MainActivity : ComponentActivity() {
                                                         tint = MaterialTheme.colorScheme.onSecondary
                                                     )
                                                 }
-                                            }
-                                            },*/
-                                            content = { paddingValue ->
-                                                Column(Modifier.padding(paddingValue)) {
-                                                    // In your main activity or main screen composable
-                                                    NavHost(
-                                                        navController = navController,
-                                                        startDestination = "Teams"
-                                                    ) {
-                                                        composable("Teams") {
-                                                            CalendarAppContainer(
-                                                                vm = viewModel(
-                                                                    factory = Factory(
-                                                                        LocalContext.current
-                                                                    )
-                                                                )
-                                                            )
-                                                        }
-                                                        composable(
-                                                            "Team/{teamId}",
-                                                            arguments = listOf(navArgument("teamId") {
-                                                                type = NavType.StringType
-                                                            })
+                                                },*/
+                                                content = { paddingValue ->
+                                                    Column(Modifier.padding(paddingValue)) {
+                                                        // In your main activity or main screen composable
+                                                        NavHost(
+                                                            navController = navController,
+                                                            startDestination = "Teams"
                                                         ) {
-                                                            TeamScreen(
-                                                                vm = viewModel(
-                                                                    factory = Factory(
-                                                                        LocalContext.current
+                                                            composable("Teams") {
+                                                                Home(
+                                                                    vm = viewModel(
+                                                                        factory = Factory(
+                                                                            LocalContext.current
+                                                                        )
                                                                     )
                                                                 )
-                                                            )
-                                                        }
-                                                        composable("Task/{taskId}") {
-                                                            SetupTaskData()
-                                                            TaskScreen(
-                                                                vm = viewModel(
-                                                                    factory = Factory(
-                                                                        LocalContext.current
-                                                                    )
-                                                                )
-                                                            )
-                                                        }
-                                                        composable("Calendar/{teamId}") {
-                                                            CalendarAppContainer(
-                                                                vm = viewModel(
-                                                                    factory = Factory(
-                                                                        LocalContext.current
-                                                                    )
-                                                                )
-                                                            )
-                                                        }
-                                                        composable("Notifications") {
-                                                            Notifications(
-                                                                vm = viewModel(
-                                                                    factory = Factory(
-                                                                        LocalContext.current
-                                                                    )
-                                                                )
-                                                            )
-                                                        }
-                                                        /*composable("ChatTeam/{teamId}") {
-                                                        ChatScreen(
-                                                            vm = viewModel(
-                                                                factory = Factory(LocalContext.current)
-                                                            )
-                                                        )
-                                                    }*/
-                                                        composable("Chat/{chatId}") {
-
-                                                            ChatScreen(
-                                                                vm = viewModel(
-                                                                    factory = Factory(
-                                                                        LocalContext.current
-                                                                    )
-                                                                ),
-                                                                teams = teams.value,
-                                                                members = members.value,
-                                                                messages = messages.value,
-                                                                chats = chats.value
-                                                            )
-                                                        }
-                                                        composable("ChatList/{teamId}") {
-                                                            ChatListScreen(
-                                                                vm = viewModel(
-                                                                    factory = Factory(LocalContext.current)
-                                                                ),
-                                                                chatList = chats.value,
-                                                                members = members.value,
-                                                                teams = teams.value,
-                                                                messages = messages.value
-                                                            )
-                                                        }
-                                                        composable("Profile") {
-                                                            if (!isProfileChanges())
-                                                                SetupProfileData()
-                                                            ProfileSettings(
-                                                                vm = viewModel(
-                                                                    factory = Factory(
-                                                                        LocalContext.current
-                                                                    )
-                                                                ),
-                                                                outputDirectory = getOutputDirectory(),
-                                                                cameraExecutor = cameraExecutor
-                                                            )
-                                                        }
-                                                        composable(
-                                                            "Invitation/{teamId}/{teamName}",
-                                                            arguments = listOf(
-                                                                navArgument("teamId") {
-                                                                    type = NavType.StringType
-                                                                },
-                                                                navArgument("teamName") {
+                                                            }
+                                                            composable(
+                                                                "Team/{teamId}",
+                                                                arguments = listOf(navArgument("teamId") {
                                                                     type = NavType.StringType
                                                                 })
-                                                        ) { backStackEntry ->
-                                                            Invitation(
-                                                                teamId = backStackEntry.arguments?.getString(
-                                                                    "teamId"
-                                                                )!!,
-                                                                teamName = backStackEntry.arguments?.getString(
-                                                                    "teamName"
-                                                                )!!
-                                                            )
-                                                        }
-                                                        composable(
-                                                            "ChangeAvailability/{teamId}",
-                                                            arguments = listOf(navArgument("teamId") {
-                                                                type = NavType.StringType
-                                                            })
-                                                        ) {
-                                                            Availability(
-                                                                vm = viewModel(
-                                                                    factory = Factory(
-                                                                        LocalContext.current
+                                                            ) {
+                                                                TeamScreen(
+                                                                    vm = viewModel(
+                                                                        factory = Factory(
+                                                                            LocalContext.current
+                                                                        )
                                                                     )
                                                                 )
-                                                            )
-                                                        }
-                                                        composable(
-                                                            "JoinTeam/{teamId}",
-                                                            deepLinks = listOf(navDeepLink {
-                                                                uriPattern =
-                                                                    "https://UniTeam/join/{teamId}"
-                                                            })
-                                                        ) {
-                                                            Join(
-                                                                vm = viewModel(
-                                                                    factory = Factory(
-                                                                        LocalContext.current
+                                                            }
+                                                            composable("Task/{taskId}/{teamId}") {
+                                                                TaskScreen(
+                                                                    vm = viewModel(
+                                                                        factory = Factory(
+                                                                            LocalContext.current
+                                                                        )
                                                                     )
                                                                 )
-                                                            )
-                                                        }
-                                                        composable(
-                                                            "Statistics/{teamId}",
-                                                            arguments = listOf(navArgument("teamId") {
-                                                                type = NavType.StringType
-                                                            })
-                                                        ) {
-                                                            Statistics(
-                                                                vm = viewModel(
-                                                                    factory = Factory(
-                                                                        LocalContext.current
+                                                            }
+                                                            composable("Calendar/{teamId}") {
+                                                                CalendarAppContainer(
+                                                                    vm = viewModel(
+                                                                        factory = Factory(
+                                                                            LocalContext.current
+                                                                        )
                                                                     )
                                                                 )
-                                                            )
-                                                        }
-                                                        composable(
-                                                            "TeamDetails/{teamId}",
-                                                            arguments = listOf(navArgument("teamId") {
-                                                                type = NavType.StringType
-                                                            })
-                                                        ) {
-                                                            TeamViewScreen(
-                                                                vm = viewModel(
-                                                                    factory = Factory(
-                                                                        LocalContext.current
-                                                                    )
-                                                                ),
-                                                                outputDirectory = getOutputDirectory(),
-                                                                cameraExecutor = cameraExecutor
-                                                            )
-                                                        }
-                                                        composable("Tasks") {
-                                                            YourTasksCalendarView(
-                                                                vm = viewModel(
-                                                                    factory = Factory(
-                                                                        LocalContext.current
+                                                            }
+                                                            composable("Notifications") {
+                                                                Notifications(
+                                                                    vm = viewModel(
+                                                                        factory = Factory(
+                                                                            LocalContext.current
+                                                                        )
                                                                     )
                                                                 )
-                                                            )
-                                                        }
-                                                        composable(
-                                                            "OtherUserProfile/{memberId}",
-                                                            arguments = listOf(navArgument("memberId") {
-                                                                type = NavType.StringType
-                                                            })
-                                                        ) {
-                                                            OtherProfileSettings(
-                                                                vm = viewModel(
-                                                                    factory = Factory(
-                                                                        LocalContext.current
+                                                            }
+                                                            composable("Task/{taskId}") {
+                                                                SetupTaskData()
+                                                                TaskScreen(
+                                                                    vm = viewModel(
+                                                                        factory = Factory(
+                                                                            LocalContext.current
+                                                                        )
                                                                     )
                                                                 )
-                                                            )
+                                                            }
+                                                            composable("Calendar/{teamId}") {
+                                                                CalendarAppContainer(
+                                                                    vm = viewModel(
+                                                                        factory = Factory(
+                                                                            LocalContext.current
+                                                                        )
+                                                                    )
+                                                                )
+                                                            }
+                                                            composable("Notifications") {
+                                                                Notifications(
+                                                                    vm = viewModel(
+                                                                        factory = Factory(
+                                                                            LocalContext.current
+                                                                        )
+                                                                    )
+                                                                )
+                                                            }
+                                                            composable("Chat/{chatId}") {
+                                                                ChatScreen(
+                                                                    vm = viewModel(
+                                                                        factory = Factory(
+                                                                            LocalContext.current
+                                                                        )
+                                                                    ),
+                                                                    teams = teams.value,
+                                                                    members = members.value,
+                                                                    messages = messages.value,
+                                                                    chats = chats.value
+                                                                )
+                                                            }
+                                                            composable("ChatList/{teamId}") {
+                                                                ChatListScreen(
+                                                                    vm = viewModel(
+                                                                        factory = Factory(LocalContext.current)
+                                                                    ),
+                                                                    chatList = chats.value,
+                                                                    members = members.value,
+                                                                    teams = teams.value,
+                                                                    messages = messages.value
+                                                                )
+                                                            }
+                                                            composable("Profile") {
+                                                                if (!isProfileChanges())
+                                                                    SetupProfileData()
+                                                                ProfileSettings(
+                                                                    vm = viewModel(
+                                                                        factory = Factory(
+                                                                            LocalContext.current
+                                                                        )
+                                                                    ),
+                                                                    outputDirectory = getOutputDirectory(),
+                                                                    cameraExecutor = cameraExecutor
+                                                                )
+                                                            }
+                                                            composable(
+                                                                "Invitation/{teamId}/{teamName}",
+                                                                arguments = listOf(
+                                                                    navArgument("teamId") {
+                                                                        type = NavType.StringType
+                                                                    },
+                                                                    navArgument("teamName") {
+                                                                        type = NavType.StringType
+                                                                    })
+                                                            ) { backStackEntry ->
+                                                                Invitation(
+                                                                    teamId = backStackEntry.arguments?.getString(
+                                                                        "teamId"
+                                                                    )!!,
+                                                                    teamName = backStackEntry.arguments?.getString(
+                                                                        "teamName"
+                                                                    )!!
+                                                                )
+                                                            }
+                                                            composable(
+                                                                "ChangeAvailability/{teamId}/{teamName}",
+                                                                arguments = listOf(navArgument("teamId") {
+                                                                    type = NavType.StringType
+                                                                })
+                                                            ) {
+                                                                Availability(
+                                                                    vm = viewModel(
+                                                                        factory = Factory(
+                                                                            LocalContext.current
+                                                                        )
+                                                                    )
+                                                                )
+                                                            }
+                                                            composable(
+                                                                "JoinTeam/{teamId}",
+                                                                deepLinks = listOf(navDeepLink {
+                                                                    uriPattern =
+                                                                        "https://UniTeam/join/{teamId}"
+                                                                })
+                                                            ) {
+                                                                Join(
+                                                                    vm = viewModel(
+                                                                        factory = Factory(
+                                                                            LocalContext.current
+                                                                        )
+                                                                    )
+                                                                )
+                                                            }
+                                                            composable(
+                                                                "Statistics/{teamId}",
+                                                                arguments = listOf(navArgument("teamId") {
+                                                                    type = NavType.StringType
+                                                                })
+                                                            ) {
+                                                                Statistics(
+                                                                    vm = viewModel(
+                                                                        factory = Factory(
+                                                                            LocalContext.current
+                                                                        )
+                                                                    )
+                                                                )
+                                                            }
+                                                            composable(
+                                                                "TeamDetails/{teamId}",
+                                                                arguments = listOf(navArgument("teamId") {
+                                                                    type = NavType.StringType
+                                                                })
+                                                            ) {
+                                                                TeamViewScreen(
+                                                                    vm = viewModel(
+                                                                        factory = Factory(
+                                                                            LocalContext.current
+                                                                        )
+                                                                    ),
+                                                                    outputDirectory = getOutputDirectory(),
+                                                                    cameraExecutor = cameraExecutor
+                                                                )
+                                                            }
+                                                            composable("Tasks") {
+                                                                YourTasksCalendarView(
+                                                                    vm = viewModel(
+                                                                        factory = Factory(
+                                                                            LocalContext.current
+                                                                        )
+                                                                    )
+                                                                )
+                                                            }
+                                                            composable(
+                                                                "OtherUserProfile/{memberId}",
+                                                                arguments = listOf(navArgument("memberId") {
+                                                                    type = NavType.StringType
+                                                                })
+                                                            ) {
+                                                                OtherProfileSettings(
+                                                                    vm = viewModel(
+                                                                        factory = Factory(
+                                                                            LocalContext.current
+                                                                        )
+                                                                    )
+                                                                )
+                                                            }
                                                         }
-                                                    }
                                                 }
                                             },
                                             bottomBar = {
@@ -1170,6 +1184,7 @@ class NavControllerManager {
 
 class AppStateManager {
     companion object {
+        private val LocalLoggedMember = staticCompositionLocalOf<MemberDBFinal> { MemberDBFinal() }
         private val LocalTeams = staticCompositionLocalOf<List<TeamDBFinal>> { emptyList() }
         private val LocalTasks = staticCompositionLocalOf<List<TaskDBFinal>> { emptyList() }
         private val LocalMembers = staticCompositionLocalOf<List<MemberDBFinal>> { emptyList() }
@@ -1187,6 +1202,7 @@ class AppStateManager {
                 )
             ), content: @Composable () -> Unit
         ) {
+            val loggedMember = viewModel.loggedMember.collectAsState(initial = MemberDBFinal())
             val teams = viewModel.teams.collectAsState(initial = emptyList())
             val tasks = viewModel.tasks.collectAsState(initial = emptyList())
             val members = viewModel.members.collectAsState(initial = emptyList())
@@ -1197,6 +1213,7 @@ class AppStateManager {
             val messages = viewModel.messages.collectAsState(initial = emptyList())
 
             CompositionLocalProvider(
+                LocalLoggedMember provides loggedMember.value,
                 LocalTeams provides teams.value,
                 LocalTasks provides tasks.value,
                 LocalMembers provides members.value,
@@ -1206,6 +1223,7 @@ class AppStateManager {
                 LocalChats provides chats.value,
                 LocalMessages provides messages.value
             ) {
+                Log.d("UniTeam", "Members: ${members.value}")
                 if (teams.value.isNotEmpty() && tasks.value.isNotEmpty() && members.value.isNotEmpty()
                     && histories.value.isNotEmpty() && files.value.isNotEmpty() && comments.value.isNotEmpty()
                     && chats.value.isNotEmpty() && messages.value.isNotEmpty()) {
@@ -1254,6 +1272,11 @@ class AppStateManager {
         @Composable
         fun getMessages(): List<MessageDB> {
             return LocalMessages.current
+        }
+
+        @Composable
+        fun getLoggedMember(): MemberDBFinal {
+            return LocalLoggedMember.current
         }
     }
 }

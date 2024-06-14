@@ -127,6 +127,7 @@ import it.polito.uniteam.classes.TaskDBFinal
 import it.polito.uniteam.classes.TeamDB
 import it.polito.uniteam.classes.TeamDBFinal
 import it.polito.uniteam.classes.TeamIcon
+import it.polito.uniteam.classes.permissionRole
 import it.polito.uniteam.gui.showtaskdetails.CustomDatePicker
 import it.polito.uniteam.isVertical
 import kotlinx.coroutines.CoroutineScope
@@ -135,11 +136,11 @@ import java.time.LocalDate
 import java.util.Locale
 import kotlin.math.log
 
-//TODO QUANDO METTI UN MEMBRO NEL TEAM => AGGIUNGERE UNA CHAT PER OGNI MEMBRO DEL TEAM CON QUEL MEMBRO E
 class TeamScreenViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
     val teamId: String = checkNotNull(savedStateHandle["teamId"])
-    //fun updateTaskAssignee(taskId: String, members: List<String>, loggedUser: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = model.updateTaskAssignee(taskId, members, loggedUser, onSuccess, onFailure)
-    //fun leaveTeam(memberId: String, teamId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = model.leaveTeam(memberId, teamId, onSuccess, onFailure)
+    fun updateTaskAssignee(taskId: String, members: List<String>, loggedUser: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = model.updateTaskAssignee(taskId, members, loggedUser, onSuccess, onFailure)
+    fun changeAdminRole(loggedMemberId: String, memberId: String, teamId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = model.changeAdminRole(loggedMemberId, memberId, teamId, onSuccess, onFailure)
+    fun leaveTeam(memberId: String, teamId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = model.leaveTeam(memberId, teamId, onSuccess, onFailure)
 
     val loaded = mutableStateOf(false)
     var expandedSearch by mutableStateOf(false)
@@ -147,6 +148,7 @@ class TeamScreenViewModel(val model: UniTeamModel, val savedStateHandle: SavedSt
     var expandedDropdown by mutableStateOf(false)
     var openAssignDialog by mutableStateOf(false)
     var openLeaveTeamDialog by mutableStateOf(false)
+    var openAdminDialog by mutableStateOf(false)
     var taskToAssign by mutableStateOf<TaskDBFinal?>(null)
     var lastAppliedFilters = mutableStateOf<Map<String, Any>>(mapOf())
     var lastSearchQuery = mutableStateOf("")
@@ -190,11 +192,6 @@ fun TeamScreen(vm: TeamScreenViewModel = viewModel(factory = Factory(LocalContex
     val membersList = currentTeam.members.map { memberId -> members.find { it.id == memberId }!! }
     vm.tasksList = currentTeam.tasks.map { taskId -> tasks.find { it.id == taskId }!! }
     vm.filteredTasksList = mutableStateOf(vm.tasksList.sortedByDescending { it.creationDate })
-
-//    LaunchedEffect(tasksList) {
-//        vm.loaded.value = true
-//        filteredTasksList.value = tasksList?.sortedByDescending { it?.creationDate }
-//    }
 
     //Drawer dei filtri
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
@@ -756,6 +753,12 @@ fun TeamScreen(vm: TeamScreenViewModel = viewModel(factory = Factory(LocalContex
                         LeaveTeamDialog(vm, currentTeam)
                     }
                 }
+                //Dialog per la riassegnazione del ruolo di admin
+                when {
+                    vm.openAdminDialog -> {
+                        ChangeAdminDialog(vm, membersList, currentTeam)
+                    }
+                }
             } }
         )
     }
@@ -960,12 +963,8 @@ fun VerticalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, scop
                 modifier = Modifier.weight(1f)
             )
             FilledTonalButton(
-                onClick = {navController.navigate("Task/0"){
-                    /*popUpTo(navController.graph.findStartDestination().id) {
-                        saveState = true
-                    }*/
+                onClick = {navController.navigate("Task/0/${currentTeam.id}"){
                     launchSingleTop = true
-                    //restoreState = true
                 } },
                 contentPadding = PaddingValues(5.dp, 0.dp),
                 colors = ButtonDefaults.buttonColors(
@@ -1038,13 +1037,7 @@ fun VerticalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, scop
             ) {}
             Spacer(modifier = Modifier.weight(1f))
             IconButton(
-                onClick = { navController.navigate("Calendar/${vm.teamId}"){
-                    /*popUpTo(navController.graph.findStartDestination().id) {
-                        saveState = true
-                    }*/
-                    launchSingleTop = true
-                    //restoreState = true
-                } },
+                onClick = { navController.navigate("Calendar/${vm.teamId}"){ launchSingleTop = true } },
                 modifier = Modifier
                     .scale(1.5f)
                     .padding(0.dp, 5.dp, 0.dp, 0.dp)
@@ -1431,13 +1424,7 @@ fun HorizontalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, sc
                 ) {}
                 Spacer(modifier = Modifier.weight(1f))
                 IconButton(
-                    onClick = { navController.navigate("Calendar/${vm.teamId}"){
-                        /*popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
-                        }*/
-                        launchSingleTop = true
-                        //restoreState = true
-                    }
+                    onClick = { navController.navigate("Calendar/${vm.teamId}"){ launchSingleTop = true }
                     }, modifier = Modifier
                         .scale(1.5f)
                         .padding(0.dp, 5.dp, 0.dp, 0.dp)
@@ -1483,13 +1470,7 @@ fun HorizontalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, sc
                     modifier = Modifier.weight(1f)
                 )
                 FilledTonalButton(
-                    onClick = {navController.navigate("Task/0"){
-                        /*popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
-                        }*/
-                        launchSingleTop = true
-                        //restoreState = true
-                    } },
+                    onClick = {navController.navigate("Task/0/${currentTeam.id}"){ launchSingleTop = true } },
                     contentPadding = PaddingValues(5.dp, 0.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary)
@@ -1634,7 +1615,7 @@ fun FAB(vm: TeamScreenViewModel){
 @Composable
 fun AssignDialog(vm: TeamScreenViewModel, membersList: List<MemberDBFinal>) {
     val screenHeightDp = LocalConfiguration.current.screenHeightDp
-    //val loggedMember = AppStateManager.getLoggedMember()
+    val loggedMember = AppStateManager.getLoggedMember()
 
     if (vm.taskToAssign != null) {
         val selectedMembers = remember { mutableStateMapOf<MemberDBFinal, Boolean>() }
@@ -1707,20 +1688,18 @@ fun AssignDialog(vm: TeamScreenViewModel, membersList: List<MemberDBFinal>) {
                             if(selectedMembers.all { !it.value }) {
                                 vm.membersError = "You Must Select at Least One Member"
                             } else {
-//                                vm.taskToAssign!!.members = selectedMembers.filterValues { it }.keys.map { it.id }.toMutableList()
                                 vm.openAssignDialog = false
                                 vm.membersError = ""
                                 val selectedMemberIds = selectedMembers.filterValues { it }.keys.map { it.id }
-                                /*vm.updateTaskAssignee(
+                                vm.updateTaskAssignee(
                                     taskId = vm.taskToAssign!!.id,
                                     members = selectedMemberIds,
                                     loggedUser = loggedMember.id,
-                                    onSuccess = {
-                                    },
+                                    onSuccess = {},
                                     onFailure = {
                                         vm.membersError = "Failed to update members: ${it.message}"
                                     }
-                                )*/
+                                )
                             }
                         } ) {
                             Text("Confirm")
@@ -1733,9 +1712,82 @@ fun AssignDialog(vm: TeamScreenViewModel, membersList: List<MemberDBFinal>) {
 }
 
 @Composable
+fun ChangeAdminDialog(vm: TeamScreenViewModel, membersList: List<MemberDBFinal>, currentTeam: TeamDBFinal) {
+    val navController = NavControllerManager.getNavController()
+    val screenHeightDp = LocalConfiguration.current.screenHeightDp
+    val loggedMember = AppStateManager.getLoggedMember()
+    var selectedMemberId by remember { mutableStateOf("") }
+
+    Dialog(onDismissRequest = { vm.openAdminDialog = false }) {
+        Card(modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+            shape = RoundedCornerShape(16.dp)) {
+            Column(
+                modifier = Modifier.background(MaterialTheme.colorScheme.secondary),
+                verticalArrangement = Arrangement.Center
+            ) {
+                Row(modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(10.dp), horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(text = "Before leaving the team, select the new Admin :", style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center)
+                }
+                LazyColumn(
+                    modifier = Modifier.heightIn(0.dp, (screenHeightDp * 0.4).dp).selectableGroup()
+                ) {
+                    items(membersList) { member ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .selectable(
+                                    selected = (member.id == selectedMemberId),
+                                    onClick = { selectedMemberId = member.id },
+                                    role = Role.RadioButton
+                                ),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = (member.id == selectedMemberId),
+                                onClick = { selectedMemberId = member.id }
+                            )
+                            Text(text = member.username, textAlign = TextAlign.Center)
+                        }
+                    }
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(10.dp),
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    TextButton(onClick = { vm.openAdminDialog = false }) {
+                        Text("Cancel")
+                    }
+                    Spacer(modifier = Modifier.padding(10.dp))
+                    TextButton(onClick = {
+                        vm.changeAdminRole(
+                            loggedMemberId = loggedMember.id,
+                            memberId = selectedMemberId,
+                            teamId = currentTeam.id,
+                            onSuccess = {
+                                vm.openAdminDialog = false
+                                navController.navigate("Teams") { launchSingleTop = true }},
+                            onFailure = {}
+                        )
+                    } ) {
+                        Text("Confirm")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun LeaveTeamDialog(vm: TeamScreenViewModel, currentTeam: TeamDBFinal) {
     val navController = NavControllerManager.getNavController()
-    //val loggedMember = AppStateManager.getLoggedMember()
+    val loggedMember = AppStateManager.getLoggedMember()
 
     AlertDialog(
         containerColor = MaterialTheme.colorScheme.background,
@@ -1744,7 +1796,11 @@ fun LeaveTeamDialog(vm: TeamScreenViewModel, currentTeam: TeamDBFinal) {
         title = { Text("Are you sure you want to leave the team: ${currentTeam.name} ?") },
         confirmButton = {
             TextButton(onClick = {
-                    /*vm.leaveTeam(
+                if (loggedMember.teamsInfo?.get(currentTeam.id)?.permissionrole == permissionRole.ADMIN) {
+                    vm.openLeaveTeamDialog = false
+                    vm.openAdminDialog = true
+                } else {
+                    vm.leaveTeam(
                         memberId = loggedMember.id,
                         teamId = currentTeam.id,
                         onSuccess = {
@@ -1752,9 +1808,9 @@ fun LeaveTeamDialog(vm: TeamScreenViewModel, currentTeam: TeamDBFinal) {
                             navController.navigate("Teams") { launchSingleTop = true }
                         },
                         onFailure = {}
-                    )*/
+                    )
                 }
-            ) {
+            } ) {
                 Text("Confirm", color = MaterialTheme.colorScheme.primary)
             }
         },
