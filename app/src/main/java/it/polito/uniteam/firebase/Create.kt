@@ -88,7 +88,7 @@ suspend fun addMessage(
 fun addComment(db: FirebaseFirestore, comment: CommentDBFinal, taskId: String) {
     val data = mapOf(
         "commentValue" to comment.commentValue,
-        "date" to Timestamp(Date.from(comment.date.atStartOfDay(ZoneId.systemDefault()).toInstant())),
+        "date" to Timestamp.now(),
         "user" to comment.user
     )
 
@@ -166,12 +166,12 @@ suspend fun uploadFile(context: Context, fileUri: Uri, fileStorageName: String) 
 fun addFile(db: FirebaseFirestore, coroutineScope: CoroutineScope, context: Context, file: FileDBFinal, taskId: String) {
     val fileData = mapOf(
         "filename" to file.filename,
-        "date" to Timestamp(Date.from(file.date.atStartOfDay(ZoneId.systemDefault()).toInstant())),
+        "date" to Timestamp.now(),
         "user" to file.user
     )
     val fileHistoryData = mapOf(
         "comment" to "File ${file.filename} uploaded.",
-        "date" to Timestamp(Date.from(file.date.atStartOfDay(ZoneId.systemDefault()).toInstant())),
+        "date" to Timestamp.now(),
         "user" to file.user
     )
     val fileRef = db.collection("File").document()
@@ -205,11 +205,7 @@ fun addTaskHistories(db: FirebaseFirestore, histories: List<HistoryDBFinal>, tas
                 // if parse successfully, int ids so entry to add into the db
                 val data = mapOf(
                     "comment" to history.comment,
-                    "date" to Timestamp(
-                        Date.from(
-                            history.date.atZone(ZoneId.systemDefault()).toInstant()
-                        )
-                    ),
+                    "date" to Timestamp.now(),
                     "user" to history.user
                 )
                 val historyRef = db.collection("History").document()
@@ -258,7 +254,7 @@ fun addTask(db: FirebaseFirestore, coroutineScope: CoroutineScope, context: Cont
         comments.forEach { comment ->
             val data = mapOf(
                 "commentValue" to comment.commentValue,
-                "date" to Timestamp(Date.from(comment.date.atStartOfDay(ZoneId.systemDefault()).toInstant())),
+                "date" to Timestamp.now(),
                 "user" to comment.user
             )
 
@@ -274,12 +270,12 @@ fun addTask(db: FirebaseFirestore, coroutineScope: CoroutineScope, context: Cont
         files.forEach { file ->
             val fileData = mapOf(
                 "filename" to file.filename,
-                "date" to Timestamp(Date.from(file.date.atStartOfDay(ZoneId.systemDefault()).toInstant())),
+                "date" to Timestamp.now(),
                 "user" to file.user
             )
             val fileHistoryData = mapOf(
                 "comment" to "File ${file.filename} uploaded.",
-                "date" to Timestamp(Date.from(file.date.atStartOfDay(ZoneId.systemDefault()).toInstant())),
+                "date" to Timestamp.now(),
                 "user" to file.user
             )
             val fileRef = db.collection("File").document()
@@ -307,7 +303,7 @@ fun addTask(db: FirebaseFirestore, coroutineScope: CoroutineScope, context: Cont
                 // if parse successfully, int ids so entry to add into the db
                 val data = mapOf(
                     "comment" to history.comment,
-                    "date" to Timestamp(Date.from(history.date.atZone(ZoneId.systemDefault()).toInstant())),
+                    "date" to Timestamp.now(),
                     "user" to history.user
                 )
                 val historyRef = db.collection("History").document()

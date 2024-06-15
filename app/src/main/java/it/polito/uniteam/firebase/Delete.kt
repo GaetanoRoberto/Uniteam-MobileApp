@@ -24,7 +24,7 @@ fun deleteComment(db: FirebaseFirestore, commentId: String, taskId: String) {
 fun deleteFile(db: FirebaseFirestore, file: FileDBFinal, taskId: String) {
     val fileHistoryData = mapOf(
         "comment" to "File ${file.filename} deleted.",
-        "date" to Timestamp(Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant())),
+        "date" to Timestamp.now(),
         "user" to file.user
     )
     val fileRef = db.collection("File").document(file.id)
@@ -123,7 +123,7 @@ fun deleteTeam(db: FirebaseFirestore, teamId: String, files:List<FileDBFinal>, /
         // Add to history
         val historyData = mapOf(
             "comment" to "Team ${team.get("name")} deleted.",
-            "date" to Timestamp(Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant())),
+            "date" to Timestamp.now(),
             "user" to user,
             "oldMembers" to members
         )
