@@ -168,6 +168,68 @@ fun getMemberByEmail(db: FirebaseFirestore, coroutineScope: CoroutineScope, jwt:
         }
     }
 }
+
+
+
+fun getMemberByEmailAfterRestart(db: FirebaseFirestore, coroutineScope: CoroutineScope, email: String): Deferred<MemberDBFinal> {
+    val email = email
+    return coroutineScope.async {
+        val querySnapshot = db.collection("Member")
+            .whereEqualTo("email", email)
+            .get()
+            .await()
+
+        val memberDocument = querySnapshot.documents.firstOrNull()
+        if (memberDocument != null) {
+            val member = memberDocument
+            val m = MemberDBFinal()
+            m.id = member.id ?: ""
+            m.fullName = member.getString("fullName") ?: ""
+            m.username = member.getString("username") ?: ""
+            m.email = member.getString("email") ?: ""
+            m.location = member.getString("location") ?: ""
+            m.description = member.getString("description") ?: ""
+            m.kpi = member.getString("kpi") ?: ""
+            m.profileImage = getImageToFirebaseStorage(member.id)
+            val teamsInfo = member.get("teamsInfo")
+            if (teamsInfo is List<*>) {
+                m.teamsInfo = hashMapOf()
+                (teamsInfo as List<HashMap<String, Any>>).forEach { teamInfoMap ->
+                    val teamId = teamInfoMap["teamId"] as? String ?: return@forEach
+                    val role = teamInfoMap["role"] as? String ?: "NONE"
+                    val weeklyAvailabilityTimes = (teamInfoMap["weeklyAvailabilityTimes"] as? Number)?.toInt() ?: 0
+                    val weeklyAvailabilityHoursMap = teamInfoMap["weeklyAvailabilityHours"] as? HashMap<String, Number>
+                    var hours = 0
+                    var minutes = 0
+                    weeklyAvailabilityHoursMap?.forEach { (dbKey, dbValue) ->
+                        if (dbKey == "hours")
+                            hours = dbValue.toInt()
+                        else
+                            minutes = dbValue.toInt()
+                    }
+                    val weeklyAvailabilityHours = Pair(hours, minutes)
+                    val permissionRole = teamInfoMap["permissionrole"] as? String ?: "USER"
+
+                    m.teamsInfo?.put(teamId, MemberTeamInfo(
+                        role = CategoryRole.valueOf(role),
+                        weeklyAvailabilityTimes = weeklyAvailabilityTimes,
+                        weeklyAvailabilityHours = weeklyAvailabilityHours,
+                        permissionrole = it.polito.uniteam.classes.permissionRole.valueOf(permissionRole)
+                    ))
+                }
+            } else {
+                m.teamsInfo = hashMapOf()
+            }
+
+            m.chats = member.get("chats") as? MutableList<String> ?: mutableListOf()
+            Log.d("MemberDB", m.toString())
+            m
+        } else {
+
+            throw RuntimeException( "No user found")
+        }
+    }
+}
 fun createNotificationChannel(context: Context, channelName: String, channelDescription: String, channelId: String) {
     val importance = NotificationManager.IMPORTANCE_LOW
     val channel = NotificationChannel(channelId, channelName, importance).apply {

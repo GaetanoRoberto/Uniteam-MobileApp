@@ -1,6 +1,7 @@
 package it.polito.uniteam.gui.login
 
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Base64
 import android.util.Log
@@ -40,6 +41,7 @@ import androidx.credentials.PublicKeyCredential
 import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.wear.compose.material3.Button
 import androidx.wear.compose.material3.Text
@@ -67,6 +69,44 @@ class LoginViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHa
     //val loggedMember = model.loggedUser
     val setLoggedMember = model::setLoggedUser
     val setIsUserLogged = model::setIsUserLogged
+    val setUserAfterRestart = model::setLoggedUserAfterRestart
+
+    @SuppressLint("StaticFieldLeak")
+    val context = model.context
+
+    private val sharedPreferences = context.getSharedPreferences("login_prefs", Context.MODE_PRIVATE) // Added SharedPreferences initialization
+    init {
+        // Load login state from SharedPreferences when the ViewModel is initialized
+        viewModelScope.launch {
+
+            val loggedIn =
+                sharedPreferences.getBoolean("isUserLogged", false) // Retrieve login state
+            if (loggedIn) {
+                val email = sharedPreferences.getString("userEmail", "") ?: "" // Retrieve user info
+                setUserAfterRestart(email)
+                setIsUserLogged(true)
+
+            }
+        }
+
+    }
+
+    fun saveLoginState( email: String) {
+        sharedPreferences.edit().apply {
+            putBoolean("isUserLogged", true)
+            putString("userEmail", email)
+            apply()
+        }
+    }
+
+    fun clearLoginState() {
+        sharedPreferences.edit().apply {
+            putBoolean("isUserLogged", false)
+            remove("userEmail")
+            apply()
+        }
+    }
+
 }
 
 @Preview
@@ -126,6 +166,7 @@ fun Login(vm: LoginViewModel = viewModel(factory = Factory(LocalContext.current.
 
                         vm.setLoggedMember(jwt)
                         vm.setIsUserLogged(true)
+                        vm.saveLoginState(email)
                         Log.d("LOGIN", "GoogleIdTokenCredential: $userInfo")
 
                     } catch (e : Exception) {
@@ -165,6 +206,7 @@ fun Login(vm: LoginViewModel = viewModel(factory = Factory(LocalContext.current.
     fun logoutGoogle() {
         googleSignInClient.signOut().addOnCompleteListener {
             vm.setIsUserLogged(false)
+            vm.clearLoginState()
             //after log out
         }
     }

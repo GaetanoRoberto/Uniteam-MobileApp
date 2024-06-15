@@ -42,6 +42,7 @@ import it.polito.uniteam.firebase.changeAdminRole
 //import it.polito.uniteam.firebase.addTaskHistory
 import it.polito.uniteam.firebase.getAllTeamsMembersHome
 import it.polito.uniteam.firebase.getMemberByEmail
+import it.polito.uniteam.firebase.getMemberByEmailAfterRestart
 import it.polito.uniteam.firebase.getMemberById
 import it.polito.uniteam.firebase.getMemberFlowById
 import it.polito.uniteam.firebase.getTeamById
@@ -77,6 +78,13 @@ class UniTeamModel(val context: Context) {
 
     suspend fun setLoggedUser(jwtPayload: JWT){
         loggedMemberFinal = getMemberByEmail(db, coroutineScope, jwtPayload).await()
+        //loggedMemberFinal = getMemberFlowByEmail(db, coroutineScope, jwtPayload).collectAsState(initial = MemberDBFinal()).value
+        isUserLogged.value = true
+        Log.d("LOGIN", "logged member ${loggedMemberFinal}")
+
+    }
+    suspend fun setLoggedUserAfterRestart(email: String){
+        loggedMemberFinal = getMemberByEmailAfterRestart(db, coroutineScope, email).await()
         //loggedMemberFinal = getMemberFlowByEmail(db, coroutineScope, jwtPayload).collectAsState(initial = MemberDBFinal()).value
         isUserLogged.value = true
         Log.d("LOGIN", "logged member ${loggedMemberFinal}")
