@@ -45,7 +45,7 @@ import it.polito.uniteam.classes.messageStatus
 
 @Composable
 fun messageUnreadCountForBottomBar(vm : NotificationsViewModel = viewModel(factory = Factory(LocalContext.current))): Int{
-    val loggedMember = vm.loggedMember.id
+    val loggedMember = vm.model.loggedMemberFinal.id
     /*vm.teamsMessages.forEach { (_,c) -> count += c }
     vm.membersMessages.forEach { (_,c) -> count += c }*/
     val messages = AppStateManager.getMessages()
@@ -234,7 +234,7 @@ fun ActivitiesSection(vm: NotificationsViewModel = viewModel(factory = Factory(L
         items(1) {
             vm.teamsHistories.sortedByDescending { it.second.date }.forEach { (team,history) ->
                 val comment = if(history.comment == "Team Joined.") {
-                    val member = AppStateManager.getMembers().find { it.id == history.user }!!
+                    val member = AppStateManager.getMembers().find { it.id == history.user }!! //TODO
                     if(member.id != vm.loggedMember.id)
                         "${member.username} Joined The Team."
                     else

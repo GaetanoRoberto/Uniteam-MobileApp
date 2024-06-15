@@ -50,8 +50,12 @@ import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
 import com.google.common.net.MediaType.JWT
+import it.polito.uniteam.AppStateManager
 import it.polito.uniteam.Factory
+import it.polito.uniteam.NavControllerManager
 import it.polito.uniteam.UniTeamModel
+import it.polito.uniteam.gui.availability.Join
+import it.polito.uniteam.gui.home.Home
 import it.polito.uniteam.classes.GoogleSignInButton
 import it.polito.uniteam.gui.teamDetails.TeamDetailsViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -67,7 +71,7 @@ class LoginViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHa
 
 @Preview
 @Composable
-fun Login(vm: LoginViewModel = viewModel(factory = Factory(LocalContext.current.applicationContext))) {
+fun Login(vm: LoginViewModel = viewModel(factory = Factory(LocalContext.current.applicationContext)), joinTeam : Boolean= false) {
     val WEB_CLIENT_ID = "978760585545-12q57615j1peajc0o0u1dufbcb97bjn7.apps.googleusercontent.com"
     val activityContext = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -79,18 +83,18 @@ fun Login(vm: LoginViewModel = viewModel(factory = Factory(LocalContext.current.
     var userInfoEmail by remember { mutableStateOf("") }
 
 
-    val googleIdOption: GetGoogleIdOption = GetGoogleIdOption.Builder()
+    val googleIdOption : GetGoogleIdOption = GetGoogleIdOption.Builder()
         .setFilterByAuthorizedAccounts(false)
         .setServerClientId(WEB_CLIENT_ID)
         .setAutoSelectEnabled(true)
         .setNonce(generateNonce())
         .build()
 
-    val request: GetCredentialRequest = GetCredentialRequest.Builder()
+    val request : GetCredentialRequest = GetCredentialRequest.Builder()
         .addCredentialOption(googleIdOption)
         .build()
 
-    suspend fun handleSignIn(result: GetCredentialResponse) {
+    suspend fun handleSignIn(result : GetCredentialResponse) {
         val credential = result.credential
 
         when (credential) {
@@ -119,22 +123,24 @@ fun Login(vm: LoginViewModel = viewModel(factory = Factory(LocalContext.current.
                         userInfo = "Name: $name, Email: $email"
                         userInfoName = name!!
                         userInfoEmail = email!!
-                        vm.setIsUserLogged(true)
-                        vm.setLoggedMember(jwt)
 
+                        vm.setLoggedMember(jwt)
+                        vm.setIsUserLogged(true)
                         Log.d("LOGIN", "GoogleIdTokenCredential: $userInfo")
-                    } catch (e: Exception) {
+
+                    } catch (e : Exception) {
                         Log.e("LOGIN", "Error parsing ID token", e)
                     }
-                } else {
+                }
+                else {
                     Log.e("LOGIN", "Unexpected type of credential")
                 }
             }
-
             else -> {
                 Log.e("LOGIN", "Unexpected type of credential")
             }
         }
+
     }
 
     suspend fun startLogin() {
@@ -145,10 +151,11 @@ fun Login(vm: LoginViewModel = viewModel(factory = Factory(LocalContext.current.
                 context = activityContext,
             )
             handleSignIn(result)
-        } catch (e: GetCredentialException) {
+        } catch (e : GetCredentialException) {
             Log.e("LOGIN", "GetCredentialException: ${e.message}", e)
         }
     }
+
     val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
         .requestEmail()
         .build()
@@ -159,31 +166,31 @@ fun Login(vm: LoginViewModel = viewModel(factory = Factory(LocalContext.current.
         googleSignInClient.signOut().addOnCompleteListener {
             vm.setIsUserLogged(false)
             //after log out
-        }}
+        }
+    }
 
 
+   /* LaunchedEffect(key1 = 1) {
+        coroutineScope.launch {
+            startLogin()
+        }
 
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Row(modifier = Modifier.fillMaxWidth(1f), horizontalArrangement = Arrangement.Center) {
-            GoogleSignInButton(onClick = {
-                if (!vm.isUserLogged.value) {
-                    coroutineScope.launch {
-                        startLogin()
-                    }
-                } else {
-                    logoutGoogle()
-                }
+    }*/
 
-            })
-            /*FilledTonalButton(
-                modifier = Modifier
-                    .width(120.dp)
-                    .height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
+
+    if (vm.isUserLogged.value && joinTeam) {
+        Log.d("LOGIN", vm.isUserLogged.value.toString() )
+        Join()
+    }
+    else {
+        Log.d("LOGIN", vm.isUserLogged.value.toString() )
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Row(modifier = Modifier.fillMaxWidth(1f), horizontalArrangement = Arrangement.Center) {
+                GoogleSignInButton(onClick = {
                     if (!vm.isUserLogged.value) {
                         coroutineScope.launch {
                             startLogin()
@@ -192,40 +199,53 @@ fun Login(vm: LoginViewModel = viewModel(factory = Factory(LocalContext.current.
                         logoutGoogle()
                     }
 
-                }) {
-                Box(
+                })
+                /*FilledTonalButton(
                     modifier = Modifier
-                        .fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (!vm.isUserLogged.value) {
-                        Text("Login", textAlign = TextAlign.Center, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
-                    } else {
-                        Text("Logout", textAlign = TextAlign.Center, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
+                        .width(120.dp)
+                        .height(50.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
+                        if (!vm.isUserLogged.value) {
+                            coroutineScope.launch {
+                                startLogin()
+                            }
+                        }
+                    }) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (!vm.isUserLogged.value) {
+                            Text("Login", textAlign = TextAlign.Center, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
+                        } else {
+                            Text("Logout", textAlign = TextAlign.Center, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
+                        }
                     }
-                }
-            }*/
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        Row(modifier = Modifier.fillMaxWidth(1f), horizontalArrangement = Arrangement.Center) {
-            if (logged) {
-                Log.d("LOGIN", "LOGGED")
-
-                Text("Hello: ${userInfoName}")
-
-
-            } else {
-                Log.d("LOGIN", "NOT LOGGED")
-
-                Text("Please log in to continue...")
+                }*/
             }
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(modifier = Modifier.fillMaxWidth(1f), horizontalArrangement = Arrangement.Center) {
+                if (logged) {
+                    Log.d("LOGIN", "LOGGED")
+                    if(vm.isUserLogged.value)
+                        NavControllerManager.getNavController().navigate("Teams")
+                    //Text("Hello: ${userInfoName}")
+
+                } else {
+                    Log.d("LOGIN", "NOT LOGGED")
+
+                    Text("Please log in to continue...")
+                }
+            }
+
+
         }
 
 
     }
 
 }
-
 
 fun generateNonce(): String {
     val nonceBytes = ByteArray(16)

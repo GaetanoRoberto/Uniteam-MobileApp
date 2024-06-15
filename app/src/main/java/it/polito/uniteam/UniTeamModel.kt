@@ -79,7 +79,7 @@ class UniTeamModel(val context: Context) {
         loggedMemberFinal = getMemberByEmail(db, coroutineScope, jwtPayload).await()
         //loggedMemberFinal = getMemberFlowByEmail(db, coroutineScope, jwtPayload).collectAsState(initial = MemberDBFinal()).value
         isUserLogged.value = true
-        //Log.d("LOGIN", "logged member ${loggedUser}")
+        Log.d("LOGIN", "logged member ${loggedMemberFinal}")
 
     }
 

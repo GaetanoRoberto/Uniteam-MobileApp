@@ -513,13 +513,15 @@ class MainActivity : ComponentActivity() {
                                                                             "https://UniTeam/join/{teamId}"
                                                                     })
                                                                 ) {
-                                                                    Join(
+                                                                    Login(
                                                                         vm = viewModel(
                                                                             factory = Factory(
                                                                                 LocalContext.current
                                                                             )
-                                                                        )
+                                                                        ),
+                                                                        joinTeam = true
                                                                     )
+
                                                                 }
                                                                 composable(
                                                                     "Statistics/{teamId}",
@@ -578,7 +580,7 @@ class MainActivity : ComponentActivity() {
                                                         }
                                                     },
                                                     bottomBar = {
-                                                        if (!isVertical()) {
+                                                        if (!isVertical() || currentDestination == "Login") {
                                                             Row {}
                                                         } else {
                                                             NavigationBar(containerColor = MaterialTheme.colorScheme.primary) {
@@ -866,12 +868,13 @@ class MainActivity : ComponentActivity() {
                                                                         "https://UniTeam/join/{teamId}"
                                                                 })
                                                             ) {
-                                                                Join(
+                                                                Login(
                                                                     vm = viewModel(
                                                                         factory = Factory(
                                                                             LocalContext.current
                                                                         )
-                                                                    )
+                                                                    ),
+                                                                    joinTeam = true
                                                                 )
                                                             }
                                                             composable(
@@ -933,7 +936,7 @@ class MainActivity : ComponentActivity() {
                                                 }
                                             },
                                             bottomBar = {
-                                                if (!isVertical()) {
+                                                if ( currentDestination == "Login" || !isVertical() ) {
                                                     Row {}
                                                 } else {
                                                     NavigationBar(containerColor = MaterialTheme.colorScheme.primary) {
@@ -1081,10 +1084,10 @@ fun MyTopAppBar(
         },
         colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primary),
         navigationIcon = {
-            if (navController.currentBackStackEntry?.destination?.route != "Teams" && navController.currentBackStackEntry?.destination?.route != "JoinTeam/{teamId}") {
+            if ( navController.currentBackStackEntry?.destination?.route != "Login" && navController.currentBackStackEntry?.destination?.route != "Teams" && navController.currentBackStackEntry?.destination?.route != "JoinTeam/{teamId}") {
                 IconButton(
                     onClick = {//navController.previousBackStackEntry?.savedStateHandle?.set("back", true)
-                        if (!navController.popBackStack()) {//inutile fare if diverso da teams perchè fa la pop lo stessoghb
+                        if ( !navController.popBackStack() || navController.currentBackStackEntry?.destination?.route == "Team/{teamId}") {
                             navController.navigate("Teams") {
                                 //println("Destination: ${navController.previousBackStackEntry?.destination?.route}")
                                 /* popUpTo(navController.graph.findStartDestination().id){
@@ -1108,7 +1111,7 @@ fun MyTopAppBar(
             }
         },
         actions = {
-            if (isVertical()){
+            if (navController.currentDestination?.route != "Login" && isVertical() ){
                 IconButton(onClick = {
                     navController.navigate("Profile") {
 
