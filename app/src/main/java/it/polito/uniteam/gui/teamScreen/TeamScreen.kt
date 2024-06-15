@@ -138,6 +138,7 @@ import kotlin.math.log
 
 class TeamScreenViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
     val teamId: String = checkNotNull(savedStateHandle["teamId"])
+    var loggedMember: String = ""
     fun updateTaskAssignee(taskId: String, members: List<String>, loggedUser: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = model.updateTaskAssignee(taskId, members, loggedUser, onSuccess, onFailure)
     fun changeAdminRole(loggedMemberId: String, memberId: String, teamId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = model.changeAdminRole(loggedMemberId, memberId, teamId, onSuccess, onFailure)
     fun leaveTeam(memberId: String, teamId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = model.leaveTeam(memberId, teamId, onSuccess, onFailure)
@@ -177,6 +178,7 @@ class TeamScreenViewModel(val model: UniTeamModel, val savedStateHandle: SavedSt
 @SuppressLint("UnrememberedMutableState")
 @Composable
 fun TeamScreen(vm: TeamScreenViewModel = viewModel(factory = Factory(LocalContext.current))) {
+    vm.loggedMember = AppStateManager.getLoggedMember().id
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
@@ -937,7 +939,8 @@ fun VerticalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, scop
                 val endPadding = if (index == membersToShow.lastIndex) 16.dp else 20.dp
                 MemberIcon(
                     modifierPadding = Modifier.padding(0.dp, 0.dp, endPadding, 0.dp),
-                    member = member
+                    member = member,
+                    isLoggedMember = (member.id == vm.loggedMember)
                 )
             }
             if (membersList.size > 5) {
@@ -1109,7 +1112,7 @@ fun VerticalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, scop
                                     Text(" nobody assigned", style = MaterialTheme.typography.labelMedium)
                                 } else {
                                     for (member in membersToShow) {
-                                        MemberIcon(Modifier.scale(0.7f), Modifier.padding(5.dp, 0.dp, 10.dp, 0.dp), membersList.find { it.id == member }!!)
+                                        MemberIcon(Modifier.scale(0.7f), Modifier.padding(5.dp, 0.dp, 10.dp, 0.dp), membersList.find { it.id == member }!!,isLoggedMember = (member == vm.loggedMember))
                                     }
                                 }
                                 if (task.members.size > 4) {
@@ -1348,7 +1351,8 @@ fun HorizontalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, sc
                     val endPadding = if (index == membersToShow.lastIndex) 16.dp else 20.dp
                     MemberIcon(
                         modifierPadding = Modifier.padding(0.dp, 0.dp, endPadding, 0.dp),
-                        member = member
+                        member = member,
+                        isLoggedMember = (member.id == vm.loggedMember)
                     )
                 }
                 if (membersList.size > 5) {
@@ -1529,7 +1533,7 @@ fun HorizontalTaskListView(vm: TeamScreenViewModel, drawerState: DrawerState, sc
                                         Text(" nobody assigned", style = MaterialTheme.typography.labelMedium)
                                     } else {
                                         for (member in membersToShow) {
-                                            MemberIcon(Modifier.scale(0.7f), Modifier.padding(5.dp, 0.dp, 10.dp, 0.dp), membersList.find { it.id == member }!!)
+                                            MemberIcon(Modifier.scale(0.7f), Modifier.padding(5.dp, 0.dp, 10.dp, 0.dp), membersList.find { it.id == member }!!,isLoggedMember = (member == vm.loggedMember))
                                         }
                                     }
                                     if (task.members.size > 4) {
@@ -1734,7 +1738,9 @@ fun ChangeAdminDialog(vm: TeamScreenViewModel, membersList: List<MemberDBFinal>,
                     Text(text = "Before leaving the team, select the new Admin :", style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center)
                 }
                 LazyColumn(
-                    modifier = Modifier.heightIn(0.dp, (screenHeightDp * 0.4).dp).selectableGroup()
+                    modifier = Modifier
+                        .heightIn(0.dp, (screenHeightDp * 0.4).dp)
+                        .selectableGroup()
                 ) {
                     items(membersList) { member ->
                         Row(

@@ -90,6 +90,7 @@ import it.polito.uniteam.NavControllerManager
 import it.polito.uniteam.R
 import it.polito.uniteam.classes.CompressImage
 import it.polito.uniteam.classes.MemberDBFinal
+import it.polito.uniteam.classes.MemberIcon
 import it.polito.uniteam.classes.MemberTeamInfo
 import it.polito.uniteam.classes.TeamDBFinal
 import it.polito.uniteam.classes.permissionRole
@@ -824,7 +825,7 @@ fun TeamMembersDropdownMenuBox(
     label: String,
     currentMembers: List<MemberDBFinal>
 ) {
-
+    val controller = NavControllerManager.getNavController()
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -868,7 +869,12 @@ fun TeamMembersDropdownMenuBox(
                             .padding(0.dp, 0.dp, 5.dp, 0.dp)
                     ) {
                         currentMembers.forEachIndexed { index, member ->
-//                            MemberIcon(member = member, modifierScale = Modifier.scale(0.65f), modifierPadding = Modifier.padding(start = if (index == 0) 12.dp else 0.dp), enableNavigation = false)
+                            MemberIcon(
+                                member = member,
+                                modifierScale = Modifier.scale(0.65f),
+                                modifierPadding = Modifier.padding(start = if (index == 0) 12.dp else 0.dp),
+                                isLoggedMember = (member.id == vm.loggedMember.id)
+                            )
                             Text(
                                 text = member.username.toString() + if (index < currentMembers.size - 1) {
                                     ", "

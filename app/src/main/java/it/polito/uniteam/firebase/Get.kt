@@ -17,7 +17,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
@@ -53,7 +52,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.channels.onSuccess
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -64,17 +62,6 @@ import kotlinx.coroutines.withContext
 import java.io.FileOutputStream
 import java.time.LocalDate
 import java.time.LocalDateTime
-
-suspend fun getImageToFirebaseStorage(fileName: String): Uri {
-    val storage = FirebaseStorage.getInstance()
-    val imageRef = storage.reference.child("images/${fileName}.jpg")
-    return try {
-        imageRef.downloadUrl.await()
-    } catch (e: Exception) {
-        e.printStackTrace()
-        Uri.EMPTY
-    }
-}
 
 fun createNotificationChannel(context: Context, channelName: String, channelDescription: String, channelId: String) {
     val importance = NotificationManager.IMPORTANCE_LOW

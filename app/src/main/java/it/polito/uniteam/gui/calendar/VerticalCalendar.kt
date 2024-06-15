@@ -358,7 +358,7 @@ fun EventItem(vm: Calendar = viewModel(factory = Factory(LocalContext.current)),
                     modifierScale = Modifier.scale(0.6f),
                     modifierPadding = Modifier.padding(0.dp, 0.dp, 8.dp, 8.dp),
                     member = scheduledMember,
-                    loggedMemberAction = if(scheduledMember.id == vm.loggedMember) {{navController.navigate("Profile")}} else null
+                    isLoggedMember = (scheduledMember.id == vm.loggedMember)
                 )
             } else {
                 // are not scheduled, so taskstoassign use the logged member
@@ -366,7 +366,7 @@ fun EventItem(vm: Calendar = viewModel(factory = Factory(LocalContext.current)),
                     modifierScale = Modifier.scale(0.6f),
                     modifierPadding = Modifier.padding(0.dp, 0.dp, 8.dp, 8.dp),
                     member = AppStateManager.getMembers().find{it.id == vm.loggedMember}!!,
-                    loggedMemberAction = {navController.navigate("Profile")}
+                    isLoggedMember = true
                 )
             }
             if(task.repetition != Repetition.NONE && !isScheduled)

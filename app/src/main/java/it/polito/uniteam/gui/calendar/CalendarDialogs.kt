@@ -281,7 +281,7 @@ fun TaskDetailDialog(vm: Calendar = viewModel(factory = Factory(LocalContext.cur
                 RowItem(title = "Priority:", value = task.priority)
                 RowItem(title = "Deadline:", value = task.deadline.toString())
                 RowItem(title = "Repeatable:", value = task.repetition)
-                //RowMemberItem(loggedMember = vm.loggedMember, dialogAction = {vm.closeDialog()}, loggedMemberAction = {navController.navigate("Profile");},title = "Members:", value = AppStateManager.getMembers().filter { task.members.contains(it.id) })
+                RowMemberItem(loggedMember = vm.loggedMember, dialogAction = {vm.closeDialog()}, title = "Members:", value = AppStateManager.getMembers().filter { task.members.contains(it.id) })
                 RowItem(title = "Status:", value = if(task.status==Status.IN_PROGRESS) "IN PROGRESS" else task.status)
             }
         },

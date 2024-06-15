@@ -152,7 +152,7 @@ fun CompressImage(context: Context, sourceUri: Uri, maxFileSizeKB: Int = 500): U
 }
 
 @Composable
-fun MemberIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: Modifier = Modifier.padding(0.dp, 0.dp, 20.dp, 0.dp), member: MemberDBFinal, enableNavigation: Boolean = true, dialogAction: () -> Unit = {}, loggedMemberAction: (() -> Unit?)? = null) {
+fun MemberIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: Modifier = Modifier.padding(0.dp, 0.dp, 20.dp, 0.dp), member: MemberDBFinal, enableNavigation: Boolean = true, dialogAction: () -> Unit = {}, isLoggedMember: Boolean = false) {
     val navController = NavControllerManager.getNavController()
 
     Box(modifier = modifierScale) {
@@ -165,7 +165,7 @@ fun MemberIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: 
                     .scale(2f)
                     .size(22.dp)
                     .clip(CircleShape)
-                    .clickable(onClick = { if(loggedMemberAction==null) { dialogAction(); navController.navigate("OtherUserProfile/${member.id}"); } else { dialogAction(); loggedMemberAction();} })
+                    .clickable(onClick = { if(!isLoggedMember) { dialogAction(); navController.navigate("OtherUserProfile/${member.id}"); } else { dialogAction(); navController.navigate("Profile")} })
                 else
                     Modifier
                         .then(modifierPadding)
@@ -194,7 +194,7 @@ fun MemberIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: 
                             radius = this.size.maxDimension
                         )
                     }
-                    .clickable(onClick = { if (enableNavigation) navController.navigate("OtherUserProfile/${member.id}") })
+                    .clickable(onClick = { if(!isLoggedMember) { dialogAction(); navController.navigate("OtherUserProfile/${member.id}"); } else { dialogAction(); navController.navigate("Profile")} })
             ) {
                 Text(
                     text = initialsValue,

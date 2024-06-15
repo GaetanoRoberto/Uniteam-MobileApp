@@ -638,7 +638,7 @@ fun RowItem(modifier: Modifier = Modifier, title: String, value: Any) {
 
 
 @Composable
-fun RowMemberItem(loggedMember: String,dialogAction: () -> Unit = {}, loggedMemberAction: () -> Unit = {}, modifier: Modifier = Modifier, title: String, value: List<MemberDBFinal>) {
+fun RowMemberItem(loggedMember: String,dialogAction: () -> Unit = {}, modifier: Modifier = Modifier, title: String, value: List<MemberDBFinal>) {
     Row(
         modifier = Modifier.fillMaxWidth(0.8f),
         verticalAlignment = Alignment.CenterVertically
@@ -655,7 +655,7 @@ fun RowMemberItem(loggedMember: String,dialogAction: () -> Unit = {}, loggedMemb
         modifier = modifier.horizontalScroll(rememberScrollState()),
     ) {
         for ((i, member) in value.withIndex()) {
-            MemberIcon(member = member, modifierScale = Modifier.scale(0.65f), modifierPadding = Modifier.padding(start = if (i == 0) 16.dp else 0.dp, top = 8.dp), dialogAction = dialogAction, loggedMemberAction = if(member.id == loggedMember) loggedMemberAction else null)
+            MemberIcon(member = member, modifierScale = Modifier.scale(0.65f), modifierPadding = Modifier.padding(start = if (i == 0) 16.dp else 0.dp, top = 8.dp), dialogAction = dialogAction, isLoggedMember = (member.id == loggedMember))
             Text(
                 member.username.toString() + if (i < value.size - 1) {
                     ", "
