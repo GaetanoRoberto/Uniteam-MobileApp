@@ -96,9 +96,12 @@ fun deleteTeam(db: FirebaseFirestore, teamId: String, files:List<FileDBFinal>, /
         val historyRef = db.collection("History").document()
 
         // Remove members' teamsInfo
-        members.forEach { memberId ->
-            val memberRef = db.collection("Member").document(memberId)
+        val membersToRemove = members.map {
+            val memberRef = db.collection("Member").document(it)
             val member = transaction.get(memberRef)
+            Pair(memberRef,member)
+        }
+        membersToRemove.forEach { (memberRef,member) ->
             val teamsInfo = member.get("teamsInfo") as? List<Map<String, Any>> ?: emptyList()
 
             // Filter out the teamsInfo entry associated with the teamId
