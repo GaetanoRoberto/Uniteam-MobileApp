@@ -1087,7 +1087,14 @@ fun MyTopAppBar(
             if ( navController.currentBackStackEntry?.destination?.route != "Login" && navController.currentBackStackEntry?.destination?.route != "Teams" && navController.currentBackStackEntry?.destination?.route != "JoinTeam/{teamId}") {
                 IconButton(
                     onClick = {//navController.previousBackStackEntry?.savedStateHandle?.set("back", true)
-                        if ( !navController.popBackStack() || navController.currentBackStackEntry?.destination?.route == "Team/{teamId}") {
+                        Log.d("UniTeam", "Destination: ${navController.currentDestination?.route}")
+                        if( navController.currentDestination?.route == "Team/{teamId}"){
+                            navController.navigate("Teams") {
+                                launchSingleTop = true
+                            }
+                        }else
+                        if (!navController.popBackStack() ) {
+
                             navController.navigate("Teams") {
                                 //println("Destination: ${navController.previousBackStackEntry?.destination?.route}")
                                 /* popUpTo(navController.graph.findStartDestination().id){
@@ -1097,7 +1104,7 @@ fun MyTopAppBar(
                                 //restoreState = true
                             }
                         }
-                        println("Destination Back: ${navController.previousBackStackEntry?.destination?.route}")
+                        //println("Destination Back: ${navController.previousBackStackEntry?.destination?.route}")
 
                     },
                     colors = IconButtonDefaults.iconButtonColors(MaterialTheme.colorScheme.secondary)
