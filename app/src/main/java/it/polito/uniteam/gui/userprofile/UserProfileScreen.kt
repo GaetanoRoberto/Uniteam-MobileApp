@@ -97,8 +97,7 @@ import java.util.concurrent.ExecutorService
 
 
 class UserProfileScreen(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
-    var loggedMember = model.loggedMemberFinal.id // TODO hardcoded
-        private set
+    var loggedMember = ""
     var nameBefore = ""
     var usernameBefore = ""
     var emailBefore = ""
@@ -810,6 +809,7 @@ fun ProfileSettings(
     outputDirectory: File,
     cameraExecutor: ExecutorService
 ) {
+    vm.loggedMember = AppStateManager.getLoggedMember().id
     if (isVertical()) {
         Box(
             contentAlignment = Alignment.TopEnd,

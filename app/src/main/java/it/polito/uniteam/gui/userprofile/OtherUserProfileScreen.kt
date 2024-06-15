@@ -62,10 +62,10 @@ class OtherUserProfileScreen (val model: UniTeamModel, val savedStateHandle: Sav
     val memberId = checkNotNull(savedStateHandle["memberId"]).toString()
     var member: MemberDBFinal = MemberDBFinal()
     var teamsInCommon: List<TeamDBFinal> = emptyList()
-    val loggedMember = model.loggedMemberFinal.id // TODO hardcoded
+    var loggedMember = ""
 }
 
-// TODO Recall this Function Also for UserProfileScreen
+
 @Composable
 fun computeKPI(memberId: String): String {
     // get all the teams of the member
@@ -218,8 +218,7 @@ fun RowTeamItem(modifier: Modifier = Modifier, team: TeamDBFinal, role: String, 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OtherProfileSettings( vm: OtherUserProfileScreen = viewModel(factory = Factory(LocalContext.current.applicationContext))) {
-
-    val member = vm.member
+    vm.loggedMember = AppStateManager.getLoggedMember().id
 
     BoxWithConstraints {
 

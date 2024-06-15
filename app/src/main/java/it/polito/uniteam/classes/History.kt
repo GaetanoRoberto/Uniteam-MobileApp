@@ -20,5 +20,6 @@ data class HistoryDBFinal (
     var id: String = "",
     var comment: String,
     var date: LocalDateTime,
-    var user: String
+    var user: String,
+    var oldMembers: List<String> = listOf()
 )

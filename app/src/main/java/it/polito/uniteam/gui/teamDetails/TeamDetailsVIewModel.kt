@@ -112,7 +112,7 @@ class TeamDetailsViewModel(val model: UniTeamModel, val savedStateHandle: SavedS
                     // deleted member
                     entryToAdd.add(HistoryDBFinal(
                         id = (temporaryId++).toString(),
-                        comment = "${oldMember.username} removed from the Team.",
+                        comment = "${oldMember.username} removed from the Team ${teamName}.",
                         date = LocalDateTime.now(),
                         user = loggedMember.id
                     ))
@@ -123,7 +123,7 @@ class TeamDetailsViewModel(val model: UniTeamModel, val savedStateHandle: SavedS
                     // added member
                     entryToAdd.add(HistoryDBFinal(
                         id = (temporaryId++).toString(),
-                        comment = "${member.username} added in the Team.",
+                        comment = "${member.username} added in the Team ${teamName}.",
                         date = LocalDateTime.now(),
                         user = loggedMember.id
                     ))

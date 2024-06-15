@@ -81,6 +81,7 @@ fun Availability(vm: AvailabilityViewModel = viewModel(factory = Factory(LocalCo
 
     LaunchedEffect(Unit) {
         vm.role.value = currentRoleState.value
+        vm.model.resetAvailabilitiesErrors()
     }
 
     fun changeRole(categoryRole: CategoryRole) {

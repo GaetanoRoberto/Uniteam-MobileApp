@@ -76,6 +76,7 @@ fun SetupCalendarData(vm: Calendar = viewModel(factory = Factory(LocalContext.cu
 @Composable
 fun CalendarAppContainer(vm: Calendar = viewModel(factory = Factory(LocalContext.current))) {
     val dragAndDropState = rememberDragAndDropState<Pair<TaskDBFinal, LocalDate?>>()
+    vm.loggedMember = AppStateManager.getLoggedMember().id
     SetupCalendarData(vm = vm)
     DragAndDropContainer(
         state = dragAndDropState,
@@ -344,7 +345,8 @@ fun EventItem(vm: Calendar = viewModel(factory = Factory(LocalContext.current)),
 
         Row(
             modifier = Modifier
-                .padding(horizontal = 8.dp).fillMaxWidth(),
+                .padding(horizontal = 8.dp)
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {

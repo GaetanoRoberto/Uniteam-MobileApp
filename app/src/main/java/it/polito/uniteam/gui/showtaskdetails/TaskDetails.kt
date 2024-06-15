@@ -159,6 +159,7 @@ fun isTaskEditing(vm: taskDetails = viewModel(factory = Factory(LocalContext.cur
 
 @Composable
 fun TaskScreen(vm: taskDetails = viewModel(factory = Factory(LocalContext.current)) ) {
+    vm.loggedMember = AppStateManager.getLoggedMember().id
     if (vm.editing) {
         /*vm.changeEditing()
         vm.enterEditingMode()*/

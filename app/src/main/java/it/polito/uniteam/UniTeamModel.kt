@@ -72,7 +72,7 @@ class UniTeamModel(val context: Context) {
     var isLoading2 = mutableStateOf(true)
 
     var loggedUser = getMemberById(db, coroutineScope, "d67br0MqJf6Qs1tzKHhm")
-    fun getLoggedUserFlow(): Flow<MemberDBFinal> = getMemberFlowById(db, coroutineScope,"d67br0MqJf6Qs1tzKHhm")
+    fun getLoggedUserFlow(): Flow<MemberDBFinal> = getMemberFlowById(db, coroutineScope,"tQLCfuconmcAxnoyMS6w")
     val loggedMemberFinal = MemberDBFinal(
         id = "d67br0MqJf6Qs1tzKHhm",
         fullName = "Matteo Nicita",
@@ -131,6 +131,11 @@ class UniTeamModel(val context: Context) {
 
     var timesError = mutableStateOf("")
     var timeError = mutableStateOf("")
+
+    fun resetAvailabilitiesErrors() {
+        timeError.value = ""
+        timesError.value = ""
+    }
 
     var membersList = mutableListOf<Member>(
         Member().apply {

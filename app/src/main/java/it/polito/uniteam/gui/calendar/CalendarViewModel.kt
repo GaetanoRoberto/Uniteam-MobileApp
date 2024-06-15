@@ -17,11 +17,10 @@ import java.util.stream.Stream
 
 class Calendar(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
 
-    val teamId: String = "8Kil7wNz6eF1ZD2Lf19K"//checkNotNull(savedStateHandle["teamId"])
+    val teamId: String = checkNotNull(savedStateHandle["teamId"])
     //fun getTeam(teamId: Int) = model.getTeam(teamId)
     //val teamName = getTeam(teamId.toInt()).name
-    var loggedMember = model.loggedMemberFinal.id // TODO hardcoded
-        private set
+    var loggedMember = ""
 
     fun scheduleTask(task: TaskDBFinal, scheduleDate: LocalDate, hoursToSchedule: Pair<Int,Int>) = model.scheduleTask(task, scheduleDate, hoursToSchedule)
     fun unScheduleTask(task: TaskDBFinal, scheduleDate: LocalDate) = model.unscheduleTask(task,scheduleDate)
@@ -38,7 +37,7 @@ class Calendar(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) 
 
     fun checkDialogs(task: TaskDBFinal, sourceDate:LocalDate? = null, targetDate: LocalDate, isNewSchedule: Boolean = true) {
         // check permissions
-        Log.i("diooo",task.schedules.keys.contains(Pair(loggedMember,targetDate)).toString())
+        //Log.i("diooo",task.schedules.keys.contains(Pair(loggedMember,targetDate)).toString())
         if ((task.schedules.keys.contains(Pair(loggedMember,sourceDate)) &&!isNewSchedule) || isNewSchedule) {
             // if permissions, check if back in time
             if(targetDate.isBefore(LocalDate.now())) {

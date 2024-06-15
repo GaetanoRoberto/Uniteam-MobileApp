@@ -45,7 +45,7 @@ import it.polito.uniteam.classes.messageStatus
 
 @Composable
 fun messageUnreadCountForBottomBar(vm : NotificationsViewModel = viewModel(factory = Factory(LocalContext.current))): Int{
-    val loggedMember = vm.loggedMember
+    val loggedMember = vm.loggedMember.id
     /*vm.teamsMessages.forEach { (_,c) -> count += c }
     vm.membersMessages.forEach { (_,c) -> count += c }*/
     val messages = AppStateManager.getMessages()
@@ -82,23 +82,23 @@ fun SetupNotificationsData(vm: NotificationsViewModel = viewModel(factory = Fact
     val histories = AppStateManager.getHistories()
     vm.unreadMessages.clear()
     // teamsMessages
-    val userTeamsMessages = teams.filter { it.members.contains(vm.loggedMember)}
+    val userTeamsMessages = teams.filter { it.members.contains(vm.loggedMember.id)}
         .map { userTeam -> Pair(userTeam,chats.find {chat -> chat.id == userTeam.chat }) }
         .map { userTeamChat -> Pair(userTeamChat.first,userTeamChat.second?.messages) }
         .map { userTeamMessagesIds ->
             val teamMessages = messages.filter { userTeamMessagesIds.second?.contains(it.id)!! }
             Pair(userTeamMessagesIds.first,teamMessages)
         }.map {
-            val count = vm.getUnreadMessagesTeamDB(it.second,vm.loggedMember)
+            val count = vm.getUnreadMessagesTeamDB(it.second,vm.loggedMember.id)
             val newestCreationDate = it.second.maxOfOrNull { it.creationDate }
             MessagesInfos(teamMemberName = it.first.name, date = newestCreationDate, chatId = it.first.chat!!, unreadMessages = count)
         }.filter { it.unreadMessages > 0 }
     vm.unreadMessages.addAll(userTeamsMessages)
     // membersChatMessages
-    val directChats = chats.filter { chat -> chat.receiver == vm.loggedMember || chat.sender == vm.loggedMember }
+    val directChats = chats.filter { chat -> chat.receiver == vm.loggedMember.id || chat.sender == vm.loggedMember.id }
         .map { chat ->
             // take the other member to chat with and messagesIds
-            if(chat.receiver == vm.loggedMember) {
+            if(chat.receiver == vm.loggedMember.id) {
                 val member = members.find {it.id == chat.sender}!!
                 Triple(member,chat.id,chat.messages)
             } else {
@@ -110,7 +110,7 @@ fun SetupNotificationsData(vm: NotificationsViewModel = viewModel(factory = Fact
             val userMessages = messages.filter { memberChatIdMessagesId.third.contains(it.id) }
             Triple(memberChatIdMessagesId.first,memberChatIdMessagesId.second,userMessages)
         }.map {
-            val count = vm.getUnreadMessagesUserDB(it.third,vm.loggedMember)
+            val count = vm.getUnreadMessagesUserDB(it.third,vm.loggedMember.id)
             val newestCreationDate = it.third.maxOfOrNull { it.creationDate }
             MessagesInfos(teamMemberName = it.first.username, date = newestCreationDate, chatId = it.second, unreadMessages = count)
         }.filter { it.unreadMessages > 0 }
@@ -118,15 +118,18 @@ fun SetupNotificationsData(vm: NotificationsViewModel = viewModel(factory = Fact
 
     vm.teamsHistories.clear()
     // teams histories
-    val userTeams = teams.filter { it.members.contains(vm.loggedMember)}
+    val userTeams = teams.filter { it.members.contains(vm.loggedMember.id)}
     vm.teamsHistories.addAll(userTeams.map { userTeam ->
         val teamHistories = histories.filter { userTeam.teamHistory.contains(it.id) }
         Pair(userTeam,teamHistories)
     }.flatMap { it.second.map { history->
         Pair(it.first,history)
     } })
-    // TODO histories no more from the teams (removed from the team, team deleted)
-    val noTeamHistories = histories.filter { it.comment.contains("removed from the team, team deleted") && it.user == vm.loggedMember }
+    // histories no more from the teams (removed from the team, team deleted)
+    val noTeamHistories = histories.filter {
+        it.comment.contains("${vm.loggedMember.username} removed from the Team.")
+                || (it.comment.contains(Regex("""Team (.+) deleted\.""")) && it.oldMembers.contains(vm.loggedMember.id))
+    }
     vm.teamsHistories.addAll(noTeamHistories.map {
         Pair(null,it)
     })
@@ -134,6 +137,7 @@ fun SetupNotificationsData(vm: NotificationsViewModel = viewModel(factory = Fact
 
 @Composable
 fun Notifications(vm: NotificationsViewModel = viewModel(factory = Factory(LocalContext.current))) {
+    vm.loggedMember = AppStateManager.getLoggedMember()
     SetupNotificationsData(vm = vm)
     val icons = listOf(Icons.Filled.Comment, Icons.Filled.Info)
     val titles = notificationsSection.entries.map { it.toString() }
@@ -191,7 +195,12 @@ fun MessageItem(teamMemberName: String, teamMemberChatId:String, nOfMessages: In
     val navController = NavControllerManager.getNavController()
     Row(
         modifier = Modifier
-            .clickable { Log.i("prova",teamMemberChatId); navController.navigate("Chat/$teamMemberChatId") }
+            .clickable {
+                Log.i(
+                    "prova",
+                    teamMemberChatId
+                ); navController.navigate("Chat/$teamMemberChatId")
+            }
             .fillMaxWidth()
             .border(0.5.dp, MaterialTheme.colorScheme.onPrimary)
             .padding(10.dp),
@@ -226,16 +235,18 @@ fun ActivitiesSection(vm: NotificationsViewModel = viewModel(factory = Factory(L
             vm.teamsHistories.sortedByDescending { it.second.date }.forEach { (team,history) ->
                 val comment = if(history.comment == "Team Joined.") {
                     val member = AppStateManager.getMembers().find { it.id == history.user }!!
-                    if(member.id != vm.loggedMember)
+                    if(member.id != vm.loggedMember.id)
                         "${member.username} Joined The Team."
                     else
                         "You Joined The Team."
                 } else if(history.comment == "Team Left.") {
                     val member = AppStateManager.getMembers().find { it.id == history.user }!!
-                    if(member.id != vm.loggedMember)
+                    if(member.id != vm.loggedMember.id)
                         "${member.username} Left The Team."
                     else
                         "You Left The Team."
+                } else if(history.comment == "${vm.loggedMember.username} removed from the Team.") {
+                    "You were removed from the Team."
                 } else {
                     history.comment
                 }
@@ -251,12 +262,12 @@ fun ActivityItem(teamName: String?, teamId:String?, Activity: String) {
     Row(
         modifier = if(teamId!=null)
             Modifier
-            .clickable { navController.navigate("Team/${teamId}") }
-            .fillMaxWidth()
-            .border(0.5.dp, MaterialTheme.colorScheme.onPrimary)
-            .padding(10.dp)
-            .heightIn(min = 40.dp)
-            .wrapContentHeight()
+                .clickable { navController.navigate("Team/${teamId}") }
+                .fillMaxWidth()
+                .border(0.5.dp, MaterialTheme.colorScheme.onPrimary)
+                .padding(10.dp)
+                .heightIn(min = 40.dp)
+                .wrapContentHeight()
         else
             Modifier
                 .fillMaxWidth()

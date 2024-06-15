@@ -386,42 +386,21 @@ fun getAllTasks(db: FirebaseFirestore): Flow<List<TaskDBFinal>> = callbackFlow {
         listener.remove()
     }
 }
-fun getAllHistories(db: FirebaseFirestore): Flow<List<HistoryDBFinal>> = callbackFlow {
-    val listener = db.collection("History").addSnapshotListener { r, e ->
-        if (r != null) {
-            val histories = mutableListOf<HistoryDBFinal>()
-            r.forEach { history ->
-                val userId = history.getString("user") ?: ""
-                val h = HistoryDBFinal(
-                    id = history.id,
-                    comment = history.getString("comment") ?: "",
-                    date = history.getTimestamp("date") ?.let { parseToLocalDate(it.toDate(),
-                        parseReturnType.DATETIME) } as LocalDateTime,
-                    user = userId
-                )
-                histories.add(h)
-            }
-            trySend(histories)
-        } else {
-            trySend(listOf())
-        }
-    }
-    awaitClose {
-        listener.remove()
-    }
-}
+
 fun getAllHistoriesFinal(db: FirebaseFirestore): Flow<List<HistoryDBFinal>> = callbackFlow {
     val listener = db.collection("History").addSnapshotListener { r, e ->
         if (r != null) {
             val histories = mutableListOf<HistoryDBFinal>()
             r.forEach { history ->
                 val userId = history.getString("user") ?: ""
+                val oldMembers = (history.get("oldMembers") as? List<String>)
                 val h = HistoryDBFinal(
                     id = history.id,
                     comment = history.getString("comment") ?: "",
                     date = history.getTimestamp("date") ?.let { parseToLocalDate(it.toDate(),
                         parseReturnType.DATETIME) } as LocalDateTime,
-                    user = userId
+                    user = userId,
+                    oldMembers = oldMembers ?: listOf()
                 )
                 histories.add(h)
             }

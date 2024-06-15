@@ -137,10 +137,15 @@ fun TeamViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalC
                    outputDirectory: File,
                    cameraExecutor: ExecutorService){
     val controller = NavControllerManager.getNavController()
+    LaunchedEffect(key1 = 1) {
+        vm.model.resetAvailabilitiesErrors()
+    }
     vm.loggedMember = AppStateManager.getLoggedMember()
     vm.isAdmin = vm.loggedMember.teamsInfo?.get(vm.teamId)?.permissionrole == permissionRole.ADMIN
     // Handle Back Button
     BackHandler(onBack = {
+        if(vm.addTeam)
+            controller.navigate("Teams")
         if(vm.editing)
             vm.changeEditing()
         else
