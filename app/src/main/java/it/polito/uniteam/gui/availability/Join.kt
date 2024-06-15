@@ -31,6 +31,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.credentials.CredentialManager
+import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -45,6 +47,8 @@ import it.polito.uniteam.classes.HourMinutesPicker
 import it.polito.uniteam.classes.LoadingSpinner
 import it.polito.uniteam.classes.MemberTeamInfo
 import it.polito.uniteam.classes.TeamDBFinal
+import it.polito.uniteam.gui.login.Login
+import it.polito.uniteam.gui.login.LoginViewModel
 import it.polito.uniteam.isVertical
 
 
@@ -100,7 +104,6 @@ class JoinViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHan
     }
 }
 
-
 @OptIn(UnstableApi::class)
 @Composable
 fun Join(vm: JoinViewModel = viewModel(factory = Factory(LocalContext.current))) {
@@ -109,6 +112,7 @@ fun Join(vm: JoinViewModel = viewModel(factory = Factory(LocalContext.current)))
     val teams = AppStateManager.getTeams()
     val team by remember { mutableStateOf(teams.find { it.id == vm.teamId }) }
     val loggedMember = AppStateManager.getLoggedMemberFinal(members = AppStateManager.getMembers(),vm.model.loggedMemberFinal.id)
+
 
     fun isLoggedMemberInTeam(): Boolean {
         return team?.members?.contains(loggedMember.id) ?: false

@@ -132,7 +132,7 @@ fun getMemberByEmail(db: FirebaseFirestore, coroutineScope: CoroutineScope, jwt:
         } else {
             val email = jwt.getClaim("email").asString()?: ""
             val name = jwt.getClaim("name").asString()?: ""
-            val username = jwt.getClaim("preferred_username").asString()?: jwt.getClaim("email").asString()!!  // Example claim for username
+            val username = jwt.getClaim("preferred_username").asString()?: jwt.getClaim("email").asString()!!.substringBefore("@")  // Example claim for username
             val pictureUrl = jwt.getClaim("picture").asString()?: "" // Claim for profile image URL
             val pictureUri = Uri.parse(pictureUrl)?: Uri.EMPTY
             //create member db
