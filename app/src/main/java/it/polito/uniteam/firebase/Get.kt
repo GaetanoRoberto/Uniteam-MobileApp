@@ -18,6 +18,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.core.net.toUri
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
@@ -177,7 +178,7 @@ fun getAllTeams(db: FirebaseFirestore, coroutineScope: CoroutineScope, loggedUse
                     t.id = it.id
                     t.name = it.getString("name") ?: ""
                     t.description = it.getString("description") ?: ""
-                    t.image = getImageToFirebaseStorage(it.id)
+                    t.image = it.getString("image")?.toUri() ?: Uri.EMPTY
                     t.creationDate = it.getTimestamp("creationDate")
                         ?.let {
                             parseToLocalDate(
@@ -220,7 +221,7 @@ fun getAllMembers(db: FirebaseFirestore, coroutineScope: CoroutineScope): Flow<L
                     m.location = it.getString("location") ?: ""
                     m.description = it.getString("description") ?: ""
                     m.kpi = it.getString("kpi") ?: ""
-                    m.profileImage = getImageToFirebaseStorage(it.id)!!
+                    m.profileImage =  it.getString("image")?.toUri() ?: Uri.EMPTY
                     val teamsInfo = it.get("teamsInfo")
                     if (teamsInfo is List<*>) {
                         m.teamsInfo = hashMapOf()
@@ -552,7 +553,6 @@ fun getMemberFlowById(db: FirebaseFirestore, coroutineScope: CoroutineScope, mem
             }
             m.chats = r.get("chats") as MutableList<String>
 
-            Log.i("prova",m.toString())
             trySend(m)
         } else {
             trySend(MemberDBFinal())

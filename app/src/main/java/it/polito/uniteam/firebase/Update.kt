@@ -9,7 +9,8 @@ import it.polito.uniteam.classes.TaskDBFinal
 import com.google.firebase.storage.FirebaseStorage
 import it.polito.uniteam.classes.CommentDBFinal
 import it.polito.uniteam.classes.HistoryDBFinal
-import it.polito.uniteam.classes.TeamDBFinal
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Date
@@ -28,18 +29,65 @@ suspend fun markUserMessageAsReadDB(db: FirebaseFirestore, messageId: String) {
     messageRef.update("status", "READ").await()
 }
 
-fun uploadImageToFirebase(fileName: String,fileUri: Uri = Uri.EMPTY) {
+fun uploadImageToFirebase(db: FirebaseFirestore, fileName: String,fileUri: Uri = Uri.EMPTY, isMember: Boolean = true) {
     val storage = FirebaseStorage.getInstance()
     val storageRef = storage.reference
     val fileRef = storageRef.child("images/${fileName}.jpg")
 
-    fileRef.putFile(fileUri)
-        .addOnSuccessListener {
-            Log.i("DB", "File Uploaded Successfully.")
+    if (fileUri != Uri.EMPTY) {
+        fileRef.putFile(fileUri).addOnSuccessListener {
+            fileRef.downloadUrl.addOnSuccessListener { uri ->
+                val newPhotoUri = uri.toString()
+
+                // Start the transaction after getting the download URL
+                db.runTransaction { transaction ->
+                    if (isMember) {
+                        val memberRef = db.collection("Member").document(fileName)
+                        val snapshot = transaction.get(memberRef)
+                        val updatedMember = snapshot.data?.toMutableMap() ?: mutableMapOf()
+                        updatedMember["image"] = newPhotoUri
+                        transaction.set(memberRef, updatedMember)
+                    } else {
+                        val teamRef = db.collection("Team").document(fileName)
+                        val snapshot = transaction.get(teamRef)
+                        val updatedTeam = snapshot.data?.toMutableMap() ?: mutableMapOf()
+                        updatedTeam["image"] = newPhotoUri
+                        transaction.set(teamRef, updatedTeam)
+                    }
+                }.addOnSuccessListener {
+                    Log.i("DB", "Image Updated Successfully.")
+                }.addOnFailureListener {
+                    Log.i("DB", "Image Update Failed.")
+                }
+            }.addOnFailureListener {
+                Log.i("DB", "Failed to get download URL.")
+            }
+        }.addOnFailureListener {
+            Log.i("DB", "Image Upload Failed.")
         }
-        .addOnFailureListener {
-            Log.i("DB", "File Uploaded Failed.")
+    } else {
+        // delete image case
+        fileRef.delete()
+        db.runTransaction { transaction ->
+            if (isMember) {
+                val memberRef = db.collection("Member").document(fileName)
+                val snapshot = transaction.get(memberRef)
+                val updatedMember = snapshot.data?.toMutableMap() ?: mutableMapOf()
+                updatedMember["image"] = ""
+                transaction.set(memberRef, updatedMember)
+            } else {
+                val teamRef = db.collection("Team").document(fileName)
+                val snapshot = transaction.get(teamRef)
+                val updatedTeam = snapshot.data?.toMutableMap() ?: mutableMapOf()
+                updatedTeam["image"] = ""
+                transaction.set(teamRef, updatedTeam)
+            }
+        }.addOnSuccessListener {
+            Log.i("DB", "Image Updated Successfully.")
+        }.addOnFailureListener {
+            Log.i("DB", "Image Update Failed.")
         }
+    }
 }
 
 fun scheduleTask(db: FirebaseFirestore, task: TaskDBFinal, scheduleDate: LocalDate, hoursToSchedule: Pair<Int, Int>, memberId: String) {
@@ -127,7 +175,7 @@ fun updateUserProfile(db: FirebaseFirestore, memberId: String, username: String,
     )
     val memberRef = db.collection("Member").document(memberId)
     db.runTransaction { transaction ->
-        uploadImageToFirebase(memberId, profileImage)
+        uploadImageToFirebase(db, memberId, profileImage)
         transaction.update(memberRef, fieldsToUpdate)
     }.addOnSuccessListener {
         Log.d("DB", "Member Updated Successfully.")
@@ -203,7 +251,7 @@ fun updateTeam(db: FirebaseFirestore, teamId:String, teamName: String, teamDescr
         }
         transaction.update(teamRef, "name",teamName)
         transaction.update(teamRef, "description",teamDescription)
-        uploadImageToFirebase(teamId, teamImage)
+        uploadImageToFirebase(db, teamId, teamImage, isMember = false)
         teamHistory.forEach { history ->
             if(history.id.toIntOrNull() != null) {
                 val historyDB = mapOf(

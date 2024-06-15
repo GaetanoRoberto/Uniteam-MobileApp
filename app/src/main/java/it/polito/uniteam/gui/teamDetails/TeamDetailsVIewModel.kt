@@ -24,6 +24,7 @@ class TeamDetailsViewModel(val model: UniTeamModel, val savedStateHandle: SavedS
     var isAdmin:Boolean? = null//loggedMember.teamsInfo?.get(teamId)?.permissionrole == permissionRole.ADMIN
     var addTeam = teamId.length == 1 // pass 0 when add so length 1
     var editing by mutableStateOf(teamId.length == 1)
+    var isTeamDeleted = false
     var temporaryId: Int = 1
 
     var teamName = mutableStateOf("")

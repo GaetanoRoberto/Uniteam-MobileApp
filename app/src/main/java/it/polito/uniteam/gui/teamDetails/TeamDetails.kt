@@ -110,7 +110,7 @@ import java.util.concurrent.ExecutorService
 
 @Composable
 fun SetupTeamData(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalContext.current.applicationContext))) {
-    if(!vm.addTeam) {
+    if(!vm.addTeam && !vm.isTeamDeleted) {
         val team = AppStateManager.getTeams().find { it.id == vm.teamId }!!
         val teamMembers = AppStateManager.getMembers().filter { team.members.contains(it.id) }
         val teamHistory = AppStateManager.getHistories().filter { team.teamHistory.contains(it.id) }
@@ -1308,6 +1308,7 @@ fun DeleteTeamDialog(vm: TeamDetailsViewModel) {
         confirmButton = {
             TextButton(
                 onClick = {
+                    vm.isTeamDeleted = true
                     vm.openDeleteTeamDialog = false
                     vm.model.deleteTeam(vm.teamId,files,vm.loggedMember.id)
                     navController.navigate("Teams") { launchSingleTop = true }

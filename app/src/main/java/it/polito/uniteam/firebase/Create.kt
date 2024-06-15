@@ -334,7 +334,8 @@ fun createTeam(db: FirebaseFirestore, team: TeamDBFinal, memberInfo : MemberTeam
             "creationDate" to Timestamp.now(),
             "members" to team.members,
             "tasks" to team.tasks,
-            "teamHistory" to team.teamHistory
+            "teamHistory" to team.teamHistory,
+            "image" to ""
         )
 
         val teamRef = db.collection("Team").document()
@@ -385,7 +386,7 @@ fun createTeam(db: FirebaseFirestore, team: TeamDBFinal, memberInfo : MemberTeam
             transaction.update(memberRef, "teamsInfo", FieldValue.arrayUnion(teamsInfo))
         }
 
-        uploadImageToFirebase(teamRef.id, team.image)
+        uploadImageToFirebase(db,teamRef.id, team.image, isMember = false)
     }.addOnSuccessListener {
         Log.d("DB", "Team created with ID: ${team.id}")
     }.addOnFailureListener { e ->

@@ -788,6 +788,7 @@ fun PresentationPane(vm: UserProfileScreen = viewModel(factory = Factory(LocalCo
 
 @Composable
 fun SetupProfileData(vm: UserProfileScreen = viewModel(factory = Factory(LocalContext.current))) {
+    vm.loggedMember = AppStateManager.getLoggedMember().id
     val loggedMember = AppStateManager.getMembers().find { it.id == vm.loggedMember }!!
     vm.nameValue = loggedMember.fullName
     vm.usernameValue = loggedMember.username
@@ -809,7 +810,6 @@ fun ProfileSettings(
     outputDirectory: File,
     cameraExecutor: ExecutorService
 ) {
-    vm.loggedMember = AppStateManager.getLoggedMember().id
     if (isVertical()) {
         Box(
             contentAlignment = Alignment.TopEnd,

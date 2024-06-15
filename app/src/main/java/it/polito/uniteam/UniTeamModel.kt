@@ -72,7 +72,7 @@ class UniTeamModel(val context: Context) {
     var isLoading2 = mutableStateOf(true)
 
     var loggedUser = getMemberById(db, coroutineScope, "d67br0MqJf6Qs1tzKHhm")
-    fun getLoggedUserFlow(): Flow<MemberDBFinal> = getMemberFlowById(db, coroutineScope,"tQLCfuconmcAxnoyMS6w")
+    fun getLoggedUserFlow(): Flow<MemberDBFinal> = getMemberFlowById(db, coroutineScope,"d67br0MqJf6Qs1tzKHhm")
     val loggedMemberFinal = MemberDBFinal(
         id = "d67br0MqJf6Qs1tzKHhm",
         fullName = "Matteo Nicita",
