@@ -101,9 +101,10 @@ fun YourTasksCalendarView(vm: YourTasksCalendarViewModel = viewModel(factory = F
 @Composable
 fun TaskItem(task: TaskForCalendar) {
     val controller = NavControllerManager.getNavController()
+    val teamId = AppStateManager.getTeams().find { it.tasks.contains(task.id) }?.id
     Row(
         modifier = Modifier
-            .clickable { controller.navigate("Task/${task.id}") }
+            .clickable { controller.navigate("Task/${task.id}/${teamId}") }
             .fillMaxWidth()
             .heightIn(min = 60.dp, max = 100.dp)
             .padding(2.dp)

@@ -39,6 +39,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Face
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
@@ -80,8 +81,11 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import it.polito.uniteam.AppStateManager
 import it.polito.uniteam.Factory
+import it.polito.uniteam.NavControllerManager
 import it.polito.uniteam.R
 import it.polito.uniteam.UniTeamModel
 import it.polito.uniteam.classes.CompressImage
@@ -816,17 +820,50 @@ fun ProfileSettings(
             modifier = Modifier.fillMaxSize()
         ) {
             if (!vm.isEditing) {
-                FloatingActionButton(
-                    onClick = { vm.edit() },
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = "Edit",
-                        tint = MaterialTheme.colorScheme.onSecondary,
-                        modifier = Modifier.size(30.dp)
-                    )
+                Column {
+                    FloatingActionButton(
+                        onClick = { vm.edit() },
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Edit",
+                            tint = MaterialTheme.colorScheme.onSecondary,
+                            modifier = Modifier.size(30.dp)
+                        )
+                    }
+                    val activityContext = LocalContext.current
+                    val sharedPreferences = activityContext.getSharedPreferences("login_prefs", Context.MODE_PRIVATE)
+                    val controller = NavControllerManager.getNavController()
+                    FloatingActionButton(
+                        onClick = {
+                            val gso =
+                                GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                                    .requestEmail()
+                                    .build()
+                            val googleSignInClient = GoogleSignIn.getClient(activityContext, gso)
+                            googleSignInClient.signOut().addOnCompleteListener {
+                                vm.model.setIsUserLogged(false)
+                                //after log out
+                                sharedPreferences.edit().apply {
+                                    putBoolean("isUserLogged", false)
+                                    remove("userEmail")
+                                    apply()
+                                }
+                                controller.navigate("Login")
+                            }
+                        },
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(start = 16.dp, top = 0.dp, end = 0.dp, bottom = 0.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.logout),
+                            contentDescription = "Logout",
+                            tint = MaterialTheme.colorScheme.onSecondary,
+                            modifier = Modifier.size(30.dp)
+                        )
+                    }
                 }
             }
         }
@@ -1031,19 +1068,53 @@ fun ProfileSettings(
                             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                 DefaultImage(vm)
                                 if (!vm.isEditing) {
-                                    FloatingActionButton(
-                                        onClick = { vm.edit() },
-                                        containerColor = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier
-                                            .align(Alignment.TopEnd)
-                                            .padding(16.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Edit,
-                                            contentDescription = "Edit",
-                                            tint = MaterialTheme.colorScheme.onSecondary,
-                                            modifier = Modifier.size(30.dp)
-                                        )
+                                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopEnd) {
+                                        Column {
+                                            FloatingActionButton(
+                                                onClick = { vm.edit() },
+                                                containerColor = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier
+                                                    .padding(16.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Edit,
+                                                    contentDescription = "Edit",
+                                                    tint = MaterialTheme.colorScheme.onSecondary,
+                                                    modifier = Modifier.size(30.dp)
+                                                )
+                                            }
+                                            val activityContext = LocalContext.current
+                                            val sharedPreferences = activityContext.getSharedPreferences("login_prefs", Context.MODE_PRIVATE)
+                                            val controller = NavControllerManager.getNavController()
+                                            FloatingActionButton(
+                                                onClick = {
+                                                    val gso =
+                                                        GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                                                            .requestEmail()
+                                                            .build()
+                                                    val googleSignInClient = GoogleSignIn.getClient(activityContext, gso)
+                                                    googleSignInClient.signOut().addOnCompleteListener {
+                                                        vm.model.setIsUserLogged(false)
+                                                        //after log out
+                                                        sharedPreferences.edit().apply {
+                                                            putBoolean("isUserLogged", false)
+                                                            remove("userEmail")
+                                                            apply()
+                                                        }
+                                                        controller.navigate("Login")
+                                                    }
+                                                },
+                                                containerColor = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.padding(start = 16.dp, top = 0.dp, end = 0.dp, bottom = 0.dp)
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(id = R.drawable.logout),
+                                                    contentDescription = "Logout",
+                                                    tint = MaterialTheme.colorScheme.onSecondary,
+                                                    modifier = Modifier.size(30.dp)
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }
