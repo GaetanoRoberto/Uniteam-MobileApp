@@ -625,19 +625,6 @@ fun TeamDetailsEdit(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
                         .verticalScroll(rememberScrollState())
                         .padding(10.dp, 0.dp)
                 ) {
-                    Box{
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(vm.teamProfileImage.value)
-                                .crossfade(true)
-                                .build(),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .fillMaxHeight(0.9f)
-                                .align(Alignment.TopCenter),
-                        )
-                    }
 
                     Spacer(modifier = Modifier.padding(10.dp))
                     EditRowItem(
@@ -863,9 +850,11 @@ fun TeamMembersDropdownMenuBox(
                 onValueChange = {},
                 readOnly = true,
                 trailingIcon = {
-                    //IconButton(onClick = { vm.openAssignDialog.value = true }) {
-                    Icon(Icons.Default.Add, contentDescription = "Add ")
-                    //}
+                    Icon(
+                        modifier = Modifier.width(15.dp),
+                        painter = painterResource(id = R.drawable.minus),
+                        contentDescription = "Remove"
+                    )
                 },
                 modifier = Modifier
                     .menuAnchor()

@@ -368,7 +368,7 @@ fun GoogleSignInButton(
         shape = RoundedCornerShape(24.dp),
         modifier = modifier
             .height(48.dp)
-            .width(250.dp)
+            .fillMaxWidth(0.9f)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
