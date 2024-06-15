@@ -1615,7 +1615,7 @@ fun FAB(vm: TeamScreenViewModel){
 @Composable
 fun AssignDialog(vm: TeamScreenViewModel, membersList: List<MemberDBFinal>) {
     val screenHeightDp = LocalConfiguration.current.screenHeightDp
-    val loggedMember = AppStateManager.getLoggedMember()
+    val loggedMember = AppStateManager.getLoggedMemberFinal(members = AppStateManager.getMembers(),vm.model.loggedMemberFinal.id)
 
     if (vm.taskToAssign != null) {
         val selectedMembers = remember { mutableStateMapOf<MemberDBFinal, Boolean>() }
@@ -1715,7 +1715,7 @@ fun AssignDialog(vm: TeamScreenViewModel, membersList: List<MemberDBFinal>) {
 fun ChangeAdminDialog(vm: TeamScreenViewModel, membersList: List<MemberDBFinal>, currentTeam: TeamDBFinal) {
     val navController = NavControllerManager.getNavController()
     val screenHeightDp = LocalConfiguration.current.screenHeightDp
-    val loggedMember = AppStateManager.getLoggedMember()
+    val loggedMember = AppStateManager.getLoggedMemberFinal(members = AppStateManager.getMembers(),vm.model.loggedMemberFinal.id)
     var selectedMemberId by remember { mutableStateOf("") }
 
     Dialog(onDismissRequest = { vm.openAdminDialog = false }) {
@@ -1787,7 +1787,7 @@ fun ChangeAdminDialog(vm: TeamScreenViewModel, membersList: List<MemberDBFinal>,
 @Composable
 fun LeaveTeamDialog(vm: TeamScreenViewModel, currentTeam: TeamDBFinal) {
     val navController = NavControllerManager.getNavController()
-    val loggedMember = AppStateManager.getLoggedMember()
+    val loggedMember =AppStateManager.getLoggedMemberFinal(members = AppStateManager.getMembers(),vm.model.loggedMemberFinal.id)
 
     AlertDialog(
         containerColor = MaterialTheme.colorScheme.background,

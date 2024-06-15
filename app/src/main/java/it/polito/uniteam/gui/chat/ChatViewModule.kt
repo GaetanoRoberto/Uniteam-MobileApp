@@ -6,6 +6,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import it.polito.uniteam.AppStateManager
 import it.polito.uniteam.UniTeamModel
 import it.polito.uniteam.classes.Member
 import it.polito.uniteam.classes.MemberDBFinal

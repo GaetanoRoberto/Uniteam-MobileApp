@@ -18,6 +18,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import com.auth0.android.jwt.JWT
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
@@ -75,6 +76,98 @@ suspend fun getImageToFirebaseStorage(fileName: String): Uri {
     }
 }
 
+fun getMemberByEmail(db: FirebaseFirestore, coroutineScope: CoroutineScope, jwt: JWT): Deferred<MemberDBFinal> {
+    val email = jwt.getClaim("email").asString()
+    return coroutineScope.async {
+        val querySnapshot = db.collection("Member")
+            .whereEqualTo("email", email)
+            .get()
+            .await()
+
+        val memberDocument = querySnapshot.documents.firstOrNull()
+        if (memberDocument != null) {
+            val member = memberDocument
+            val m = MemberDBFinal()
+            m.id = member.id ?: ""
+            m.fullName = member.getString("fullName") ?: ""
+            m.username = member.getString("username") ?: ""
+            m.email = member.getString("email") ?: ""
+            m.location = member.getString("location") ?: ""
+            m.description = member.getString("description") ?: ""
+            m.kpi = member.getString("kpi") ?: ""
+            m.profileImage = getImageToFirebaseStorage(member.id)
+            val teamsInfo = member.get("teamsInfo")
+            if (teamsInfo is List<*>) {
+                m.teamsInfo = hashMapOf()
+                (teamsInfo as List<HashMap<String, Any>>).forEach { teamInfoMap ->
+                    val teamId = teamInfoMap["teamId"] as? String ?: return@forEach
+                    val role = teamInfoMap["role"] as? String ?: "NONE"
+                    val weeklyAvailabilityTimes = (teamInfoMap["weeklyAvailabilityTimes"] as? Number)?.toInt() ?: 0
+                    val weeklyAvailabilityHoursMap = teamInfoMap["weeklyAvailabilityHours"] as? HashMap<String, Number>
+                    var hours = 0
+                    var minutes = 0
+                    weeklyAvailabilityHoursMap?.forEach { (dbKey, dbValue) ->
+                        if (dbKey == "hours")
+                            hours = dbValue.toInt()
+                        else
+                            minutes = dbValue.toInt()
+                    }
+                    val weeklyAvailabilityHours = Pair(hours, minutes)
+                    val permissionRole = teamInfoMap["permissionrole"] as? String ?: "USER"
+
+                    m.teamsInfo?.put(teamId, MemberTeamInfo(
+                        role = CategoryRole.valueOf(role),
+                        weeklyAvailabilityTimes = weeklyAvailabilityTimes,
+                        weeklyAvailabilityHours = weeklyAvailabilityHours,
+                        permissionrole = it.polito.uniteam.classes.permissionRole.valueOf(permissionRole)
+                    ))
+                }
+            } else {
+                m.teamsInfo = hashMapOf()
+            }
+
+            m.chats = member.get("chats") as? MutableList<String> ?: mutableListOf()
+            Log.d("MemberDB", m.toString())
+            m
+        } else {
+            val email = jwt.getClaim("email").asString()?: ""
+            val name = jwt.getClaim("name").asString()?: ""
+            val username = jwt.getClaim("preferred_username").asString()?: jwt.getClaim("email").asString()!!  // Example claim for username
+            val pictureUrl = jwt.getClaim("picture").asString()?: "" // Claim for profile image URL
+            val pictureUri = Uri.parse(pictureUrl)?: Uri.EMPTY
+            //create member db
+
+            val member = mapOf(
+                //"id" to "",
+                "fullName" to name,
+                "username" to username,
+                "email" to email,
+                "image" to pictureUri,
+                // blank values (not in jwt)
+                "location" to "",
+                "description" to "",
+                "teamsInfo" to listOf<String>(),
+                "chats" to listOf<String>(),
+            )
+
+            val memberRef = db.collection("Member").document()
+            db.runTransaction{transaction->
+                transaction.set(memberRef, member)
+
+                uploadImageToFirebase( memberRef.id, pictureUri)
+
+            }
+            //val savedMember = db.collection("Member").add(member).await()
+
+            //TODO prova messaggi perchè cambiato
+            Log.d("MemberDB","no member")
+
+            val m = MemberDBFinal(id= memberRef.id, username= username, email = email, fullName= name, profileImage = pictureUri )
+            Log.d("MemberDB","${m}")
+            m
+        }
+    }
+}
 fun createNotificationChannel(context: Context, channelName: String, channelDescription: String, channelId: String) {
     val importance = NotificationManager.IMPORTANCE_LOW
     val channel = NotificationChannel(channelId, channelName, importance).apply {
@@ -162,7 +255,7 @@ suspend fun downloadFileAndSaveToDownloads(context: Context, fileStorageName: St
     }
 }
 
-fun getAllTeams(db: FirebaseFirestore, coroutineScope: CoroutineScope, loggedUser: Deferred<MemberDB>, isLoading: MutableState<Boolean>, isLoading2: MutableState<Boolean>): Flow<List<TeamDBFinal>> = callbackFlow {
+fun getAllTeams(db: FirebaseFirestore, coroutineScope: CoroutineScope, isLoading: MutableState<Boolean>, isLoading2: MutableState<Boolean>): Flow<List<TeamDBFinal>> = callbackFlow {
     //Stato di caricamento dati dal db
     isLoading.value = true
     isLoading2.value = true

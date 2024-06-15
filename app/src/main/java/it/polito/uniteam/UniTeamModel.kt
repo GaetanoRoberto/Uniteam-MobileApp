@@ -3,10 +3,13 @@ package it.polito.uniteam
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.platform.LocalContext
+import com.auth0.android.jwt.JWT
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -39,6 +42,7 @@ import it.polito.uniteam.classes.permissionRole
 import it.polito.uniteam.firebase.changeAdminRole
 //import it.polito.uniteam.firebase.addTaskHistory
 import it.polito.uniteam.firebase.getAllTeamsMembersHome
+import it.polito.uniteam.firebase.getMemberByEmail
 import it.polito.uniteam.firebase.getMemberById
 import it.polito.uniteam.firebase.getMemberFlowById
 import it.polito.uniteam.firebase.getTeamById
@@ -64,50 +68,46 @@ class UniTeamModel(val context: Context) {
             user = it.user!!
             Log.i("User",user.uid.toString())
         }
+
     }
+
+    var isUserLogged = mutableStateOf(false)
+    fun setIsUserLogged(flag: Boolean){
+        isUserLogged.value = flag
+    }
+
+    suspend fun setLoggedUser(jwtPayload: JWT){
+        loggedMemberFinal = getMemberByEmail(db, coroutineScope, jwtPayload).await()
+        //loggedMemberFinal = getMemberFlowByEmail(db, coroutineScope, jwtPayload).collectAsState(initial = MemberDBFinal()).value
+        isUserLogged.value = true
+        //Log.d("LOGIN", "logged member ${loggedUser}")
+
+    }
+
     val db = Firebase.firestore
     val coroutineScope = CoroutineScope(Dispatchers.IO)
     lateinit var user : FirebaseUser
+
 
     //Stato di caricamento dati dal db
     var isLoading = mutableStateOf(true)
     var isLoading2 = mutableStateOf(true)
 
-    var loggedUser = getMemberById(db, coroutineScope, "d67br0MqJf6Qs1tzKHhm")
-    fun getLoggedUserFlow(): Flow<MemberDBFinal> = getMemberFlowById(db, coroutineScope,"d67br0MqJf6Qs1tzKHhm")
-    val loggedMemberFinal = MemberDBFinal(
-        id = "d67br0MqJf6Qs1tzKHhm",
-        fullName = "Matteo Nicita",
-        username = "niciteo di prova",
-        email = "niciteo@gmail.com",
-        location = "Turin",
-        description = "Computer Engineer student at Polytechnic of Turin",
-        teamsInfo = hashMapOf(
-            "sok0izxut65rpQtTR8rO" to MemberTeamInfo(
-                role = CategoryRole.PROGRAMMER,
-                weeklyAvailabilityTimes = 3,
-                weeklyAvailabilityHours = Pair(2, 30),
-                permissionrole = permissionRole.ADMIN
-            ),
-            "WUdvXpDpgGqd2XPUV7Quh" to MemberTeamInfo(
-                role = CategoryRole.PROGRAMMER,
-                weeklyAvailabilityTimes = 1,
-                weeklyAvailabilityHours = Pair(1, 0),
-                permissionrole = permissionRole.USER
-            )
-        ),
-        chats = mutableListOf("xZCNWiCeTOvitmu4qygp")//TODO FORSE NON SERVE
-    )
-    fun getTeams(): Flow<List<TeamDB>> = getTeams(db,coroutineScope,loggedUser,isLoading)
-    fun getAllTeamsMembersHome(): Flow<List<MemberDB>> = getAllTeamsMembersHome(db,coroutineScope,loggedUser,isLoading)
-    fun getTeamById(id: String): Flow<TeamDB> = getTeamById(db,coroutineScope,id)
+    //var loggedUser = getMemberById(db, coroutineScope, "d67br0MqJf6Qs1tzKHhm")
+    //fun getLoggedUserFlow(): Flow<MemberDBFinal> = getMemberFlowById(db, coroutineScope,loggedMemberFinal.id)
+    //fun getMemberFlowByEmail(jwtPayload : JWT) :Flow<MemberDBFinal> = getMemberFlowByEmail(db, coroutineScope, jwtPayload)
+
+        var loggedMemberFinal = MemberDBFinal()
+    //fun getTeams(): Flow<List<TeamDB>> = getTeams(db,coroutineScope,loggedUser,isLoading)
+    //fun getAllTeamsMembersHome(): Flow<List<MemberDB>> = getAllTeamsMembersHome(db,coroutineScope,loggedUser,isLoading)
+    //fun getTeamById(id: String): Flow<TeamDB> = getTeamById(db,coroutineScope,id)
     fun updateTaskAssignee(taskId: String, members: List<String>, loggedUser: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = updateTaskAssignee(db,taskId,members,loggedUser,onSuccess,onFailure)
     fun joinTeam(memberId: String, teamId: String, newRole: String, newHours: Number, newMinutes: Number, newTimes: Number, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = joinTeam(db,memberId,teamId,newRole,newHours,newMinutes,newTimes,onSuccess,onFailure)
     fun changeAdminRole(loggedMemberId: String, memberId: String, teamId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = changeAdminRole(db,loggedMemberId,memberId,teamId,onSuccess,onFailure)
     fun leaveTeam(memberId: String, teamId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = leaveTeam(db,memberId,teamId,onSuccess,onFailure)
     fun updateLoggedMemberTeamInfo(memberId: String, teamId: String, newRole: String, newHours: Number, newMinutes: Number, newTimes: Number) = updateLoggedMemberTeamInfo(db,memberId,teamId,newRole,newHours,newMinutes,newTimes)
 
-    fun getAllTeams2(): Flow<List<TeamDBFinal>> = it.polito.uniteam.firebase.getAllTeams(db,coroutineScope,loggedUser,isLoading,isLoading2)
+    fun getAllTeams2(): Flow<List<TeamDBFinal>> = it.polito.uniteam.firebase.getAllTeams(db,coroutineScope,isLoading,isLoading2)
     fun getAllMembers2(): Flow<List<MemberDBFinal>> = it.polito.uniteam.firebase.getAllMembers(db, coroutineScope)
 
     fun getAllTasks2(): Flow<List<TaskDBFinal>> = it.polito.uniteam.firebase.getAllTasks(db)

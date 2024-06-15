@@ -74,7 +74,7 @@ class AvailabilityViewModel(val model: UniTeamModel, val savedStateHandle: Saved
 @Composable
 fun Availability(vm: AvailabilityViewModel = viewModel(factory = Factory(LocalContext.current))) {
     val navController = NavControllerManager.getNavController()
-    val loggedMember = AppStateManager.getLoggedMember()
+    val loggedMember = AppStateManager.getLoggedMemberFinal(members = AppStateManager.getMembers(),vm.model.loggedMemberFinal.id)
     Log.d("Availability", "Logged member: $loggedMember")
     val initialRole = loggedMember.teamsInfo?.get(vm.teamId)?.role!!
     val currentRoleState = rememberSaveable { mutableStateOf(initialRole) }

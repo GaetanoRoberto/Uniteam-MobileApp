@@ -3,6 +3,7 @@ package it.polito.uniteam.ui.theme
 import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -20,6 +21,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import it.polito.uniteam.Factory
 import it.polito.uniteam.GeneralViewModel
 import it.polito.uniteam.gui.home.HomeViewModel
+import it.polito.uniteam.isVertical
 
 private val DarkColorScheme = darkColorScheme(
     primary = Orange,
@@ -79,7 +81,8 @@ fun UniTeamTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = Color.DarkGray.toArgb()
+            window.statusBarColor = colorScheme.background.toArgb()
+            //window.navigationBarColor = colorScheme.background.toArgb()
             //window.colorMode = Color.White.toArgb()
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
         }

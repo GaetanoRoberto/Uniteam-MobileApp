@@ -123,6 +123,7 @@ import androidx.lifecycle.ViewModel
 import it.polito.uniteam.classes.ChatDBFinal
 import it.polito.uniteam.classes.MemberDB
 import it.polito.uniteam.classes.MessageDB
+import it.polito.uniteam.gui.login.Login
 import it.polito.uniteam.gui.teamDetails.TeamDetailsView
 import it.polito.uniteam.gui.yourTasksCalendar.YourTasksCalendarView
 import okhttp3.internal.wait
@@ -380,8 +381,16 @@ class MainActivity : ComponentActivity() {
                                                             // In your main activity or main screen composable
                                                             NavHost(
                                                                 navController = navController,
-                                                                startDestination = "Teams"
+                                                                startDestination = "Login"
                                                             ) {
+                                                                composable("Login",) {
+                                                                    Login(
+                                                                        vm = viewModel(
+                                                                            factory = Factory(
+                                                                                LocalContext.current
+                                                                            )
+                                                                        ))
+                                                                }
                                                                 composable("Teams") {
                                                                     Home(
                                                                         vm = viewModel(
@@ -696,8 +705,16 @@ class MainActivity : ComponentActivity() {
                                                         // In your main activity or main screen composable
                                                         NavHost(
                                                             navController = navController,
-                                                            startDestination = "Teams"
+                                                            startDestination = "Login"
                                                         ) {
+                                                            composable("Login",) {
+                                                                Login(
+                                                                    vm = viewModel(
+                                                                        factory = Factory(
+                                                                            LocalContext.current
+                                                                        )
+                                                                    ))
+                                                            }
                                                             composable("Teams") {
                                                                 Home(
                                                                     vm = viewModel(
@@ -1202,7 +1219,7 @@ class AppStateManager {
                 )
             ), content: @Composable () -> Unit
         ) {
-            val loggedMember = viewModel.loggedMember.collectAsState(initial = MemberDBFinal())
+
             val teams = viewModel.teams.collectAsState(initial = emptyList())
             val tasks = viewModel.tasks.collectAsState(initial = emptyList())
             val members = viewModel.members.collectAsState(initial = emptyList())
@@ -1211,9 +1228,9 @@ class AppStateManager {
             val comments = viewModel.comments.collectAsState(initial = emptyList())
             val chats = viewModel.chats.collectAsState(initial = emptyList())
             val messages = viewModel.messages.collectAsState(initial = emptyList())
-
+            //val loggedMember = viewModel.loggedMember.collectAsState(initial = MemberDBFinal())
             CompositionLocalProvider(
-                LocalLoggedMember provides loggedMember.value,
+                //LocalLoggedMember provides loggedMember.value,
                 LocalTeams provides teams.value,
                 LocalTasks provides tasks.value,
                 LocalMembers provides members.value,
@@ -1274,9 +1291,13 @@ class AppStateManager {
             return LocalMessages.current
         }
 
-        @Composable
+        /*@Composable
         fun getLoggedMember(): MemberDBFinal {
             return LocalLoggedMember.current
+        }*/
+        @Composable
+        fun getLoggedMemberFinal(members: List<MemberDBFinal>,memberId:String): MemberDBFinal {
+            return members.find { it.id == memberId }!!
         }
     }
 }
