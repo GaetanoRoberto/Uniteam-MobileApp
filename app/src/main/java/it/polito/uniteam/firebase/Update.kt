@@ -13,6 +13,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.ZoneId
+import java.util.Calendar
 import java.util.Date
 
 suspend fun markTeamMessageAsReadDB(db: FirebaseFirestore, memberId: String, messageId: String) {
@@ -90,7 +91,30 @@ fun uploadImageToFirebase(db: FirebaseFirestore, fileName: String,fileUri: Uri =
     }
 }
 
+fun compareDatesByDayMonthYear(date1: Date, date2: Date): Int {
+    val cal1 = Calendar.getInstance()
+    val cal2 = Calendar.getInstance()
+
+    cal1.time = date1
+    cal2.time = date2
+
+    val year1 = cal1.get(Calendar.YEAR)
+    val month1 = cal1.get(Calendar.MONTH)
+    val day1 = cal1.get(Calendar.DAY_OF_MONTH)
+
+    val year2 = cal2.get(Calendar.YEAR)
+    val month2 = cal2.get(Calendar.MONTH)
+    val day2 = cal2.get(Calendar.DAY_OF_MONTH)
+
+    return when {
+        year1 != year2 -> year1.compareTo(year2)
+        month1 != month2 -> month1.compareTo(month2)
+        else -> day1.compareTo(day2)
+    }
+}
+
 fun scheduleTask(db: FirebaseFirestore, task: TaskDBFinal, scheduleDate: LocalDate, hoursToSchedule: Pair<Int, Int>, memberId: String) {
+    val scheduleDateToDate = Timestamp(Date.from(scheduleDate.atStartOfDay(ZoneId.systemDefault()).toInstant())).toDate()
     val newSchedule = mapOf(
         "scheduleInfo" to mapOf(
             "member" to memberId,
@@ -110,20 +134,22 @@ fun scheduleTask(db: FirebaseFirestore, task: TaskDBFinal, scheduleDate: LocalDa
 
         val updatedSchedules = if (schedules != null) {
             val existingScheduleIndex = schedules.indexOfFirst {
-                Log.i("DB",it["scheduleInfo"]?.get("member").toString())
-                Log.i("DB",it["scheduleInfo"]?.get("scheduleDate").toString())
-                Log.i("DB",newSchedule["scheduleInfo"]?.get("scheduleDate").toString())
-                it["scheduleInfo"]?.get("member") == memberId && it["scheduleInfo"]?.get("scheduleDate") == newSchedule["scheduleInfo"]?.get("scheduleDate")
+                Log.i("DB",(it["scheduleInfo"]?.get("scheduleDate")as Timestamp).toDate().toString())
+                Log.i("DB",scheduleDateToDate.toString())
+                it["scheduleInfo"]?.get("member") == memberId && (compareDatesByDayMonthYear((it["scheduleInfo"]?.get("scheduleDate")as Timestamp).toDate(),scheduleDateToDate) == 0)
             }
             if (existingScheduleIndex != -1) {
                 val existingSchedule = schedules[existingScheduleIndex]
                 val existingHours = (existingSchedule["scheduleTime"]?.get("hours") as Long).toInt()
                 val existingMinutes = (existingSchedule["scheduleTime"]?.get("minutes") as Long).toInt()
-                val newHours = existingHours + newSchedule["scheduleTime"]?.get("hours") as Int
-                val newMinutes = existingMinutes + newSchedule["scheduleTime"]?.get("minutes") as Int
-
+                val newHours = newSchedule["scheduleTime"]?.get("hours") as Int
+                val newMinutes = newSchedule["scheduleTime"]?.get("minutes") as Int
+                val totalMinutes = existingMinutes + newMinutes
+                val minutesOverflow = totalMinutes / 60
+                val minutes = totalMinutes % 60
+                val totalHours = existingHours + newHours + minutesOverflow
                 val updatedSchedule = existingSchedule.toMutableMap()
-                updatedSchedule["scheduleTime"] = mapOf("hours" to newHours, "minutes" to newMinutes)
+                updatedSchedule["scheduleTime"] = mapOf("hours" to totalHours, "minutes" to minutes)
                 schedules.toMutableList().apply { set(existingScheduleIndex, updatedSchedule) }
             } else {
                 schedules + newSchedule
@@ -144,6 +170,8 @@ fun scheduleTask(db: FirebaseFirestore, task: TaskDBFinal, scheduleDate: LocalDa
 
 fun unscheduleTask(db: FirebaseFirestore, task: TaskDBFinal, scheduleDate: LocalDate, memberId: String) {
     val scheduleTime = task.schedules[Pair(memberId,scheduleDate)]!!
+    val scheduleDateToDate = Timestamp(Date.from(scheduleDate.atStartOfDay(ZoneId.systemDefault()).toInstant())).toDate()
+
     val scheduleToRemove = mapOf(
         "scheduleInfo" to mapOf(
             "member" to memberId,
@@ -155,14 +183,24 @@ fun unscheduleTask(db: FirebaseFirestore, task: TaskDBFinal, scheduleDate: Local
         )
     )
 
-    db.collection("Task").document(task.id)
-        .update("schedules", FieldValue.arrayRemove(scheduleToRemove))
-        .addOnSuccessListener {
-            Log.d("DB","Task Unscheduled Successfully.")
+    val taskRef = db.collection("Task").document(task.id)
+
+    db.runTransaction { transaction ->
+        val taskDoc = transaction.get(taskRef)
+        val schedules = taskDoc.get("schedules") as? List<Map<String, Map<String,Any>>>
+
+        val updatedSchedules = schedules?.filter {
+            Log.i("DB",(it["scheduleInfo"]?.get("scheduleDate")as Timestamp).toDate().toString())
+            Log.i("DB",scheduleDateToDate.toString())
+            !(it["scheduleInfo"]?.get("member") == memberId && (compareDatesByDayMonthYear((it["scheduleInfo"]?.get("scheduleDate")as Timestamp).toDate(),scheduleDateToDate) == 0))
         }
-        .addOnFailureListener {
-            Log.d("DB","Failed to Remove Schedule: $it")
-        }
+
+        transaction.update(taskRef, "schedules", updatedSchedules)
+    }.addOnSuccessListener {
+        Log.d("DB", "Task Updated Successfully.")
+    }.addOnFailureListener { exception ->
+        Log.d("DB", "Failed to Add Schedule: $exception")
+    }
 }
 
 fun updateUserProfile(db: FirebaseFirestore, memberId: String, username: String, fullName: String, email: String, location: String, description: String, profileImage: Uri) {

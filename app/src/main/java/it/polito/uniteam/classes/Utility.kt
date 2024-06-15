@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,11 +15,17 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -336,5 +343,46 @@ fun LoadingSpinner() {
             color = Color.White,
             trackColor = MaterialTheme.colorScheme.surfaceVariant,
         )
+    }
+}
+
+@Preview
+@Composable
+fun GoogleSignInButton(
+    modifier: Modifier = Modifier,
+    text: String = "Log in with Google",
+    onClick: () -> Unit = {}
+) {
+    Button(
+        onClick = onClick,
+        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+        shape = RoundedCornerShape(24.dp),
+        modifier = modifier
+            .height(48.dp)
+            .width(250.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(start = 8.dp, end = 16.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .background(Color.White, shape = RoundedCornerShape(12.dp))
+                    .padding(4.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.google_logo),
+                    contentDescription = "Google logo",
+                    modifier = Modifier.size(24.dp),
+                    tint = Color.Unspecified
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = text,
+                color = MaterialTheme.colorScheme.onPrimary,
+                fontSize = 16.sp
+            )
+        }
     }
 }

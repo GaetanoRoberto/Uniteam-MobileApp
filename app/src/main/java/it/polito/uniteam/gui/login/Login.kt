@@ -52,6 +52,7 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingExcept
 import com.google.common.net.MediaType.JWT
 import it.polito.uniteam.Factory
 import it.polito.uniteam.UniTeamModel
+import it.polito.uniteam.classes.GoogleSignInButton
 import it.polito.uniteam.gui.teamDetails.TeamDetailsViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
@@ -168,8 +169,20 @@ fun Login(vm: LoginViewModel = viewModel(factory = Factory(LocalContext.current.
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(modifier = Modifier.fillMaxWidth(1f), horizontalArrangement = Arrangement.Center) {
-            FilledTonalButton(
-                modifier = Modifier.width(120.dp).height(50.dp),
+            GoogleSignInButton(onClick = {
+                if (!vm.isUserLogged.value) {
+                    coroutineScope.launch {
+                        startLogin()
+                    }
+                } else {
+                    logoutGoogle()
+                }
+
+            })
+            /*FilledTonalButton(
+                modifier = Modifier
+                    .width(120.dp)
+                    .height(50.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
                     if (!vm.isUserLogged.value) {
                         coroutineScope.launch {
@@ -191,7 +204,7 @@ fun Login(vm: LoginViewModel = viewModel(factory = Factory(LocalContext.current.
                         Text("Logout", textAlign = TextAlign.Center, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
                     }
                 }
-            }
+            }*/
         }
         Spacer(modifier = Modifier.height(16.dp))
         Row(modifier = Modifier.fillMaxWidth(1f), horizontalArrangement = Arrangement.Center) {
