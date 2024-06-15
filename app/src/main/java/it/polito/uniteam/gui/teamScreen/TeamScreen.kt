@@ -116,6 +116,7 @@ import it.polito.uniteam.NavControllerManager
 import it.polito.uniteam.R
 import it.polito.uniteam.UniTeamModel
 import it.polito.uniteam.classes.Category
+import it.polito.uniteam.classes.FileDBFinal
 import it.polito.uniteam.classes.MemberDB
 import it.polito.uniteam.classes.MemberDBFinal
 import it.polito.uniteam.classes.MemberIcon
@@ -139,9 +140,10 @@ import kotlin.math.log
 class TeamScreenViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
     val teamId: String = checkNotNull(savedStateHandle["teamId"])
     var loggedMember: String = ""
-    fun updateTaskAssignee(taskId: String, members: List<String>, loggedUser: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = model.updateTaskAssignee(taskId, members, loggedUser, onSuccess, onFailure)
+    fun updateTaskAssignee(taskId: String, members: List<String>, loggedUser: String, comment: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = model.updateTaskAssignee(taskId, members, loggedUser, comment, onSuccess, onFailure)
     fun changeAdminRole(loggedMemberId: String, memberId: String, teamId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = model.changeAdminRole(loggedMemberId, memberId, teamId, onSuccess, onFailure)
     fun leaveTeam(memberId: String, teamId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = model.leaveTeam(memberId, teamId, onSuccess, onFailure)
+    fun deleteTeam(teamId: String, files:List<FileDBFinal>, user: String) = model.deleteTeam(teamId, files, user)
 
     val loaded = mutableStateOf(false)
     var expandedSearch by mutableStateOf(false)
@@ -154,6 +156,8 @@ class TeamScreenViewModel(val model: UniTeamModel, val savedStateHandle: SavedSt
     var lastAppliedFilters = mutableStateOf<Map<String, Any>>(mapOf())
     var lastSearchQuery = mutableStateOf("")
     var membersError by mutableStateOf("")
+    var adminError by mutableStateOf("")
+    var membersBefore = mutableListOf<MemberDBFinal>()
     //Stati per la gestione degli ExpandableRow
     val assigneeExpanded = mutableStateOf(false)
     val categoryExpanded = mutableStateOf(false)
@@ -1626,6 +1630,10 @@ fun AssignDialog(vm: TeamScreenViewModel, membersList: List<MemberDBFinal>) {
         membersList.forEach { member ->
             selectedMembers[member] = vm.taskToAssign!!.members.any { it == member.id }
         }
+        vm.membersBefore = vm.taskToAssign!!.members.mapNotNull { memberId ->
+            membersList.find { it.id == memberId }
+        }.toMutableList()
+
         Dialog(onDismissRequest = { vm.openAssignDialog = false }) {
             Card(modifier = Modifier
                 .fillMaxWidth()
@@ -1695,10 +1703,23 @@ fun AssignDialog(vm: TeamScreenViewModel, membersList: List<MemberDBFinal>) {
                                 vm.openAssignDialog = false
                                 vm.membersError = ""
                                 val selectedMemberIds = selectedMembers.filterValues { it }.keys.map { it.id }
+
+                                val newSelectedMembers = selectedMemberIds.filter { it !in vm.membersBefore.map { member -> member.id } }
+                                val newSelectedUsernames = membersList.filter { it.id in newSelectedMembers }.map { it.username }
+
+                                val unselectedMembers = vm.membersBefore.map { it.id }.filter { it !in selectedMemberIds }
+                                val unselectedUsernames = membersList.filter { it.id in unselectedMembers }.map { it.username }
+
                                 vm.updateTaskAssignee(
                                     taskId = vm.taskToAssign!!.id,
                                     members = selectedMemberIds,
                                     loggedUser = loggedMember.id,
+                                    comment = if (newSelectedMembers.isNotEmpty() && unselectedMembers.isNotEmpty())
+                                        "Task Members removed: ${unselectedUsernames.joinToString(separator = " ")}\nTask Members added: ${newSelectedUsernames.joinToString(separator = " ")}\n"
+                                    else if (newSelectedMembers.isNotEmpty())
+                                        "Task Members added: ${newSelectedUsernames.joinToString(separator = " ")}"
+                                    else
+                                        "Task Members removed: ${unselectedUsernames.joinToString(separator = " ")}",
                                     onSuccess = {},
                                     onFailure = {
                                         vm.membersError = "Failed to update members: ${it.message}"
@@ -1735,30 +1756,39 @@ fun ChangeAdminDialog(vm: TeamScreenViewModel, membersList: List<MemberDBFinal>,
                     .fillMaxWidth()
                     .padding(10.dp), horizontalArrangement = Arrangement.Center
                 ) {
-                    Text(text = "Before leaving the team, select the new Admin :", style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center)
+                    Text(text = "Before leaving the team, select the new Admin :", style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
                 }
                 LazyColumn(
                     modifier = Modifier
                         .heightIn(0.dp, (screenHeightDp * 0.4).dp)
                         .selectableGroup()
                 ) {
-                    items(membersList) { member ->
+                    items(membersList.filter { it.id != loggedMember.id }) { member ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .selectable(
                                     selected = (member.id == selectedMemberId),
-                                    onClick = { selectedMemberId = member.id },
+                                    onClick = { selectedMemberId = member.id; vm.adminError = "" },
                                     role = Role.RadioButton
                                 ),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             RadioButton(
                                 selected = (member.id == selectedMemberId),
-                                onClick = { selectedMemberId = member.id }
+                                onClick = { selectedMemberId = member.id; vm.adminError = "" }
                             )
                             Text(text = member.username, textAlign = TextAlign.Center)
                         }
+                    }
+                }
+                if (vm.adminError.isNotEmpty()) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(10.dp, 10.dp, 0.dp, 0.dp), horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(text = vm.adminError, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
                     }
                 }
                 Row(
@@ -1767,20 +1797,25 @@ fun ChangeAdminDialog(vm: TeamScreenViewModel, membersList: List<MemberDBFinal>,
                         .padding(10.dp),
                     horizontalArrangement = Arrangement.Center,
                 ) {
-                    TextButton(onClick = { vm.openAdminDialog = false }) {
+                    TextButton(onClick = { vm.openAdminDialog = false; vm.adminError = "" }) {
                         Text("Cancel")
                     }
                     Spacer(modifier = Modifier.padding(10.dp))
                     TextButton(onClick = {
-                        vm.changeAdminRole(
-                            loggedMemberId = loggedMember.id,
-                            memberId = selectedMemberId,
-                            teamId = currentTeam.id,
-                            onSuccess = {
-                                vm.openAdminDialog = false
-                                navController.navigate("Teams") { launchSingleTop = true }},
-                            onFailure = {}
-                        )
+                        if(selectedMemberId.isEmpty()) {
+                            vm.adminError = "You Must Select A Member"
+                        } else {
+                            vm.changeAdminRole(
+                                loggedMemberId = loggedMember.id,
+                                memberId = selectedMemberId,
+                                teamId = currentTeam.id,
+                                onSuccess = {
+                                    vm.openAdminDialog = false
+                                    navController.navigate("Teams") { launchSingleTop = true }
+                                },
+                                onFailure = {}
+                            )
+                        }
                     } ) {
                         Text("Confirm")
                     }
@@ -1793,16 +1828,30 @@ fun ChangeAdminDialog(vm: TeamScreenViewModel, membersList: List<MemberDBFinal>,
 @Composable
 fun LeaveTeamDialog(vm: TeamScreenViewModel, currentTeam: TeamDBFinal) {
     val navController = NavControllerManager.getNavController()
-    val loggedMember =AppStateManager.getLoggedMemberFinal(members = AppStateManager.getMembers(),vm.model.loggedMemberFinal.id)
+    val files = AppStateManager.getFiles()
+    val loggedMember = AppStateManager.getLoggedMemberFinal(members = AppStateManager.getMembers(),vm.model.loggedMemberFinal.id)
 
     AlertDialog(
         containerColor = MaterialTheme.colorScheme.background,
         onDismissRequest = { vm.openLeaveTeamDialog = false },
         icon = { Icon(Icons.Default.Warning, contentDescription = "Warning", tint = MaterialTheme.colorScheme.primary) },
-        title = { Text("Are you sure you want to leave the team: ${currentTeam.name} ?") },
+        title = { Text("Are you sure you want to leave the team: ${currentTeam.name} ?", style = MaterialTheme.typography.titleMedium) },
         confirmButton = {
             TextButton(onClick = {
-                if (loggedMember.teamsInfo?.get(currentTeam.id)?.permissionrole == permissionRole.ADMIN) {
+                Log.d("LeaveTeamDialog", currentTeam.members.size.toString())
+                if (currentTeam.members.size == 1) {
+                    vm.leaveTeam(
+                        memberId = loggedMember.id,
+                        teamId = currentTeam.id,
+                        onSuccess = {
+                            vm.openLeaveTeamDialog = false
+                            navController.navigate("Teams") { launchSingleTop = true }
+                            vm.deleteTeam(currentTeam.id, files, loggedMember.id)
+                        },
+                        onFailure = {}
+                    )
+                }
+                else if (loggedMember.teamsInfo?.get(currentTeam.id)?.permissionrole == permissionRole.ADMIN) {
                     vm.openLeaveTeamDialog = false
                     vm.openAdminDialog = true
                 } else {
@@ -1896,7 +1945,6 @@ fun applyFilters(task: TaskDBFinal, lastAppliedFilters: Map<String, Any>, lastSe
 
     if (selectedDeadline != null) {
         keep = keep && task.deadline <= selectedDeadline
-        //TODO: controllare task schedulate
     }
 
     if (selectedMembers.isNotEmpty()) {

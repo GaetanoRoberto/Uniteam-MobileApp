@@ -80,9 +80,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import coil.request.ImageRequest
 import it.polito.uniteam.AppStateManager
 import it.polito.uniteam.Factory
 import it.polito.uniteam.NavControllerManager
@@ -478,8 +480,11 @@ fun DefaultImage(vm: UserProfileScreen = viewModel(factory = Factory(LocalContex
                 // Box per contenere l'icona della fotocamera
                 Box(modifier = Modifier.size(200.dp), contentAlignment = Alignment.Center) {
                     if (vm.photoUri != Uri.EMPTY) {
-                        Image(
-                            painter = rememberAsyncImagePainter(vm.photoUri),
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(vm.photoUri)
+                                .crossfade(true)
+                                .build(),
                             contentDescription = null,
                             modifier = Modifier
                                 .size(160.dp)
@@ -718,7 +723,7 @@ fun RowItem(modifier: Modifier = Modifier, icon: ImageVector, description: Strin
             modifier = Modifier
                 .weight(1f)
                 .padding(16.dp, 0.dp),
-            style = MaterialTheme.typography.headlineSmall,
+            style = MaterialTheme.typography.titleMedium,
         )
     }
     Row(
@@ -745,7 +750,7 @@ fun PresentationPane(vm: UserProfileScreen = viewModel(factory = Factory(LocalCo
                     Triple(Icons.Default.LocationOn, "location", vm.locationValue),
                     Triple(Icons.Default.Info, "description", vm.descriptionValue),
                     Triple(Icons.Default.Star, "KPI", vm.KPIValue)
-                )
+                ).filter { it.third.isNotBlank() }
                 val line_modifier = Modifier
                     .fillMaxWidth(0.8f)
                     .height(1.dp)
@@ -773,7 +778,7 @@ fun PresentationPane(vm: UserProfileScreen = viewModel(factory = Factory(LocalCo
                     Triple(Icons.Default.LocationOn, "location", vm.locationValue),
                     Triple(Icons.Default.Info, "description", vm.descriptionValue),
                     Triple(Icons.Default.Star, "KPI", vm.KPIValue)
-                )
+                ).filter { it.third.isNotBlank() }
                 val line_modifier = Modifier
                     .fillMaxWidth(0.8f)
                     .height(1.dp)
@@ -915,8 +920,11 @@ fun ProfileSettings(
             if (this.maxHeight > this.maxWidth) {
                 Box(modifier = Modifier.fillMaxSize()) {
                     // Image at the top
-                    Image(
-                        painter = rememberAsyncImagePainter(vm.temporaryUri),
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(vm.temporaryUri)
+                            .crossfade(true)
+                            .build(),
                         contentDescription = null,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -981,8 +989,11 @@ fun ProfileSettings(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Image(
-                            painter = rememberAsyncImagePainter(vm.temporaryUri),
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(vm.temporaryUri)
+                                .crossfade(true)
+                                .build(),
                             contentDescription = null,
                         )
                     }

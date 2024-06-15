@@ -309,13 +309,13 @@ fun updateTeam(db: FirebaseFirestore, teamId:String, teamName: String, teamDescr
         Log.w("DB", "Error updating team", e)
     }
 }
-fun updateTaskAssignee(db: FirebaseFirestore, taskId: String, members: List<String>, loggedUser: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+fun updateTaskAssignee(db: FirebaseFirestore, taskId: String, members: List<String>, loggedUser: String, comment: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
     db.runTransaction { transaction ->
         val taskRef = db.collection("Task").document(taskId)
         transaction.update(taskRef, "members", members)
 
         val history = mapOf(
-            "comment" to "Task assigned to new members",
+            "comment" to comment,
             "date" to Timestamp.now(),
             "user" to loggedUser
         )

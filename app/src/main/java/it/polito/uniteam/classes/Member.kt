@@ -16,7 +16,7 @@ data class Member (
     // key teamId value role inside it
     var teamsInfo: HashMap<Int,MemberTeamInfo>? = null,
     var chats: MutableList<Int> = mutableListOf()
-) {
+) /*{
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is Member) return false
@@ -26,7 +26,7 @@ data class Member (
     override fun hashCode(): Int {
         return id
     }
-}
+}*/
 
 data class MemberTeamInfo (
     var role: CategoryRole = CategoryRole.NONE,
@@ -50,7 +50,7 @@ data class MemberDB (
     // key teamId value role inside it
     var teamsInfo: HashMap<String,MemberTeamInfo>? = null,
     var chats: MutableList<ChatDB> = mutableListOf()
-) {
+) /*{
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is MemberDB) return false
@@ -64,7 +64,7 @@ data class MemberDB (
         // Convert the first 4 bytes of the hash to an integer
         return BigInteger(1, hashBytes.sliceArray(0..3)).toInt()
     }
-}
+}*/
 data class MemberDBFinal (
     var id: String = "",
     var fullName: String = "",

@@ -174,192 +174,332 @@ fun Home(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current)))
                             verticalArrangement = Arrangement.Center,
                             modifier = Modifier.background(MaterialTheme.colorScheme.secondary)
                         ) {
-                            Row(
-                                modifier = if (isVertical())
-                                    Modifier.padding(16.dp, 16.dp, 0.dp, 0.dp)
-                                else
-                                    Modifier.padding(16.dp, 0.dp, 0.dp, 0.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    "Filter by team members :",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                IconButton(
-                                    onClick = { scope.launch { drawerState.close() } }
+                            if (filteredMembersList.isNotEmpty()) {
+                                Row(
+                                    modifier = if (isVertical())
+                                        Modifier.padding(16.dp, 16.dp, 0.dp, 0.dp)
+                                    else
+                                        Modifier.padding(16.dp, 0.dp, 0.dp, 0.dp),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Icon(
-                                        Icons.Default.Close,
-                                        contentDescription = "Close filters"
+                                    Text(
+                                        "Filter by team members :",
+                                        style = MaterialTheme.typography.titleLarge,
+                                        modifier = Modifier.weight(1f)
                                     )
-                                }
-                            }
-                            Column(
-                                modifier = if (isVertical())
-                                    Modifier
-                                        .fillMaxHeight(0.9f)
-                                        .verticalScroll(scrollState)
-                                else
-                                    Modifier
-                                        .fillMaxHeight(0.75f)
-                                        .verticalScroll(scrollState)
-                            ) {
-                                filteredMembersList.forEach { member ->
-                                    Row(
-                                        modifier = if (isVertical())
-                                            Modifier
-                                                .fillMaxWidth()
-                                                .clickable {
-                                                    if (vm.selectedMembers[member] == true) {
-                                                        vm.selectedMembers.remove(member)
-                                                    } else {
-                                                        vm.selectedMembers[member] = true
-                                                    }
-                                                }
-                                        else
-                                            Modifier
-                                                .fillMaxWidth()
-                                                .height(40.dp)
-                                                .clickable {
-                                                    if (vm.selectedMembers[member] == true) {
-                                                        vm.selectedMembers.remove(member)
-                                                    } else {
-                                                        vm.selectedMembers[member] = true
-                                                    }
-                                                },
-                                        verticalAlignment = Alignment.CenterVertically
+                                    IconButton(
+                                        onClick = { scope.launch { drawerState.close() } }
                                     ) {
-                                        Checkbox(
-                                            checked = vm.selectedMembers[member] ?: false,
-                                            onCheckedChange = {
-                                                if (it) {
-                                                    vm.selectedMembers[member] = true
-                                                } else {
-                                                    vm.selectedMembers.remove(member)
-                                                }
-                                            }
+                                        Icon(
+                                            Icons.Default.Close,
+                                            contentDescription = "Close filters"
                                         )
-                                        Text(member.username, textAlign = TextAlign.Center)
                                     }
                                 }
-                                HorizontalDivider(
-                                    color = Color.White,
-                                    modifier = Modifier.padding(horizontal = 16.dp)
-                                )
+                                Column(
+                                    modifier = if (isVertical())
+                                        Modifier
+                                            .fillMaxHeight(0.9f)
+                                            .verticalScroll(scrollState)
+                                    else
+                                        Modifier
+                                            .fillMaxHeight(0.75f)
+                                            .verticalScroll(scrollState)
+                                ) {
+                                    filteredMembersList.forEach { member ->
+                                        Row(
+                                            modifier = if (isVertical())
+                                                Modifier
+                                                    .fillMaxWidth()
+                                                    .clickable {
+                                                        if (vm.selectedMembers[member] == true) {
+                                                            vm.selectedMembers.remove(member)
+                                                        } else {
+                                                            vm.selectedMembers[member] = true
+                                                        }
+                                                    }
+                                            else
+                                                Modifier
+                                                    .fillMaxWidth()
+                                                    .height(40.dp)
+                                                    .clickable {
+                                                        if (vm.selectedMembers[member] == true) {
+                                                            vm.selectedMembers.remove(member)
+                                                        } else {
+                                                            vm.selectedMembers[member] = true
+                                                        }
+                                                    },
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Checkbox(
+                                                checked = vm.selectedMembers[member] ?: false,
+                                                onCheckedChange = {
+                                                    if (it) {
+                                                        vm.selectedMembers[member] = true
+                                                    } else {
+                                                        vm.selectedMembers.remove(member)
+                                                    }
+                                                }
+                                            )
+                                            Text(member.username, textAlign = TextAlign.Center)
+                                        }
+                                    }
+                                    HorizontalDivider(
+                                        color = Color.White,
+                                        modifier = Modifier.padding(horizontal = 16.dp)
+                                    )
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 8.dp)
+                                    ) {
+                                        Text(
+                                            "Sort by :",
+                                            style = if (isVertical())
+                                                MaterialTheme.typography.titleLarge
+                                            else
+                                                MaterialTheme.typography.titleMedium
+                                        )
+                                    }
+                                    Column {
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(start = 16.dp)
+                                        ) {
+                                            FilterChip(
+                                                colors = FilterChipDefaults.filterChipColors(
+                                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                                                    selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimary
+                                                ),
+                                                selected = (vm.selectedChip == "First"),
+                                                onClick = { vm.selectedChip = "First" },
+                                                label = {
+                                                    when (selectedOption) {
+                                                        "Name" -> Text("Ascending")
+                                                        "Creation date" -> Text("Newer")
+                                                    }
+                                                },
+                                                leadingIcon = if (vm.selectedChip == "First") {
+                                                    {
+                                                        Icon(
+                                                            imageVector = Icons.Filled.Done,
+                                                            contentDescription = "Done icon",
+                                                            modifier = Modifier.size(
+                                                                FilterChipDefaults.IconSize
+                                                            )
+                                                        )
+                                                    }
+                                                } else {
+                                                    null
+                                                }
+                                            )
+                                            Spacer(modifier = Modifier.padding(10.dp))
+                                            FilterChip(
+                                                colors = FilterChipDefaults.filterChipColors(
+                                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                                                    selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimary
+                                                ),
+                                                selected = vm.selectedChip == "Second",
+                                                onClick = { vm.selectedChip = "Second" },
+                                                label = {
+                                                    when (selectedOption) {
+                                                        "Name" -> Text("Descending")
+                                                        "Creation date" -> Text("Older")
+                                                    }
+                                                },
+                                                leadingIcon = if (vm.selectedChip == "Second") {
+                                                    {
+                                                        Icon(
+                                                            imageVector = Icons.Filled.Done,
+                                                            contentDescription = "Done icon",
+                                                            modifier = Modifier.size(
+                                                                FilterChipDefaults.IconSize
+                                                            )
+                                                        )
+                                                    }
+                                                } else {
+                                                    null
+                                                }
+                                            )
+                                        }
+                                        Column(Modifier.selectableGroup()) {
+                                            vm.radioOptions.forEach { text ->
+                                                Row(
+                                                    modifier = if (isVertical())
+                                                        Modifier
+                                                            .fillMaxWidth()
+                                                            .selectable(
+                                                                selected = (text == selectedOption),
+                                                                onClick = {
+                                                                    onOptionSelected(
+                                                                        text
+                                                                    )
+                                                                },
+                                                                role = Role.RadioButton
+                                                            )
+                                                    else
+                                                        Modifier
+                                                            .fillMaxWidth()
+                                                            .height(40.dp)
+                                                            .selectable(
+                                                                selected = (text == selectedOption),
+                                                                onClick = {
+                                                                    onOptionSelected(
+                                                                        text
+                                                                    )
+                                                                },
+                                                                role = Role.RadioButton
+                                                            ),
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    RadioButton(
+                                                        selected = (text == selectedOption),
+                                                        onClick = { onOptionSelected(text) }
+                                                    )
+                                                    Text(
+                                                        text = text
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            } else {
                                 Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 8.dp)
+                                    modifier = if (isVertical())
+                                        Modifier.padding(16.dp, 16.dp, 0.dp, 0.dp)
+                                    else
+                                        Modifier.padding(16.dp, 0.dp, 0.dp, 0.dp),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
                                         "Sort by :",
-                                        style = if (isVertical())
-                                            MaterialTheme.typography.titleLarge
-                                        else
-                                            MaterialTheme.typography.titleMedium
+                                        style = MaterialTheme.typography.titleLarge,
+                                        modifier = Modifier.weight(1f)
                                     )
-                                }
-                                Column {
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(start = 16.dp)
+                                    IconButton(
+                                        onClick = { scope.launch { drawerState.close() } }
                                     ) {
-                                        FilterChip(
-                                            colors = FilterChipDefaults.filterChipColors(
-                                                selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                                                selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimary
-                                            ),
-                                            selected = (vm.selectedChip == "First"),
-                                            onClick = { vm.selectedChip = "First" },
-                                            label = {
-                                                when (selectedOption) {
-                                                    "Name" -> Text("Ascending")
-                                                    "Creation date" -> Text("Newer")
-                                                }
-                                            },
-                                            leadingIcon = if (vm.selectedChip == "First") {
-                                                {
-                                                    Icon(
-                                                        imageVector = Icons.Filled.Done,
-                                                        contentDescription = "Done icon",
-                                                        modifier = Modifier.size(
-                                                            FilterChipDefaults.IconSize
-                                                        )
-                                                    )
-                                                }
-                                            } else {
-                                                null
-                                            }
-                                        )
-                                        Spacer(modifier = Modifier.padding(10.dp))
-                                        FilterChip(
-                                            colors = FilterChipDefaults.filterChipColors(
-                                                selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                                                selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimary
-                                            ),
-                                            selected = vm.selectedChip == "Second",
-                                            onClick = { vm.selectedChip = "Second" },
-                                            label = {
-                                                when (selectedOption) {
-                                                    "Name" -> Text("Descending")
-                                                    "Creation date" -> Text("Older")
-                                                }
-                                            },
-                                            leadingIcon = if (vm.selectedChip == "Second") {
-                                                {
-                                                    Icon(
-                                                        imageVector = Icons.Filled.Done,
-                                                        contentDescription = "Done icon",
-                                                        modifier = Modifier.size(
-                                                            FilterChipDefaults.IconSize
-                                                        )
-                                                    )
-                                                }
-                                            } else {
-                                                null
-                                            }
+                                        Icon(
+                                            Icons.Default.Close,
+                                            contentDescription = "Close filters"
                                         )
                                     }
-                                    Column(Modifier.selectableGroup()) {
-                                        vm.radioOptions.forEach { text ->
-                                            Row(
-                                                modifier = if (isVertical())
-                                                    Modifier
-                                                        .fillMaxWidth()
-                                                        .selectable(
-                                                            selected = (text == selectedOption),
-                                                            onClick = {
-                                                                onOptionSelected(
-                                                                    text
-                                                                )
-                                                            },
-                                                            role = Role.RadioButton
+                                }
+                                Column(
+                                    modifier = if (isVertical())
+                                        Modifier
+                                            .fillMaxHeight(0.9f)
+                                            .verticalScroll(scrollState)
+                                    else
+                                        Modifier
+                                            .fillMaxHeight(0.75f)
+                                            .verticalScroll(scrollState)
+                                ) {
+                                    Column {
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(start = 16.dp)
+                                        ) {
+                                            FilterChip(
+                                                colors = FilterChipDefaults.filterChipColors(
+                                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                                                    selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimary
+                                                ),
+                                                selected = (vm.selectedChip == "First"),
+                                                onClick = { vm.selectedChip = "First" },
+                                                label = {
+                                                    when (selectedOption) {
+                                                        "Name" -> Text("Ascending")
+                                                        "Creation date" -> Text("Newer")
+                                                    }
+                                                },
+                                                leadingIcon = if (vm.selectedChip == "First") {
+                                                    {
+                                                        Icon(
+                                                            imageVector = Icons.Filled.Done,
+                                                            contentDescription = "Done icon",
+                                                            modifier = Modifier.size(
+                                                                FilterChipDefaults.IconSize
+                                                            )
                                                         )
-                                                else
-                                                    Modifier
-                                                        .fillMaxWidth()
-                                                        .height(40.dp)
-                                                        .selectable(
-                                                            selected = (text == selectedOption),
-                                                            onClick = {
-                                                                onOptionSelected(
-                                                                    text
-                                                                )
-                                                            },
-                                                            role = Role.RadioButton
-                                                        ),
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                RadioButton(
-                                                    selected = (text == selectedOption),
-                                                    onClick = { onOptionSelected(text) }
-                                                )
-                                                Text(
-                                                    text = text
-                                                )
+                                                    }
+                                                } else {
+                                                    null
+                                                }
+                                            )
+                                            Spacer(modifier = Modifier.padding(10.dp))
+                                            FilterChip(
+                                                colors = FilterChipDefaults.filterChipColors(
+                                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                                                    selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimary
+                                                ),
+                                                selected = vm.selectedChip == "Second",
+                                                onClick = { vm.selectedChip = "Second" },
+                                                label = {
+                                                    when (selectedOption) {
+                                                        "Name" -> Text("Descending")
+                                                        "Creation date" -> Text("Older")
+                                                    }
+                                                },
+                                                leadingIcon = if (vm.selectedChip == "Second") {
+                                                    {
+                                                        Icon(
+                                                            imageVector = Icons.Filled.Done,
+                                                            contentDescription = "Done icon",
+                                                            modifier = Modifier.size(
+                                                                FilterChipDefaults.IconSize
+                                                            )
+                                                        )
+                                                    }
+                                                } else {
+                                                    null
+                                                }
+                                            )
+                                        }
+                                        Column(Modifier.selectableGroup()) {
+                                            vm.radioOptions.forEach { text ->
+                                                Row(
+                                                    modifier = if (isVertical())
+                                                        Modifier
+                                                            .fillMaxWidth()
+                                                            .selectable(
+                                                                selected = (text == selectedOption),
+                                                                onClick = {
+                                                                    onOptionSelected(
+                                                                        text
+                                                                    )
+                                                                },
+                                                                role = Role.RadioButton
+                                                            )
+                                                    else
+                                                        Modifier
+                                                            .fillMaxWidth()
+                                                            .height(40.dp)
+                                                            .selectable(
+                                                                selected = (text == selectedOption),
+                                                                onClick = {
+                                                                    onOptionSelected(
+                                                                        text
+                                                                    )
+                                                                },
+                                                                role = Role.RadioButton
+                                                            ),
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    RadioButton(
+                                                        selected = (text == selectedOption),
+                                                        onClick = { onOptionSelected(text) }
+                                                    )
+                                                    Text(
+                                                        text = text
+                                                    )
+                                                }
                                             }
                                         }
                                     }

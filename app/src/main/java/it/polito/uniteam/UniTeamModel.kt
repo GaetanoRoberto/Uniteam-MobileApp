@@ -108,7 +108,7 @@ class UniTeamModel(val context: Context) {
     //fun getTeams(): Flow<List<TeamDB>> = getTeams(db,coroutineScope,loggedUser,isLoading)
     //fun getAllTeamsMembersHome(): Flow<List<MemberDB>> = getAllTeamsMembersHome(db,coroutineScope,loggedUser,isLoading)
     //fun getTeamById(id: String): Flow<TeamDB> = getTeamById(db,coroutineScope,id)
-    fun updateTaskAssignee(taskId: String, members: List<String>, loggedUser: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = updateTaskAssignee(db,taskId,members,loggedUser,onSuccess,onFailure)
+    fun updateTaskAssignee(taskId: String, members: List<String>, loggedUser: String, comment: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = updateTaskAssignee(db,taskId,members,loggedUser,comment,onSuccess,onFailure)
     fun joinTeam(memberId: String, teamId: String, newRole: String, newHours: Number, newMinutes: Number, newTimes: Number, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = joinTeam(db,memberId,teamId,newRole,newHours,newMinutes,newTimes,onSuccess,onFailure)
     fun changeAdminRole(loggedMemberId: String, memberId: String, teamId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = changeAdminRole(db,loggedMemberId,memberId,teamId,onSuccess,onFailure)
     fun leaveTeam(memberId: String, teamId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = leaveTeam(db,memberId,teamId,onSuccess,onFailure)

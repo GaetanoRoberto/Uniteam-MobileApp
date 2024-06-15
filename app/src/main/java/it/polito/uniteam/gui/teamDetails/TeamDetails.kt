@@ -83,8 +83,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import it.polito.uniteam.AppStateManager
+import coil.request.ImageRequest
 import it.polito.uniteam.Factory
 import it.polito.uniteam.NavControllerManager
 import it.polito.uniteam.R
@@ -198,8 +200,11 @@ fun TeamViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalC
             if (this.maxHeight > this.maxWidth) {
                 Box(modifier = Modifier.fillMaxSize()) {
                     // Image at the top
-                    Image(
-                        painter = rememberAsyncImagePainter(vm.temporaryUri),
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(vm.temporaryUri)
+                            .crossfade(true)
+                            .build(),
                         contentDescription = null,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -263,8 +268,11 @@ fun TeamViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalC
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Image(
-                            painter = rememberAsyncImagePainter(vm.temporaryUri),
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(vm.temporaryUri)
+                                .crossfade(true)
+                                .build(),
                             contentDescription = null,
                         )
                     }
@@ -618,8 +626,11 @@ fun TeamDetailsEdit(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
                         .padding(10.dp, 0.dp)
                 ) {
                     Box{
-                        Image(
-                            painter = rememberAsyncImagePainter(vm.teamProfileImage.value),
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(vm.teamProfileImage.value)
+                                .crossfade(true)
+                                .build(),
                             contentDescription = null,
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -1015,8 +1026,11 @@ fun DefaultImageForTeamScreen(vm: TeamDetailsViewModel = viewModel(factory = Fac
                 // Box per contenere l'icona della fotocamera
                 Box(modifier = Modifier.size(200.dp), contentAlignment = Alignment.Center) {
                     if (vm.teamProfileImage.value != Uri.EMPTY) {
-                        Image(
-                            painter = rememberAsyncImagePainter(vm.teamProfileImage.value),
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(vm.teamProfileImage.value)
+                                .crossfade(true)
+                                .build(),
                             contentDescription = null,
                             modifier = Modifier
                                 .size(160.dp)
@@ -1067,8 +1081,11 @@ fun DefaultImageForEditingTeam(vm: TeamDetailsViewModel = viewModel(factory = Fa
                 // Box per contenere l'icona della fotocamera
                 Box(modifier = Modifier.size(200.dp), contentAlignment = Alignment.Center) {
                     if (vm.teamProfileImage.value != Uri.EMPTY) {
-                        Image(
-                            painter = rememberAsyncImagePainter(vm.teamProfileImage.value),
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(vm.teamProfileImage.value)
+                                .crossfade(true)
+                                .build(),
                             contentDescription = null,
                             modifier = if (!isVertical()) {
                                 Modifier
