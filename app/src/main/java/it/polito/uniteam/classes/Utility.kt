@@ -328,7 +328,7 @@ fun HourMinutesPicker(
 fun LoadingSpinner() {
     Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Top) {
         Spacer(modifier = Modifier.padding(5.dp))
-        Text(text = "Loading...", style = MaterialTheme.typography.headlineSmall)
+        Text(text = "Loading...", style = MaterialTheme.typography.headlineSmall, color = Color.White)
         Spacer(modifier = Modifier.padding(5.dp))
         CircularProgressIndicator(
             modifier = Modifier

@@ -18,10 +18,12 @@ import it.polito.uniteam.gui.userprofile.SetupProfileData
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -1224,7 +1226,11 @@ class AppStateManager {
                     && chats.value.isNotEmpty() && messages.value.isNotEmpty()) {
                     content()
                 } else {
-                    LoadingSpinner()
+                    Box(modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.background)) {
+                        LoadingSpinner()
+                    }
                 }
             }
         }
