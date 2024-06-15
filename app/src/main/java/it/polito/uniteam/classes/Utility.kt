@@ -46,11 +46,14 @@ import coil.compose.rememberAsyncImagePainter
 import it.polito.uniteam.ui.theme.Orange
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import it.polito.uniteam.NavControllerManager
 import it.polito.uniteam.R
 import java.io.ByteArrayOutputStream
@@ -164,8 +167,11 @@ fun MemberIcon(modifierScale: Modifier = Modifier.scale(0.8f), modifierPadding: 
 
     Box(modifier = modifierScale) {
         if (member.profileImage != Uri.EMPTY) {
-            Image(
-                painter = rememberAsyncImagePainter(member.profileImage),
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(member.profileImage)
+                    .crossfade(true)
+                    .build(),
                 contentDescription = null,
                 modifier = if (enableNavigation) Modifier
                     .then(modifierPadding)
@@ -228,8 +234,11 @@ fun TeamIcon(
 
     Box(modifier = modifierScale) {
         if (team.image != Uri.EMPTY) {
-            Image(
-                painter = rememberAsyncImagePainter(team.image),
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(team.image)
+                    .crossfade(true)
+                    .build(),
                 contentDescription = null,
                 modifier = Modifier
                     .then(modifierPadding)
@@ -359,7 +368,7 @@ fun GoogleSignInButton(
         shape = RoundedCornerShape(24.dp),
         modifier = modifier
             .height(48.dp)
-            .width(250.dp)
+            .fillMaxWidth(0.9f)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

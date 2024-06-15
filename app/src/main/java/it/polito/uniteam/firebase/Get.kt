@@ -940,7 +940,7 @@ fun getMemberById(db: FirebaseFirestore, coroutineScope: CoroutineScope, memberI
                         minutes = dbValue.toInt()
                 }
                 val weeklyAvailabilityHours = Pair(hours, minutes)
-                val permissionrole = teamInfoMap["permissionRole"] as? String ?: "USER"
+                val permissionrole = teamInfoMap["permissionrole"] as? String ?: "USER"
 
                 m.teamsInfo?.put(teamId, MemberTeamInfo(
                     role = CategoryRole.valueOf(role),
@@ -1005,7 +1005,7 @@ fun getMemberById(db: FirebaseFirestore, coroutineScope: CoroutineScope, memberI
 //                            minutes = dbValue.toInt()
 //                    }
 //                    val weeklyAvailabilityHours = Pair(hours, minutes)
-//                    val permissionrole = teamInfoMap["permissionRole"] as? String ?: "USER"
+//                    val permissionrole = teamInfoMap["permissionrole"] as? String ?: "USER"
 //
 //                    m.teamsInfo?.put(teamId, MemberTeamInfo(
 //                        role = CategoryRole.valueOf(role),

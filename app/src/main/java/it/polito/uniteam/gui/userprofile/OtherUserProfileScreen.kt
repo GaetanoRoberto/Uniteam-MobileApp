@@ -25,10 +25,12 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.JoinInner
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.PeopleAlt
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,7 +48,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import it.polito.uniteam.AppStateManager
 import it.polito.uniteam.Factory
 import it.polito.uniteam.NavControllerManager
@@ -54,6 +58,7 @@ import it.polito.uniteam.UniTeamModel
 import it.polito.uniteam.classes.MemberDBFinal
 import it.polito.uniteam.classes.Status
 import it.polito.uniteam.classes.TeamDBFinal
+import it.polito.uniteam.classes.TeamIcon
 import it.polito.uniteam.ui.theme.Orange
 
 
@@ -110,7 +115,7 @@ fun OtherUserProfile(vm: OtherUserProfileScreen = viewModel(factory = Factory(Lo
                     Triple(Icons.Default.Email, "email", vm.member.email),
                     Triple(Icons.Default.LocationOn, "location", vm.member.location),
                     Triple(Icons.Default.Star, "KPI", computeKPI(memberId = vm.member.id))
-                )
+                ).filter { it.third.isNotBlank() }
                 val line_modifier = Modifier
                     .fillMaxWidth(0.8f)
                     .height(1.dp)
@@ -125,7 +130,7 @@ fun OtherUserProfile(vm: OtherUserProfileScreen = viewModel(factory = Factory(Lo
                 }
 
 
-                RowItem(icon = Icons.Default.JoinInner, description = "Teams", value = "Teams in common:" )
+                RowItem(icon = Icons.Default.PeopleAlt, description = "Teams", value = "Teams in common:" )
                     vm.teamsInCommon.forEach{
                         Row(modifier = Modifier.fillMaxWidth(0.8f)) {
                             RowTeamItem(team = it, role = vm.member.teamsInfo?.get(it.id)?.role.toString(), member= vm.member)                        }
@@ -156,7 +161,7 @@ fun OtherUserProfile(vm: OtherUserProfileScreen = viewModel(factory = Factory(Lo
                     Triple(Icons.Default.Email, "email", vm.member.email),
                     Triple(Icons.Default.LocationOn, "location", vm.member.location),
                     Triple(Icons.Default.Star, "KPI", vm.member.kpi)
-                )
+                ).filter { it.third.isNotBlank() }
                 val line_modifier = Modifier
                     .fillMaxWidth(0.8f)
                     .height(1.dp)
@@ -170,7 +175,7 @@ fun OtherUserProfile(vm: OtherUserProfileScreen = viewModel(factory = Factory(Lo
 
                 }
 
-                    RowItem(icon = Icons.Default.JoinInner, description = "Teams", value = "Teams in common:")
+                    RowItem(icon = Icons.Default.PeopleAlt, description = "Teams", value = "Teams in common:")
                     vm.teamsInCommon.forEach{
                         Row(modifier = Modifier
                             .fillMaxWidth(0.8f)
@@ -199,13 +204,12 @@ fun RowTeamItem(modifier: Modifier = Modifier, team: TeamDBFinal, role: String, 
         Row(
             modifier = Modifier.padding(6.dp, 0.dp, 0.dp, 0.dp)
         ) {
-
-            /*TeamIcon(team = team, modifierScale = Modifier.scale(0.65f),)*/
+            TeamIcon(team = team, modifierPadding = Modifier.padding(top = 8.dp, end = 20.dp))
             Text(
-                team.name.toString() ,
+                team.name,
                 modifier = Modifier
-                    .padding(6.dp, 0.dp),
-                style = MaterialTheme.typography.headlineSmall,
+                    .padding(6.dp, 6.dp),
+                style = MaterialTheme.typography.titleMedium,
             )
 
 
@@ -213,6 +217,7 @@ fun RowTeamItem(modifier: Modifier = Modifier, team: TeamDBFinal, role: String, 
     }
 
     Spacer(modifier = Modifier.padding(15.dp))
+    HorizontalDivider(color = Color.White)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -287,8 +292,11 @@ fun DefaultImageForTeam(vm: OtherUserProfileScreen = viewModel(factory = Factory
                 // Box per contenere l'icona della fotocamera
                 Box(modifier = Modifier.size(200.dp), contentAlignment = Alignment.Center) {
                     if (member.profileImage != Uri.EMPTY) {
-                        Image(
-                            painter = rememberAsyncImagePainter(member.profileImage),
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(member.profileImage)
+                                .crossfade(true)
+                                .build(),
                             contentDescription = null,
                             modifier = Modifier
                                 .size(160.dp)

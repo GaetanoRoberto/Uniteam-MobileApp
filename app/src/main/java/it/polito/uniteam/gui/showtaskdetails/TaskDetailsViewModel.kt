@@ -258,7 +258,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
             // members
             val removedComment = "Members removed: "
             var removedMembers = ""
-            val addedComment = "Members Added: "
+            val addedComment = "Members added: "
             var addedMembers = ""
             for (oldMember in membersBefore) {
                 if(!members.contains(oldMember)) {
