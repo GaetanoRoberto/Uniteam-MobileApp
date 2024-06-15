@@ -12,9 +12,8 @@ class GeneralViewModel(val model: UniTeamModel, val savedStateHandle: SavedState
     val files = model.getAllFiles2()
     val comments = model.getAllComments2()
     val messages = model.getAllMessages2()
-    val loggedMember = model.getLoggedUserFlow()
-
-
+    //val loggedMember = model.getLoggedUserFlow()
+    
 
     /*fun getTeams() = model.getTeams()
     fun getAllTeamsMembersHome() = model.getAllTeamsMembersHome()

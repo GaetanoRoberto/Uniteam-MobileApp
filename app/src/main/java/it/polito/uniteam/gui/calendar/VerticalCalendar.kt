@@ -76,7 +76,7 @@ fun SetupCalendarData(vm: Calendar = viewModel(factory = Factory(LocalContext.cu
 @Composable
 fun CalendarAppContainer(vm: Calendar = viewModel(factory = Factory(LocalContext.current))) {
     val dragAndDropState = rememberDragAndDropState<Pair<TaskDBFinal, LocalDate?>>()
-    vm.loggedMember = AppStateManager.getLoggedMember().id
+    vm.loggedMember = AppStateManager.getLoggedMemberFinal(members = AppStateManager.getMembers(),vm.model.loggedMemberFinal.id).id
     SetupCalendarData(vm = vm)
     DragAndDropContainer(
         state = dragAndDropState,

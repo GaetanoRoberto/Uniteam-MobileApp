@@ -48,15 +48,15 @@ suspend fun addTeamMessage(
     )
 
     // Add the message to the "Messages" collection
-    val messageRef = db.collection("Message").add(message).await()
-    val messageId = messageRef.id
+    val messageRef = db.collection("Message").document()
 
-    // Update the message ID in the created message
-    //db.collection("Message").document(messageId).update("id", messageId).await()
-
-    // Update the chat to include the new message ID
-    val chatRef = db.collection("Chat").document(chatId)
-    chatRef.update("messages", FieldValue.arrayUnion(messageId)).await()
+    db.runTransaction{transaction ->
+        transaction.set(messageRef, message)
+        // Get the new message document ID
+        val messageId = messageRef.id
+        // Update the chat with the new message ID
+        transaction.update(db.collection("Chat").document(chatId), "messages", FieldValue.arrayUnion(messageId))
+    }
 }
 suspend fun addMessage(
     db: FirebaseFirestore,
@@ -73,17 +73,16 @@ suspend fun addMessage(
         "status" to "UNREAD",
         "membersUnread" to mutableListOf<String>()
     )
+    val messageRef = db.collection("Message").document()
+    db.runTransaction { transaction ->
+        // Set the new message document
+        transaction.set(messageRef, message)
+        // Get the new message document ID
+        val messageId = messageRef.id
+        // Update the chat with the new message ID
+        transaction.update(db.collection("Chat").document(chatId), "messages", FieldValue.arrayUnion(messageId))
+    }
 
-    // Add the message to the "Messages" collection
-    val messageRef = db.collection("Message").add(message).await()
-    val messageId = messageRef.id
-
-    // Update the message ID in the created message
-    //db.collection("Message").document(messageId).update("id", messageId).await()
-
-    // Update the chat to include the new message ID
-    val chatRef = db.collection("Chat").document(chatId)
-    chatRef.update("messages", FieldValue.arrayUnion(messageId)).await()
 }
 
 fun addComment(db: FirebaseFirestore, comment: CommentDBFinal, taskId: String) {

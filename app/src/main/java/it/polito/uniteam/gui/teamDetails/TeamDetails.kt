@@ -141,7 +141,7 @@ fun TeamViewScreen(vm: TeamDetailsViewModel = viewModel(factory = Factory(LocalC
     LaunchedEffect(key1 = 1) {
         vm.model.resetAvailabilitiesErrors()
     }
-    vm.loggedMember = AppStateManager.getLoggedMember()
+    vm.loggedMember = AppStateManager.getLoggedMemberFinal(members = AppStateManager.getMembers(),vm.model.loggedMemberFinal.id)
     vm.isAdmin = vm.loggedMember.teamsInfo?.get(vm.teamId)?.permissionrole == permissionRole.ADMIN
     // Handle Back Button
     BackHandler(onBack = {

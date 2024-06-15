@@ -788,7 +788,7 @@ fun PresentationPane(vm: UserProfileScreen = viewModel(factory = Factory(LocalCo
 
 @Composable
 fun SetupProfileData(vm: UserProfileScreen = viewModel(factory = Factory(LocalContext.current))) {
-    vm.loggedMember = AppStateManager.getLoggedMember().id
+    vm.loggedMember = AppStateManager.getLoggedMemberFinal(members = AppStateManager.getMembers(),vm.model.loggedMemberFinal.id).id
     val loggedMember = AppStateManager.getMembers().find { it.id == vm.loggedMember }!!
     vm.nameValue = loggedMember.fullName
     vm.usernameValue = loggedMember.username

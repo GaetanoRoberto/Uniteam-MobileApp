@@ -218,7 +218,7 @@ fun RowTeamItem(modifier: Modifier = Modifier, team: TeamDBFinal, role: String, 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OtherProfileSettings( vm: OtherUserProfileScreen = viewModel(factory = Factory(LocalContext.current.applicationContext))) {
-    vm.loggedMember = AppStateManager.getLoggedMember().id
+    vm.loggedMember = AppStateManager.getLoggedMemberFinal(members = AppStateManager.getMembers(),vm.model.loggedMemberFinal.id).id
 
     BoxWithConstraints {
 

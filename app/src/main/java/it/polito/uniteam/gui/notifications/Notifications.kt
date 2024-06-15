@@ -137,7 +137,7 @@ fun SetupNotificationsData(vm: NotificationsViewModel = viewModel(factory = Fact
 
 @Composable
 fun Notifications(vm: NotificationsViewModel = viewModel(factory = Factory(LocalContext.current))) {
-    vm.loggedMember = AppStateManager.getLoggedMember()
+    vm.loggedMember = AppStateManager.getLoggedMemberFinal(members = AppStateManager.getMembers(),vm.model.loggedMemberFinal.id)
     SetupNotificationsData(vm = vm)
     val icons = listOf(Icons.Filled.Comment, Icons.Filled.Info)
     val titles = notificationsSection.entries.map { it.toString() }

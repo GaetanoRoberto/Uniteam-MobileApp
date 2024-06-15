@@ -149,7 +149,7 @@ fun Home(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current)))
     val screenWeightDp = LocalConfiguration.current.screenWidthDp
     val (selectedOption, onOptionSelected) = remember { mutableStateOf(vm.radioOptions[0]) }
     // Stati per team e membri
-    val loggedMember = AppStateManager.getLoggedMember()
+    val loggedMember = AppStateManager.getLoggedMemberFinal(members = AppStateManager.getMembers(),vm.model.loggedMemberFinal.id)
     val teams = AppStateManager.getTeams()
     val membersList = AppStateManager.getMembers()
     vm.teamsList = teams.filter { team -> team.members.contains(loggedMember.id)}

@@ -108,7 +108,7 @@ fun Join(vm: JoinViewModel = viewModel(factory = Factory(LocalContext.current)))
     var clickedJoinButton by remember { mutableStateOf(false) }
     val teams = AppStateManager.getTeams()
     val team by remember { mutableStateOf(teams.find { it.id == vm.teamId }) }
-    val loggedMember = AppStateManager.getLoggedMember()
+    val loggedMember = AppStateManager.getLoggedMemberFinal(members = AppStateManager.getMembers(),vm.model.loggedMemberFinal.id)
 
     fun isLoggedMemberInTeam(): Boolean {
         return team?.members?.contains(loggedMember.id) ?: false

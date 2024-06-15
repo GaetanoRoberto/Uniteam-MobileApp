@@ -95,4 +95,13 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    implementation ("androidx.credentials:credentials:1.2.2")
+    implementation ("androidx.credentials:credentials-play-services-auth:1.2.2")
+    implementation ("com.google.android.libraries.identity.googleid:googleid:1.1.0")
+    implementation ("com.google.android.gms:play-services-auth:20.0.0")
+    implementation ("androidx.compose.ui:ui:1.1.1")
+    implementation ("androidx.compose.material:material:1.1.1")
+    implementation ("androidx.compose.ui:ui-tooling-preview:1.1.1")
+    implementation ("androidx.activity:activity-compose:1.4.0")
+    implementation ("com.auth0.android:jwtdecode:2.0.2")
 }

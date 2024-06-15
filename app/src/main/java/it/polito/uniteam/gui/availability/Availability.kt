@@ -63,6 +63,10 @@ class AvailabilityViewModel(val model: UniTeamModel, val savedStateHandle: Saved
     fun updateLoggedMemberTeamInfo(memberId: String, teamId: String, newRole: String, newHours: Number, newMinutes: Number, newTimes: Number) = model.updateLoggedMemberTeamInfo(memberId,teamId,newRole,newHours,newMinutes,newTimes)
 
     val roleValues = CategoryRole.entries
+    var timesError = mutableStateOf("")
+        private set
+    var timeError = mutableStateOf("")
+        private set
 
     var role = mutableStateOf(CategoryRole.NONE)
 }
@@ -71,8 +75,7 @@ class AvailabilityViewModel(val model: UniTeamModel, val savedStateHandle: Saved
 @Composable
 fun Availability(vm: AvailabilityViewModel = viewModel(factory = Factory(LocalContext.current)), roleCallback: (role:CategoryRole) -> Unit = {}, timesCallback: (times:String) -> Unit = {}, hoursCallback: (hours:String) -> Unit = {}, minutesCallback: (minutes:String) -> Unit = {}) {
     val navController = NavControllerManager.getNavController()
-    val loggedMember = AppStateManager.getLoggedMember()
-    Log.d("Availability", vm.teamId.toString())
+    val loggedMember = AppStateManager.getLoggedMemberFinal(members = AppStateManager.getMembers(),vm.model.loggedMemberFinal.id)
     val initialRole = if(vm.teamId != "0") loggedMember.teamsInfo?.get(vm.teamId)?.role!! else CategoryRole.NONE
     val currentRoleState = rememberSaveable { mutableStateOf(initialRole) }
     val times = remember { mutableStateOf(if(vm.teamId != "0") loggedMember.teamsInfo?.get(vm.teamId)?.weeklyAvailabilityTimes.toString() else "0") }

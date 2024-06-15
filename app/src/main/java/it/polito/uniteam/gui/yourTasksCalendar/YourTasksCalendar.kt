@@ -41,7 +41,7 @@ class YourTasksCalendarViewModel(val model: UniTeamModel, val savedStateHandle: 
 
 @Composable
 fun YourTasksCalendarView(vm: YourTasksCalendarViewModel = viewModel(factory = Factory(LocalContext.current.applicationContext))){
-    vm.loggedMember = AppStateManager.getLoggedMember().id
+    vm.loggedMember = AppStateManager.getLoggedMemberFinal(members = AppStateManager.getMembers(),vm.model.loggedMemberFinal.id).id
     var initialDate = ""
     val userTasks = AppStateManager.getTasks().filter { it.members.contains(vm.loggedMember) }
     val taskOrdered:MutableList<TaskForCalendar> = mutableListOf()

@@ -14,6 +14,7 @@ import it.polito.uniteam.gui.calendar.Calendar
 import it.polito.uniteam.gui.chat.ChatViewModel
 import it.polito.uniteam.gui.chatlist.ChatListViewModel
 import it.polito.uniteam.gui.home.HomeViewModel
+import it.polito.uniteam.gui.login.LoginViewModel
 import it.polito.uniteam.gui.notifications.NotificationsViewModel
 import it.polito.uniteam.gui.showtaskdetails.taskDetails
 import it.polito.uniteam.gui.statistics.StatisticsViewModel
@@ -41,7 +42,8 @@ class Factory(context: Context): ViewModelProvider.Factory {
         JoinViewModel::class.java,
         TeamDetailsViewModel::class.java,
         HomeViewModel::class.java,
-        GeneralViewModel::class.java
+        GeneralViewModel::class.java,
+        LoginViewModel::class.java
     )
 
     override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
