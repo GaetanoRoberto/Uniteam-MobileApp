@@ -132,19 +132,10 @@ suspend fun uploadFile(context: Context, fileUri: Uri, fileStorageName: String) 
     try {
         // Get the input stream from the URI
         val inputStream: InputStream? = context.contentResolver.openInputStream(fileUri)
-        val streamSize = inputStream?.available()?.toLong() ?: 0L
-        val buffer = ByteArray(1024 * 4) // 4 KB buffer
-        var totalBytesRead = 0L
 
-        // Upload the file with progress updates
+        // Upload the file without progress updates
         val uploadTask: UploadTask = fileRef.putStream(inputStream!!)
-        uploadTask.addOnProgressListener { taskSnapshot ->
-            val bytesTransferred = taskSnapshot.bytesTransferred
-            totalBytesRead += bytesTransferred
-            val progress = (100 * totalBytesRead / streamSize).toInt()
-            builder.setProgress(100, progress, false)
-            notificationManager.notify(2, builder.build())
-        }.await()
+        uploadTask.await()
 
         // Upload complete, update notification
         builder.setContentText("Upload complete")

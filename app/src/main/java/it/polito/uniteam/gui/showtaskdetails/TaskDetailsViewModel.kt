@@ -274,7 +274,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
             }
             if (removedMembers.isNotEmpty() && addedMembers.isNotEmpty()) {
                 val comment = "Task " + removedComment + removedMembers + "\n" +
-                        "Task " + addedComment + addedMembers + "\n"
+                        "Task " + addedComment + addedMembers
                 entryToAdd.add(
                     HistoryDBFinal(
                         id = (temporaryId++).toString(),

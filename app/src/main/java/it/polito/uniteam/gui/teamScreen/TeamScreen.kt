@@ -1715,7 +1715,7 @@ fun AssignDialog(vm: TeamScreenViewModel, membersList: List<MemberDBFinal>) {
                                     members = selectedMemberIds,
                                     loggedUser = loggedMember.id,
                                     comment = if (newSelectedMembers.isNotEmpty() && unselectedMembers.isNotEmpty())
-                                        "Task Members removed: ${unselectedUsernames.joinToString(separator = " ")}\nTask Members added: ${newSelectedUsernames.joinToString(separator = " ")}\n"
+                                        "Task Members removed: ${unselectedUsernames.joinToString(separator = " ")}\nTask Members added: ${newSelectedUsernames.joinToString(separator = " ")}"
                                     else if (newSelectedMembers.isNotEmpty())
                                         "Task Members added: ${newSelectedUsernames.joinToString(separator = " ")}"
                                     else

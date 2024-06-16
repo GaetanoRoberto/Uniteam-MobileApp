@@ -272,9 +272,13 @@ suspend fun downloadFileAndSaveToDownloads(context: Context, fileStorageName: St
 
         // Get the Downloads directory
         val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-
+        // Create the Uniteam directory within Downloads
+        val uniteamDir = java.io.File(downloadsDir, "Uniteam")
+        if (!uniteamDir.exists()) {
+            uniteamDir.mkdirs() // Create the directory if it doesn't exist
+        }
         // Create a file in the Downloads directory
-        val file = java.io.File(downloadsDir, fileName)
+        val file = java.io.File(uniteamDir, fileName)
         withContext(Dispatchers.IO) {
             FileOutputStream(file).use { fos ->
                 val buffer = ByteArray(1024 * 400) // 400 KB buffer
@@ -309,6 +313,7 @@ suspend fun downloadFileAndSaveToDownloads(context: Context, fileStorageName: St
         notificationManager.notify(1, builder.build())
 
     } catch (e: Exception) {
+        Log.d("file",e.toString())
         // Update notification for failure
         builder.setContentText("Download failed")
             .setProgress(0, 0, false)
