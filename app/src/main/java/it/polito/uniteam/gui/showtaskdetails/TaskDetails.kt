@@ -311,7 +311,7 @@ fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.curr
     val controller = NavControllerManager.getNavController()
     BackHandler(onBack = {
         vm.validate()
-        if (vm.taskError == "" && vm.descriptionError == "" && vm.categoryError == "" && vm.deadlineError == "" && vm.estimatedTimeError.value == "" && vm.spentTimeError.value == "" && vm.priorityError == "") {
+        if (vm.taskError == "" && vm.descriptionError == "" && vm.categoryError == "" && vm.deadlineError == "" && vm.estimatedTimeError.value == "" && vm.spentTimeError.value == "" && vm.priorityError == "" && vm.membersError == "") {
             if(vm.newTask) {
                 vm.handleHistory()
                 // TODO save now navigate
@@ -440,7 +440,7 @@ fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.curr
                             Box(modifier = Modifier.weight(1f)) {
                                 Button( colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
                                     vm.validate()
-                                    if (vm.taskError == "" && vm.descriptionError == "" && vm.categoryError == "" && vm.deadlineError == "" && vm.estimatedTimeError.value == "" && vm.spentTimeError.value == "" && vm.priorityError == "") {
+                                    if (vm.taskError == "" && vm.descriptionError == "" && vm.categoryError == "" && vm.deadlineError == "" && vm.estimatedTimeError.value == "" && vm.spentTimeError.value == "" && vm.priorityError == "" && vm.membersError == "") {
                                         if(vm.newTask) {
                                             vm.handleHistory()
                                             // TODO save now navigate
@@ -545,7 +545,7 @@ fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.curr
                         Box(modifier = Modifier.weight(1f)) {
                             Button(colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), onClick = {
                                 vm.validate()
-                                if (vm.taskError == "" && vm.descriptionError == "" && vm.categoryError == "" && vm.deadlineError == "" && vm.estimatedTimeError.value == "" && vm.spentTimeError.value == "" && vm.priorityError == "") {
+                                if (vm.taskError == "" && vm.descriptionError == "" && vm.categoryError == "" && vm.deadlineError == "" && vm.estimatedTimeError.value == "" && vm.spentTimeError.value == "" && vm.priorityError == "" && vm.membersError == "") {
                                     if(vm.newTask) {
                                         vm.handleHistory()
                                         // TODO save now navigate

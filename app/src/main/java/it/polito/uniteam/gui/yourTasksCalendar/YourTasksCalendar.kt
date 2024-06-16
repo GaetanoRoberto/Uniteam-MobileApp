@@ -50,11 +50,10 @@ fun YourTasksCalendarView(vm: YourTasksCalendarViewModel = viewModel(factory = F
         val teamName = AppStateManager.getTeams().find { it.tasks.contains(task.id) }?.name
         for((k,v) in task.schedules){
             // filter schedules of that member and >= today
-            if(k.first == vm.loggedMember && k.second.isAfter(LocalDate.now().minusDays(1)))
+            if(k.first == vm.loggedMember)
                 taskOrdered.add(TaskForCalendar(id = task.id, team = teamName!!, name=task.name, date = k.second, scheduledTime = v, deadline = task.deadline))
         }
     }
-    taskOrdered.sortBy { it.date }
 
     Box(
         modifier = Modifier
@@ -64,7 +63,7 @@ fun YourTasksCalendarView(vm: YourTasksCalendarViewModel = viewModel(factory = F
         if (taskOrdered.isEmpty()) {
             Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                 Spacer(modifier = Modifier.height(100.dp))
-                Text(text = "No Task scheduled from now on.", textAlign = TextAlign.Center)
+                Text(text = "No Task scheduled.", textAlign = TextAlign.Center)
             }
         }
 
@@ -75,12 +74,11 @@ fun YourTasksCalendarView(vm: YourTasksCalendarViewModel = viewModel(factory = F
                     .padding(0.dp, 10.dp, 0.dp, 0.dp)
                     .verticalScroll(rememberScrollState()),
             ) {
-                taskOrdered.forEachIndexed { index, task ->
+                taskOrdered.sortedByDescending { it.date }.forEachIndexed { index, task ->
 
                     if (task.date.toString() != initialDate) {
                         Row(modifier = Modifier.fillMaxWidth()) {
                             Text(
-
                                 text = if(task.date.isEqual(LocalDate.now())){ "Today"} else if(task.date.isEqual(LocalDate.now().plusDays(1)))"Tomorrow" else task.date.toString(),
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.fillMaxWidth()

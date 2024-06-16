@@ -523,8 +523,8 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
     fun newTask() {
         taskName = ""
         description = ""
-        category = ""
-        priority = ""
+        category = Category.NONE.toString()
+        priority = Priority.LOW.toString()
         //deadline =""
         estimatedHours.value = "0"
         estimatedMinutes.value = "0"

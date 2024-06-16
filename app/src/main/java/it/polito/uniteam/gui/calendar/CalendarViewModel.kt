@@ -37,11 +37,18 @@ class Calendar(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) 
 
     fun checkDialogs(task: TaskDBFinal, sourceDate:LocalDate? = null, targetDate: LocalDate, isNewSchedule: Boolean = true) {
         // check permissions
-        //Log.i("diooo",task.schedules.keys.contains(Pair(loggedMember,targetDate)).toString())
+        Log.i("diooo",targetDate.toString())
+        Log.i("diooo",sourceDate.toString())
+        Log.i("diooo",isNewSchedule.toString())
         if ((task.schedules.keys.contains(Pair(loggedMember,sourceDate)) &&!isNewSchedule) || isNewSchedule) {
             // if permissions, check if back in time
             if(targetDate.isBefore(LocalDate.now())) {
-                selectedShowDialog = showDialog.schedule_in_past
+                // if from a reschedule (sourcedate not null) and same targetdate (moving the item on the same day) do nothing
+                if(sourceDate != null && targetDate.isEqual(sourceDate)) {
+                    selectedShowDialog = showDialog.none
+                } else {
+                    selectedShowDialog = showDialog.schedule_in_past
+                }
             } else if(targetDate.isAfter(task.deadline)) {
                 selectedShowDialog = showDialog.after_deadline
             } else if(isNewSchedule) {

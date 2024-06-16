@@ -106,7 +106,6 @@ class UserProfileScreen(val model: UniTeamModel, val savedStateHandle: SavedStat
     var loggedMember = ""
     var nameBefore = ""
     var usernameBefore = ""
-    var emailBefore = ""
     var locationBefore = ""
     var descriptionBefore = ""
     var imageBefore = Uri.EMPTY
@@ -116,7 +115,6 @@ class UserProfileScreen(val model: UniTeamModel, val savedStateHandle: SavedStat
     fun edit() {
         nameBefore = nameValue
         usernameBefore = usernameValue
-        emailBefore = emailValue
         locationBefore = locationValue
         descriptionBefore = descriptionValue
         imageBefore = photoUri
@@ -126,12 +124,10 @@ class UserProfileScreen(val model: UniTeamModel, val savedStateHandle: SavedStat
     fun cancelEdit() {
         nameValue = nameBefore
         usernameValue = usernameBefore
-        emailValue = emailBefore
         locationValue = locationBefore
         descriptionValue = descriptionBefore
         photoUri = imageBefore
         nameError = ""
-        emailError = ""
         usernameError = ""
         locationError = ""
         descriptionError = ""
@@ -140,12 +136,11 @@ class UserProfileScreen(val model: UniTeamModel, val savedStateHandle: SavedStat
 
     fun validate() {
         checkName()
-        checkEmail()
         checkUsername()
         checkLocation()
         checkDescription()
 
-        if (nameError.isBlank() && emailError.isBlank() && usernameError.isBlank() && locationError.isBlank() && descriptionError.isBlank()) {
+        if (nameError.isBlank() && usernameError.isBlank() && locationError.isBlank() && descriptionError.isBlank()) {
             val updatedMember = model.loggedMember.value.copy(
                 fullName = nameValue,
                 username = usernameValue,
@@ -192,22 +187,6 @@ class UserProfileScreen(val model: UniTeamModel, val savedStateHandle: SavedStat
     }
 
     var emailValue by mutableStateOf("")
-    var emailError by mutableStateOf("")
-        private set
-
-    fun setEmail(e: String) {
-        emailValue = e
-    }
-
-    private fun checkEmail() {
-        val emailRegex = Regex("^\\w+@[a-zA-Z_]+?\\.[a-zA-Z]{2,3}\$")
-        if (emailValue.isBlank())
-            emailError = "Email cannot be blank!"
-        else if (!emailRegex.matches(emailValue))
-            emailError = "Invalid email address!"
-        else
-            emailError = ""
-    }
 
     var locationValue by mutableStateOf("")
     var locationError by mutableStateOf("")
@@ -360,14 +339,6 @@ fun EditProfile(vm: UserProfileScreen = viewModel(factory = Factory(LocalContext
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     EditRowItem(
-                        value = vm.emailValue,
-                        keyboardType = KeyboardType.Email,
-                        onChange = vm::setEmail,
-                        label = "Email",
-                        errorText = vm.emailError
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    EditRowItem(
                         value = vm.locationValue,
                         onChange = vm::setLocation,
                         label = "Location",
@@ -402,13 +373,6 @@ fun EditProfile(vm: UserProfileScreen = viewModel(factory = Factory(LocalContext
                         onChange = vm::setUsername,
                         label = "Username",
                         errorText = vm.usernameError
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    EditRowItem(
-                        value = vm.emailValue,
-                        onChange = vm::setEmail,
-                        label = "Email",
-                        errorText = vm.emailError
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     EditRowItem(
