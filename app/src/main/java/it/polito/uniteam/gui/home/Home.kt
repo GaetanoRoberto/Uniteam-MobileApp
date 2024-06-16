@@ -156,6 +156,8 @@ fun Home(vm: HomeViewModel = viewModel(factory = Factory(LocalContext.current)))
     vm.filteredTeamsList = mutableStateOf(vm.teamsList.sortedBy { it.name })
     val filteredMembersList = membersList.filter { member -> vm.teamsList.flatMap { team -> team.members.filter { it != loggedMember.id } }.toSet().contains(member.id) }
 
+    val chats = AppStateManager.getChats()
+    val messages = AppStateManager.getMessages()
     LaunchedEffect(vm.teamsList) {
         vm.loaded.value = true
         vm.isLoading.value = false

@@ -69,7 +69,6 @@ fun messageUnreadCountForBottomBar(vm : NotificationsViewModel = viewModel(facto
     val unreadTeamMessages = teamMessages.filter { message ->
         message.membersUnread.contains(loggedMember)
     }.size
-
     return unreadTeamMessages + unreadDirectMessages
     }
 

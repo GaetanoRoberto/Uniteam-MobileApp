@@ -118,6 +118,10 @@ fun Login(vm: LoginViewModel = viewModel(factory = Factory(LocalContext.current.
     var logged by remember {
         vm.isUserLogged
     }
+    val messages = AppStateManager.getMessages()
+    val chats = AppStateManager.getChats()
+    val teams = AppStateManager.getTeams()
+
     var userInfo by remember { mutableStateOf("") }
     var userInfoName by remember { mutableStateOf("") }
     var userInfoEmail by remember { mutableStateOf("") }
@@ -167,6 +171,9 @@ fun Login(vm: LoginViewModel = viewModel(factory = Factory(LocalContext.current.
                         vm.setLoggedMember(jwt)
                         vm.setIsUserLogged(true)
                         vm.saveLoginState(email)
+                        Log.d("LOGIN UNREad", "${vm.model.loggedMemberFinal.id}")
+                        vm.model.calculateUnreadMessages(vm.model.loggedMemberFinal.id,chats,teams,messages)
+
                         Log.d("LOGIN", "GoogleIdTokenCredential: $userInfo")
 
                     } catch (e : Exception) {

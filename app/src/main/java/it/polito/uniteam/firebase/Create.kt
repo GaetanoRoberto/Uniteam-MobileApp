@@ -56,6 +56,7 @@ suspend fun addTeamMessage(
         val messageId = messageRef.id
         // Update the chat with the new message ID
         transaction.update(db.collection("Chat").document(chatId), "messages", FieldValue.arrayUnion(messageId))
+
     }
 }
 suspend fun addMessage(

@@ -13,6 +13,7 @@ import android.os.Environment
 import android.provider.DocumentsContract
 import android.util.Log
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -661,7 +662,67 @@ fun getAllMessages(db: FirebaseFirestore): Flow<List<MessageDB>> = callbackFlow 
         listener.remove()
     }
 }
+fun getAllMessagesUnread(db: FirebaseFirestore,coroutineScope : CoroutineScope, loggedMemberId: String,teams: List<TeamDBFinal>,chats: List<ChatDBFinal>): Flow<Int> = callbackFlow {
+    // Add a listener to the Message collection
+    val messageListener = db.collection("Message").addSnapshotListener { messageSnapshot, messageError ->
+        if (messageSnapshot != null) {
+            // Fetch all the necessary data
+            val messages = mutableListOf<MessageDB>()
+            messageSnapshot.forEach { message ->
+                val status = message.getString("status") ?: ""
+                val m = MessageDB(
+                    id = message.id,
+                    senderId = message.getString("senderId") ?: "",
+                    message = message.getString("message") ?: "",
+                    creationDate = message.getTimestamp("creationDate")?.let {
+                        parseToLocalDate(
+                            it.toDate(),
+                            parseReturnType.DATETIME
+                        )
+                    } as LocalDateTime,
+                    membersUnread = (message.get("membersUnread") as? MutableList<String>)
+                        ?: mutableListOf(),
+                    status = if (status.isNotEmpty()) messageStatus.valueOf(status) else messageStatus.UNREAD
+                )
+                messages.add(m)
+            }
+            // Combine asynchronous operations
+            coroutineScope.launch {
+                Log.d("Coroutine", "Logged Member ID: $loggedMemberId")
 
+
+                val directChats = chats.filter { chat -> chat.sender == loggedMemberId || chat.receiver == loggedMemberId }
+                val teamChats = chats.filter { chat -> teams.any { team -> team.id == chat.teamId && team.members.contains(loggedMemberId) } }
+
+                val directMessages = messages.filter { message ->
+                    directChats.any { chat -> chat.messages.contains(message.id) }
+                }
+
+                val teamMessages = messages.filter { message ->
+                    teamChats.any { chat -> chat.messages.contains(message.id) }
+                }
+
+                val unreadDirectMessages = directMessages.count { message ->
+                    message.status == messageStatus.UNREAD && message.senderId != loggedMemberId
+                }
+
+                val unreadTeamMessages = teamMessages.count { message ->
+                    message.membersUnread.contains(loggedMemberId)
+                }
+
+                val counter = unreadTeamMessages + unreadDirectMessages
+
+                trySend(counter).isSuccess
+            }
+        } else {
+            trySend(0).isSuccess
+        }
+    }
+
+    awaitClose {
+        messageListener.remove()
+    }
+}
 fun getMemberFlowById(db: FirebaseFirestore, coroutineScope: CoroutineScope, memberId: String): Flow<MemberDBFinal> = callbackFlow {
     val listener = db.collection("Member").document(memberId).addSnapshotListener { r, e ->
         if (r != null) {

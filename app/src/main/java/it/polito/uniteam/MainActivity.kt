@@ -2,6 +2,7 @@ package it.polito.uniteam
 
 //import it.polito.uniteam.gui.chat.ChatScreen
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Bundle
@@ -67,9 +68,12 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -94,7 +98,6 @@ import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import it.polito.uniteam.gui.teamDetails.TeamViewScreen
 import it.polito.uniteam.gui.availability.Availability
-import it.polito.uniteam.gui.availability.Join
 import it.polito.uniteam.gui.calendar.CalendarAppContainer
 import it.polito.uniteam.gui.chat.ChatScreen
 import it.polito.uniteam.gui.chatlist.ChatListScreen
@@ -103,7 +106,6 @@ import it.polito.uniteam.gui.notifications.Notifications
 import it.polito.uniteam.gui.showtaskdetails.TaskScreen
 import it.polito.uniteam.gui.statistics.Statistics
 import it.polito.uniteam.gui.teamScreen.TeamScreen
-import it.polito.uniteam.gui.notifications.messageUnreadCountForBottomBar
 import it.polito.uniteam.gui.userprofile.OtherProfileSettings
 import it.polito.uniteam.gui.userprofile.ProfileSettings
 import it.polito.uniteam.gui.userprofile.UserProfileScreen
@@ -115,15 +117,14 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import it.polito.uniteam.classes.ChatDBFinal
 import it.polito.uniteam.classes.LoadingSpinner
-import it.polito.uniteam.classes.MemberDB
 import it.polito.uniteam.classes.MessageDB
 import it.polito.uniteam.gui.home.Home
-import it.polito.uniteam.gui.notifications.SetupNotificationsData
 import it.polito.uniteam.gui.teamDetails.SetupTeamData
 import it.polito.uniteam.gui.teamDetails.isTeamChanges
 import it.polito.uniteam.gui.login.Login
-import it.polito.uniteam.gui.teamDetails.TeamDetailsView
 import it.polito.uniteam.gui.yourTasksCalendar.YourTasksCalendarView
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collectLatest
 
 class MainActivity : ComponentActivity() {
 
@@ -175,7 +176,21 @@ class MainActivity : ComponentActivity() {
                 val files = it.files.collectAsState(initial = emptyList())
                 val comments = it.comments.collectAsState(initial = emptyList())
                 val chats = it.chats.collectAsState(initial = emptyList())
+
+                var unreadMessagesCount : Flow<Int> = it.model.getUnreadMessages(it.model.loggedMemberFinal.id, teams.value, chats.value)
+                LaunchedEffect( it.model.isUserLogged.value, messages) {
+                     unreadMessagesCount = it.model.getUnreadMessages(it.model.loggedMemberFinal.id, teams.value, chats.value)
+                }
+                /*QUESTO FUNZIONA SOLO FINO A QUANDO GIRI SCHERMO
+                val unreadMessagesCount = produceState(initialValue = 0, key1 = it.model.isUserLogged.value.toString().plus(messages.value.size.toString())) {
+                        it.model.getUnreadMessages(it.model.loggedMemberFinal.id, teams.value, chats.value)
+                            .collect { count ->
+                                value = count
+                            }
+                }*/
+
                 AppStateManager.ProvideLocalAppState(it) {
+
                     val items = listOf(
                         BottomNavigationItem(
                             title = "Teams",
@@ -194,10 +209,9 @@ class MainActivity : ComponentActivity() {
                             selectedIcon = Icons.Filled.Notifications,
                             unselectedIcon = Icons.Outlined.Notifications,
                             hasNews = false,
-                            badgeCount = messageUnreadCountForBottomBar()
-                        ),
-
-                        )
+                            badgeCount =unreadMessagesCount.collectAsState(initial = 0)
+                            //it.model.getUnreadMessages(it.model.loggedMemberFinal.id ,teams.value, chats.value).collectAsState(initial = 0))
+                        ))
 
                     var selectedItemIndex by rememberSaveable {
                         mutableIntStateOf(0)
@@ -272,16 +286,13 @@ class MainActivity : ComponentActivity() {
                                                                 )
                                                             },
                                                             badge = {
-                                                                if(item.badgeCount != null &&  item.badgeCount > 0){
+                                                                if(item.badgeCount.value != null &&  item.badgeCount.value > 0){
                                                                     Badge(
                                                                         containerColor = MaterialTheme.colorScheme.onPrimaryContainer
                                                                     ) {
-                                                                        Text(text = item.badgeCount.toString())
+                                                                        Text(text = item.badgeCount.value.toString())
                                                                     }
                                                                 }
-                                                                /* item.badgeCount?.let {
-                                                                     Text(text = item.badgeCount.toString())
-                                                                 }*/
                                                             },
                                                             modifier = Modifier
                                                                 .padding(NavigationDrawerItemDefaults.ItemPadding)
@@ -614,11 +625,11 @@ class MainActivity : ComponentActivity() {
                                                                         icon = {
                                                                             BadgedBox(
                                                                                 badge = {
-                                                                                    if (item.badgeCount != null && item.badgeCount > 0) {
+                                                                                    if (item.badgeCount.value != null && item.badgeCount.value > 0) {
                                                                                         Badge(
                                                                                             containerColor = MaterialTheme.colorScheme.onPrimaryContainer
                                                                                         ) {
-                                                                                            Text(text = item.badgeCount.toString())
+                                                                                            Text(text = item.badgeCount.value.toString())
                                                                                         }
                                                                                     } else if (item.hasNews) {
                                                                                         Badge()
@@ -970,11 +981,11 @@ class MainActivity : ComponentActivity() {
                                                                 icon = {
                                                                     BadgedBox(
                                                                         badge = {
-                                                                            if (item.badgeCount != null && item.badgeCount > 0) {
+                                                                            if (item.badgeCount.value != null && item.badgeCount.value > 0) {
                                                                                 Badge(
                                                                                     containerColor = MaterialTheme.colorScheme.onPrimaryContainer
                                                                                 ) {
-                                                                                    Text(text = item.badgeCount.toString())
+                                                                                    Text(text = item.badgeCount.value.toString())
                                                                                 }
                                                                             } else if (item.hasNews) {
                                                                                 Badge()
@@ -1172,11 +1183,11 @@ fun MyTopAppBar(
 }
 
 data class BottomNavigationItem(
-    val title: String,
-    val selectedIcon: ImageVector,
-    val unselectedIcon: ImageVector,
-    val hasNews: Boolean,
-    val badgeCount: Int? = null
+        val title : String,
+        val selectedIcon : ImageVector,
+        val unselectedIcon : ImageVector,
+        val hasNews : Boolean,
+        val badgeCount : State<Int> = mutableStateOf(0)
 )
 
 
@@ -1218,14 +1229,14 @@ class AppStateManager {
         private val LocalComments = staticCompositionLocalOf<List<CommentDBFinal>> { emptyList() }
         private val LocalChats = staticCompositionLocalOf<List<ChatDBFinal>> { emptyList() }
         private val LocalMessages = staticCompositionLocalOf<List<MessageDB>> { emptyList() }
-
+        private val LocalCounter = staticCompositionLocalOf { 0 }
         @Composable
         fun ProvideLocalAppState(
-            viewModel: GeneralViewModel = viewModel(
-                factory = Factory(
-                    LocalContext.current
-                )
-            ), content: @Composable () -> Unit
+                viewModel : GeneralViewModel = viewModel(
+                    factory = Factory(
+                        LocalContext.current
+                    )
+                ), content : @Composable () -> Unit
         ) {
 
             val teams = viewModel.teams.collectAsState(initial = emptyList())
@@ -1236,6 +1247,7 @@ class AppStateManager {
             val comments = viewModel.comments.collectAsState(initial = emptyList())
             val chats = viewModel.chats.collectAsState(initial = emptyList())
             val messages = viewModel.messages.collectAsState(initial = emptyList())
+            //val counter = viewModel.counter.collectAsState(initial = 0)
             //val loggedMember = viewModel.loggedMember.collectAsState(initial = MemberDBFinal())
             CompositionLocalProvider(
                 //LocalLoggedMember provides loggedMember.value,
@@ -1246,17 +1258,22 @@ class AppStateManager {
                 LocalFiles provides files.value,
                 LocalComments provides comments.value,
                 LocalChats provides chats.value,
-                LocalMessages provides messages.value
+                LocalMessages provides messages.value,
+                //LocalCounter provides counter.value
             ) {
                 Log.d("UniTeam", "Members: ${members.value}")
                 if (teams.value.isNotEmpty() && tasks.value.isNotEmpty() && members.value.isNotEmpty()
                     && histories.value.isNotEmpty() && files.value.isNotEmpty() && comments.value.isNotEmpty()
-                    && chats.value.isNotEmpty() && messages.value.isNotEmpty()) {
+                    && chats.value.isNotEmpty() && messages.value.isNotEmpty()
+                ) {
                     content()
-                } else {
-                    Box(modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.background)) {
+                }
+                else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.background)
+                    ) {
                         LoadingSpinner()
                     }
                 }
@@ -1264,52 +1281,54 @@ class AppStateManager {
         }
 
         @Composable
-        fun getTeams(): List<TeamDBFinal> {
+        fun getTeams() : List<TeamDBFinal> {
             return LocalTeams.current
         }
 
         @Composable
-        fun getTasks(): List<TaskDBFinal> {
+        fun getTasks() : List<TaskDBFinal> {
             return LocalTasks.current
         }
 
         @Composable
-        fun getMembers(): List<MemberDBFinal> {
+        fun getMembers() : List<MemberDBFinal> {
             return LocalMembers.current
         }
 
         @Composable
-        fun getHistories(): List<HistoryDBFinal> {
+        fun getHistories() : List<HistoryDBFinal> {
             return LocalHistories.current
         }
 
         @Composable
-        fun getFiles(): List<FileDBFinal> {
+        fun getFiles() : List<FileDBFinal> {
             return LocalFiles.current
         }
 
         @Composable
-        fun getComments(): List<CommentDBFinal> {
+        fun getComments() : List<CommentDBFinal> {
             return LocalComments.current
         }
 
         @Composable
-        fun getChats(): List<ChatDBFinal> {
+        fun getChats() : List<ChatDBFinal> {
             return LocalChats.current
         }
 
         @Composable
-        fun getMessages(): List<MessageDB> {
+        fun getMessages() : List<MessageDB> {
             return LocalMessages.current
         }
 
-        /*@Composable
-        fun getLoggedMember(): MemberDBFinal {
-            return LocalLoggedMember.current
-        }*/
+
         @Composable
-        fun getLoggedMemberFinal(members: List<MemberDBFinal>,memberId:String): MemberDBFinal {
+        fun getLoggedMemberFinal(members : List<MemberDBFinal>, memberId : String) : MemberDBFinal {
             return members.find { it.id == memberId }!!
         }
+        /*@Composable
+        fun getUnreadMessages() : Int {
+            return LocalCounter.current
+        }*/
+
     }
 }

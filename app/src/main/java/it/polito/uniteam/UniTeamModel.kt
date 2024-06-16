@@ -5,6 +5,7 @@ import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.toMutableStateList
@@ -39,6 +40,7 @@ import it.polito.uniteam.classes.TeamDBFinal
 import it.polito.uniteam.classes.messageStatus
 import it.polito.uniteam.classes.permissionRole
 import it.polito.uniteam.firebase.changeAdminRole
+import it.polito.uniteam.firebase.getAllMessagesUnread
 //import it.polito.uniteam.firebase.addTaskHistory
 import it.polito.uniteam.firebase.getAllTeamsMembersHome
 import it.polito.uniteam.firebase.getMemberByEmail
@@ -56,6 +58,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import java.time.LocalDate
 import kotlin.collections.HashMap
 
@@ -70,7 +73,30 @@ class UniTeamModel(val context: Context) {
         }
 
     }
+    private val _unreadMessagesCount = MutableStateFlow(0)
+    val unreadMessagesCount: StateFlow<Int> = _unreadMessagesCount.asStateFlow()
 
+    fun calculateUnreadMessages(loggedMember: String, chats: List<ChatDBFinal>, teams: List<TeamDBFinal>, messages: List<MessageDB>) {
+        val directChats = chats.filter { chat -> chat.sender == loggedMember || chat.receiver == loggedMember }
+        val teamChats = chats.filter { chat -> teams.any { team -> team.id == chat.teamId && team.members.contains(loggedMember) } }
+        val directMessages = messages.filter { message ->
+            directChats.any { chat -> chat.messages.contains(message.id) }
+        }
+
+        val teamMessages = messages.filter { message ->
+            teamChats.any { chat -> chat.messages.contains(message.id) }
+        }
+
+        val unreadDirectMessages = directMessages.filter { message ->
+            message.status == messageStatus.UNREAD && message.senderId != loggedMember
+        }.size
+
+        val unreadTeamMessages = teamMessages.filter { message ->
+            message.membersUnread.contains(loggedMember)
+        }.size
+
+        _unreadMessagesCount.value = unreadTeamMessages + unreadDirectMessages
+    }
     var isUserLogged = mutableStateOf(false)
     fun setIsUserLogged(flag: Boolean){
         isUserLogged.value = flag
@@ -80,6 +106,8 @@ class UniTeamModel(val context: Context) {
         loggedMemberFinal = getMemberByEmail(db, coroutineScope, jwtPayload).await()
         //loggedMemberFinal = getMemberFlowByEmail(db, coroutineScope, jwtPayload).collectAsState(initial = MemberDBFinal()).value
         isUserLogged.value = true
+        Log.d("LOGIN UNREad", "${loggedMemberFinal.id}")
+        //getAllMessagesUnread(db,coroutineScope,loggedMemberFinal.id)
         Log.d("LOGIN", "logged member ${loggedMemberFinal}")
 
     }
@@ -88,14 +116,14 @@ class UniTeamModel(val context: Context) {
         //loggedMemberFinal = getMemberFlowByEmail(db, coroutineScope, jwtPayload).collectAsState(initial = MemberDBFinal()).value
         isUserLogged.value = true
         Log.d("LOGIN", "logged member ${loggedMemberFinal}")
-
+        //getAllMessagesUnread(db,coroutineScope,loggedMemberFinal.id)
     }
 
     val db = Firebase.firestore
     val coroutineScope = CoroutineScope(Dispatchers.IO)
     lateinit var user : FirebaseUser
 
-
+    var unreadMessages = mutableIntStateOf(0)
     //Stato di caricamento dati dal db
     var isLoading = mutableStateOf(true)
     var isLoading2 = mutableStateOf(true)
@@ -108,6 +136,7 @@ class UniTeamModel(val context: Context) {
     //fun getTeams(): Flow<List<TeamDB>> = getTeams(db,coroutineScope,loggedUser,isLoading)
     //fun getAllTeamsMembersHome(): Flow<List<MemberDB>> = getAllTeamsMembersHome(db,coroutineScope,loggedUser,isLoading)
     //fun getTeamById(id: String): Flow<TeamDB> = getTeamById(db,coroutineScope,id)
+    fun getUnreadMessages(loggedMemberId : String, teams: List<TeamDBFinal>, chats : List<ChatDBFinal> ): Flow<Int> = getAllMessagesUnread(db,coroutineScope,loggedMemberFinal.id, teams,chats)
     fun updateTaskAssignee(taskId: String, members: List<String>, loggedUser: String, comment: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = updateTaskAssignee(db,taskId,members,loggedUser,comment,onSuccess,onFailure)
     fun joinTeam(memberId: String, teamId: String, newRole: String, newHours: Number, newMinutes: Number, newTimes: Number, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = joinTeam(db,memberId,teamId,newRole,newHours,newMinutes,newTimes,onSuccess,onFailure)
     fun changeAdminRole(loggedMemberId: String, memberId: String, teamId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = changeAdminRole(db,loggedMemberId,memberId,teamId,onSuccess,onFailure)
