@@ -25,7 +25,7 @@ data class MessagesInfos(
 )
 
 class NotificationsViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
-    var loggedMember = MemberDBFinal()
+    var loggedMember = model.loggedMemberFinal
     fun getUsersChat(member: Member) = model.getUsersChat(member)
     fun getAllHistories() = model.getAllHistories()
     fun getAllTeamMessages() = 2//= model.getAllTeamMessagesCount()

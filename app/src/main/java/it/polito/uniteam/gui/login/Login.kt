@@ -277,7 +277,7 @@ fun Login(vm: LoginViewModel = viewModel(factory = Factory(LocalContext.current.
             Row(modifier = Modifier.fillMaxWidth(1f), horizontalArrangement = Arrangement.Center) {
                 if (logged) {
                     Log.d("LOGIN", "LOGGED")
-                    if(vm.isUserLogged.value)
+                    if(vm.isUserLogged.value && vm.model.loggedMemberFinal.id != "")
                         NavControllerManager.getNavController().navigate("Teams")
                     //Text("Hello: ${userInfoName}")
 

@@ -139,7 +139,7 @@ import kotlin.math.log
 
 class TeamScreenViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
     val teamId: String = checkNotNull(savedStateHandle["teamId"])
-    var loggedMember: String = ""
+    var loggedMember: String = model.loggedMemberFinal.id
     fun updateTaskAssignee(taskId: String, members: List<String>, loggedUser: String, comment: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = model.updateTaskAssignee(taskId, members, loggedUser, comment, onSuccess, onFailure)
     fun changeAdminRole(loggedMemberId: String, memberId: String, teamId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = model.changeAdminRole(loggedMemberId, memberId, teamId, onSuccess, onFailure)
     fun leaveTeam(memberId: String, teamId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) = model.leaveTeam(memberId, teamId, onSuccess, onFailure)

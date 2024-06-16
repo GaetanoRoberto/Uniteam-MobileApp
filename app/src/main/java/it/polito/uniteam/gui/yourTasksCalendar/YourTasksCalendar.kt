@@ -36,7 +36,7 @@ import it.polito.uniteam.classes.TaskForCalendar
 import java.time.LocalDate
 
 class YourTasksCalendarViewModel(val model: UniTeamModel, val savedStateHandle: SavedStateHandle): ViewModel() {
-    var loggedMember = ""
+    var loggedMember = model.loggedMemberFinal.id
 }
 
 @Composable

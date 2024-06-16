@@ -67,7 +67,7 @@ class OtherUserProfileScreen (val model: UniTeamModel, val savedStateHandle: Sav
     val memberId = checkNotNull(savedStateHandle["memberId"]).toString()
     var member: MemberDBFinal = MemberDBFinal()
     var teamsInCommon: List<TeamDBFinal> = emptyList()
-    var loggedMember = ""
+    var loggedMember = model.loggedMemberFinal.id
 }
 
 

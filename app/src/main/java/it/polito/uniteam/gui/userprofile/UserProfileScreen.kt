@@ -103,7 +103,7 @@ import java.util.concurrent.ExecutorService
 
 
 class UserProfileScreen(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
-    var loggedMember = ""
+    var loggedMember = model.loggedMemberFinal.id
     var nameBefore = ""
     var usernameBefore = ""
     var locationBefore = ""

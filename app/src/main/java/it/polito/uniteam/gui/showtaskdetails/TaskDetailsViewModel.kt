@@ -37,7 +37,7 @@ import java.util.Locale
 
 @SuppressLint("MutableCollectionMutableState")
 class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) : ViewModel() {
-    var loggedMember = ""
+    var loggedMember = model.loggedMemberFinal.id
     val taskId: String = checkNotNull(savedStateHandle["taskId"])
     val teamId: String = checkNotNull(savedStateHandle["teamId"])
     val newTask = taskId.length == 1 // navigate with 0, so length 1

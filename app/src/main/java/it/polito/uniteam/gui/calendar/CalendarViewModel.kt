@@ -20,7 +20,7 @@ class Calendar(val model: UniTeamModel, val savedStateHandle: SavedStateHandle) 
     val teamId: String = checkNotNull(savedStateHandle["teamId"])
     //fun getTeam(teamId: Int) = model.getTeam(teamId)
     //val teamName = getTeam(teamId.toInt()).name
-    var loggedMember = ""
+    var loggedMember = model.loggedMemberFinal.id
 
     fun scheduleTask(task: TaskDBFinal, scheduleDate: LocalDate, hoursToSchedule: Pair<Int,Int>) = model.scheduleTask(task, scheduleDate, hoursToSchedule)
     fun unScheduleTask(task: TaskDBFinal, scheduleDate: LocalDate) = model.unscheduleTask(task,scheduleDate)

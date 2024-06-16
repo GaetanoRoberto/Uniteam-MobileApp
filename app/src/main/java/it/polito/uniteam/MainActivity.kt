@@ -117,6 +117,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import it.polito.uniteam.classes.ChatDBFinal
 import it.polito.uniteam.classes.LoadingSpinner
+import it.polito.uniteam.classes.Member
+import it.polito.uniteam.classes.MemberDB
 import it.polito.uniteam.classes.MessageDB
 import it.polito.uniteam.gui.home.Home
 import it.polito.uniteam.gui.teamDetails.SetupTeamData
@@ -1322,8 +1324,10 @@ class AppStateManager {
 
 
         @Composable
-        fun getLoggedMemberFinal(members : List<MemberDBFinal>, memberId : String) : MemberDBFinal {
-            return members.find { it.id == memberId }!!
+        fun getLoggedMemberFinal(members: List<MemberDBFinal>, memberId : String) : MemberDBFinal {
+            Log.i("login", LocalMembers.current.toString())
+            Log.i("login",memberId)
+            return LocalMembers.current.find { it.id == memberId }!!
         }
         /*@Composable
         fun getUnreadMessages() : Int {
