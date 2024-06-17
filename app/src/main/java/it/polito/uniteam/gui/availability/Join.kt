@@ -114,6 +114,10 @@ fun Join(vm: JoinViewModel = viewModel(factory = Factory(LocalContext.current)))
     val loggedMember = AppStateManager.getLoggedMemberFinal(members = AppStateManager.getMembers(),vm.model.loggedMemberFinal.id)
 
 
+    fun teamDoesNotExist(): Boolean {
+        return team == null
+    }
+
     fun isLoggedMemberInTeam(): Boolean {
         return team?.members?.contains(loggedMember.id) ?: false
     }
@@ -163,6 +167,32 @@ fun Join(vm: JoinViewModel = viewModel(factory = Factory(LocalContext.current)))
                     onClick = { navController.navigate("Team/${vm.teamId}") {launchSingleTop = true} }
                 ) {
                     Text(text = "Go to team", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
+                }
+            }
+        } else if (teamDoesNotExist() && !clickedJoinButton) {
+            //Team does not exist
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "The team you are trying to join does not exist",
+                    style = MaterialTheme.typography.headlineSmall,
+                    textAlign = TextAlign.Center
+                )
+            }
+            Spacer(modifier = Modifier.padding(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                FilledTonalButton(
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                    onClick = { navController.navigate("Teams") {launchSingleTop = true} }
+                ) {
+                    Text(text = "Go to teams", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
                 }
             }
         } else {
