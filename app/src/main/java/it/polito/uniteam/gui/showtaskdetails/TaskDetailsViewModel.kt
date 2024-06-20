@@ -51,7 +51,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
         private set
 
     fun changeTaskName(s: String) {
-        taskName = handleInputString(s)
+        taskName = s
     }
 
     private fun checkTaskName() {
@@ -67,7 +67,7 @@ class taskDetails(val model: UniTeamModel, val savedStateHandle: SavedStateHandl
         private set
 
     fun changeDescription(s: String) {
-        description = handleInputString(s)
+        description = s
     }
 
     private fun checkDescription() {

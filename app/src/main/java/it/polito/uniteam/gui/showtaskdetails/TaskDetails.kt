@@ -317,8 +317,8 @@ fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.curr
                 // TODO save now navigate
                 vm.model.addTask(context,vm.teamId,TaskDBFinal(
                     id = vm.taskId,
-                    name = vm.taskName,
-                    description = vm.description,
+                    name = handleInputString(vm.taskName),
+                    description = handleInputString(vm.description),
                     category = Category.valueOf(vm.category),
                     priority = Priority.valueOf(vm.priority),
                     creationDate = LocalDate.now(),
@@ -335,8 +335,8 @@ fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.curr
                 vm.changeEditing()
                 vm.model.updateTask(TaskDBFinal(
                     id = vm.taskId,
-                    name = vm.taskName,
-                    description = vm.description,
+                    name = handleInputString(vm.taskName),
+                    description = handleInputString(vm.description),
                     category = Category.valueOf(vm.category),
                     priority = Priority.valueOf(vm.priority),
                     creationDate = LocalDate.now(),
@@ -446,8 +446,8 @@ fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.curr
                                             // TODO save now navigate
                                             vm.model.addTask(context,vm.teamId,TaskDBFinal(
                                                 id = vm.taskId,
-                                                name = vm.taskName,
-                                                description = vm.description,
+                                                name = handleInputString(vm.taskName),
+                                                description = handleInputString(vm.description),
                                                 category = Category.valueOf(vm.category),
                                                 priority = Priority.valueOf(vm.priority),
                                                 creationDate = LocalDate.now(),
@@ -464,8 +464,8 @@ fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.curr
                                             vm.changeEditing()
                                             vm.model.updateTask(TaskDBFinal(
                                                 id = vm.taskId,
-                                                name = vm.taskName,
-                                                description = vm.description,
+                                                name = handleInputString(vm.taskName),
+                                                description = handleInputString(vm.description),
                                                 category = Category.valueOf(vm.category),
                                                 priority = Priority.valueOf(vm.priority),
                                                 creationDate = LocalDate.now(),
@@ -551,8 +551,8 @@ fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.curr
                                         // TODO save now navigate
                                         vm.model.addTask(context,vm.teamId,TaskDBFinal(
                                             id = vm.taskId,
-                                            name = vm.taskName,
-                                            description = vm.description,
+                                            name = handleInputString(vm.taskName),
+                                            description = handleInputString(vm.description),
                                             category = Category.valueOf(vm.category),
                                             priority = Priority.valueOf(vm.priority),
                                             creationDate = LocalDate.now(),
@@ -569,8 +569,8 @@ fun EditTaskView(vm: taskDetails = viewModel(factory = Factory(LocalContext.curr
                                         vm.changeEditing()
                                         vm.model.updateTask(TaskDBFinal(
                                             id = vm.taskId,
-                                            name = vm.taskName,
-                                            description = vm.description,
+                                            name = handleInputString(vm.taskName),
+                                            description = handleInputString(vm.description),
                                             category = Category.valueOf(vm.category),
                                             priority = Priority.valueOf(vm.priority),
                                             creationDate = LocalDate.now(),

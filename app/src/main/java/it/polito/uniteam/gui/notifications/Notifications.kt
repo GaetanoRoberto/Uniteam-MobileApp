@@ -246,6 +246,9 @@ fun ActivitiesSection(vm: NotificationsViewModel = viewModel(factory = Factory(L
                         "You Left The Team."
                 } else if(history.comment.contains("${vm.loggedMember.username} removed from the Team")) {
                     "You were removed from the Team" + history.comment.split("from the Team")[1]
+                } else if(history.comment.contains("New team admin")) {
+                    val member = AppStateManager.getMembers().find { it.id == history.user }!!
+                    "${member.username} is the new team admin."
                 } else {
                     history.comment
                 }

@@ -95,6 +95,7 @@ import it.polito.uniteam.classes.MemberDBFinal
 import it.polito.uniteam.classes.MemberIcon
 import it.polito.uniteam.classes.MemberTeamInfo
 import it.polito.uniteam.classes.TeamDBFinal
+import it.polito.uniteam.classes.handleInputString
 import it.polito.uniteam.classes.permissionRole
 import it.polito.uniteam.gui.availability.Availability
 import it.polito.uniteam.gui.availability.Join
@@ -701,8 +702,8 @@ fun TeamDetailsEdit(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
                                         if(vm.addTeam){
                                             if (vm.model.timeError.value == "" && vm.model.timesError.value == "") {
                                                 vm.model.createTeam(TeamDBFinal(
-                                                    name = vm.teamName.value,
-                                                    description = vm.teamDescription.value,
+                                                    name = handleInputString(vm.teamName.value),
+                                                    description = handleInputString(vm.teamDescription.value),
                                                     image = vm.teamProfileImage.value,
                                                     creationDate = LocalDate.now(),
                                                     members = mutableListOf(vm.loggedMember.id)
@@ -718,8 +719,8 @@ fun TeamDetailsEdit(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
                                             vm.changeEditing()
                                             vm.model.updateTeam(
                                                 vm.teamId,
-                                                vm.teamName.value,
-                                                vm.teamDescription.value,
+                                                handleInputString(vm.teamName.value),
+                                                handleInputString(vm.teamDescription.value),
                                                 vm.teamProfileImage.value,
                                                 vm.teamMembers.map { it.id },
                                                 vm.history
@@ -779,8 +780,8 @@ fun TeamDetailsEdit(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
                                 if(vm.addTeam){
                                     if (vm.model.timeError.value == "" && vm.model.timesError.value == "") {
                                         vm.model.createTeam(TeamDBFinal(
-                                            name = vm.teamName.value,
-                                            description = vm.teamDescription.value,
+                                            name = handleInputString(vm.teamName.value),
+                                            description = handleInputString(vm.teamDescription.value),
                                             image = vm.teamProfileImage.value,
                                             creationDate = LocalDate.now(),
                                             members = mutableListOf(vm.loggedMember.id)
@@ -796,8 +797,8 @@ fun TeamDetailsEdit(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
                                     vm.changeEditing()
                                     vm.model.updateTeam(
                                         vm.teamId,
-                                        vm.teamName.value,
-                                        vm.teamDescription.value,
+                                        handleInputString(vm.teamName.value),
+                                        handleInputString(vm.teamDescription.value),
                                         vm.teamProfileImage.value,
                                         vm.teamMembers.map { it.id },
                                         vm.history

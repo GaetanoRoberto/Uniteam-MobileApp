@@ -148,7 +148,7 @@ class TeamDetailsViewModel(val model: UniTeamModel, val savedStateHandle: SavedS
     var teamNameError by mutableStateOf("")
         private set
     fun changeTeamName(s: String) {
-        teamName.value = handleInputString(s)
+        teamName.value = s
     }
 
     private fun checkTeamName() {
@@ -162,7 +162,7 @@ class TeamDetailsViewModel(val model: UniTeamModel, val savedStateHandle: SavedS
         private set
 
     fun changeDescription(s: String) {
-        teamDescription.value = handleInputString(s)
+        teamDescription.value = s
     }
 
     private fun checkDescription() {
