@@ -202,9 +202,11 @@ fun RowTeamItem(modifier: Modifier = Modifier, team: TeamDBFinal, role: String, 
         .fillMaxWidth()
         .clickable { controller.navigate("Team/${team.id}") }) {
         Row(
-            modifier = Modifier.padding(6.dp, 0.dp, 0.dp, 0.dp)
+            modifier = Modifier.padding(6.dp, 0.dp, 0.dp, 0.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
         ) {
-            TeamIcon(team = team, modifierPadding = Modifier.padding(top = 8.dp, end = 20.dp))
+            TeamIcon(team = team, modifierPadding = Modifier.padding(start = 10.dp, end = 20.dp))
             Text(
                 team.name,
                 modifier = Modifier
@@ -214,10 +216,10 @@ fun RowTeamItem(modifier: Modifier = Modifier, team: TeamDBFinal, role: String, 
 
 
         }
+        Spacer(modifier = Modifier.height(5.dp))
+        HorizontalDivider(color = Color.White)
+        Spacer(modifier = Modifier.height(5.dp))
     }
-
-    Spacer(modifier = Modifier.padding(15.dp))
-    HorizontalDivider(color = Color.White)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

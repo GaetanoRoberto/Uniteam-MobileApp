@@ -42,7 +42,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data android:scheme="https" android:host="UniTeam" android:pathPrefix="/join" />
+                <data android:scheme="https" android:host="UniTeam.it" android:pathPrefix="/join" />
             </intent-filter>
         </activity>
     </application>
