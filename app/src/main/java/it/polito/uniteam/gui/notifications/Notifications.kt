@@ -126,7 +126,7 @@ fun SetupNotificationsData(vm: NotificationsViewModel = viewModel(factory = Fact
     } })
     // histories no more from the teams (removed from the team, team deleted)
     val noTeamHistories = histories.filter {
-        it.comment.contains("${vm.loggedMember.username} removed from the Team.")
+        it.comment.contains("${vm.loggedMember.username} removed from the Team")
                 || (it.comment.contains(Regex("""Team (.+) deleted\.""")) && it.oldMembers.contains(vm.loggedMember.id))
     }
     vm.teamsHistories.addAll(noTeamHistories.map {
@@ -244,7 +244,7 @@ fun ActivitiesSection(vm: NotificationsViewModel = viewModel(factory = Factory(L
                         "${member.username} Left The Team."
                     else
                         "You Left The Team."
-                } else if(history.comment == "${vm.loggedMember.username} removed from the Team.") {
+                } else if(history.comment.contains("${vm.loggedMember.username} removed from the Team")) {
                     "You were removed from the Team."
                 } else {
                     history.comment
