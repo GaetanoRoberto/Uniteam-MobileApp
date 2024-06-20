@@ -345,44 +345,7 @@ class MainActivity : ComponentActivity() {
                                                             drawerState
                                                         )
                                                     },
-                                                    /*floatingActionButton = {
-                                                    //if (vm.isEditing) {
-                                                        if (currentDestination == "Profile") {
-                                                            FloatingActionButton(onClick ={
-                                                                navController.navigate("EditProfile"){
-                                                                    popUpTo(navController.graph.findStartDestination().id) {
-                                                                        saveState = true
-                                                                    }
-                                                                    launchSingleTop = true
-                                                                    restoreState = true
-                                                                }},
-                                                                containerColor = MaterialTheme.colorScheme.primary
-                                                            ){
-                                                                Icon(
-                                                                    imageVector = Icons.Default.Edit,
-                                                                    contentDescription = "Edit",
-                                                                    tint = MaterialTheme.colorScheme.onSecondary
-                                                                )
-                                                            }
-                                                    }else if(currentDestination == "Tasks"){
-                                                        FloatingActionButton(onClick ={
-                                                            navController.navigate("EditTask"){
-                                                                popUpTo(navController.graph.findStartDestination().id) {
-                                                                    saveState = true
-                                                                }
-                                                                launchSingleTop = true
-                                                                restoreState = true
-                                                            }},
-                                                            containerColor = MaterialTheme.colorScheme.primary
-                                                        ){
-                                                            Icon(
-                                                                imageVector = Icons.Default.Edit,
-                                                                contentDescription = "Edit",
-                                                                tint = MaterialTheme.colorScheme.onSecondary
-                                                            )
-                                                        }
-                                                    }
-                                                    },*/
+
                                                     content = { paddingValue ->
                                                         Column(Modifier.padding(paddingValue)) {
                                                             // In your main activity or main screen composable
@@ -390,7 +353,7 @@ class MainActivity : ComponentActivity() {
                                                                 navController = navController,
                                                                 startDestination = "Login"
                                                             ) {
-                                                                composable("Login") {
+                                                                composable("Login",) {
                                                                     Login(
                                                                         vm = viewModel(
                                                                             factory = Factory(
@@ -448,8 +411,35 @@ class MainActivity : ComponentActivity() {
                                                                         )
                                                                     )
                                                                 }
+                                                                composable("Task/{taskId}/{teamId}") {
+                                                                    SetupTaskData()
+                                                                    TaskScreen(
+                                                                        vm = viewModel(
+                                                                            factory = Factory(
+                                                                                LocalContext.current
+                                                                            )
+                                                                        )
+                                                                    )
+                                                                }
+                                                                composable("Calendar/{teamId}") {
+                                                                    CalendarAppContainer(
+                                                                        vm = viewModel(
+                                                                            factory = Factory(
+                                                                                LocalContext.current
+                                                                            )
+                                                                        )
+                                                                    )
+                                                                }
+                                                                composable("Notifications") {
+                                                                    Notifications(
+                                                                        vm = viewModel(
+                                                                            factory = Factory(
+                                                                                LocalContext.current
+                                                                            )
+                                                                        )
+                                                                    )
+                                                                }
                                                                 composable("Chat/{chatId}") {
-
                                                                     ChatScreen(
                                                                         vm = viewModel(
                                                                             factory = Factory(
@@ -534,7 +524,6 @@ class MainActivity : ComponentActivity() {
                                                                         ),
                                                                         joinTeam = true
                                                                     )
-
                                                                 }
                                                                 composable(
                                                                     "Statistics/{teamId}",
@@ -556,6 +545,8 @@ class MainActivity : ComponentActivity() {
                                                                         type = NavType.StringType
                                                                     })
                                                                 ) {
+                                                                    if(!isTeamChanges())
+                                                                        SetupTeamData()
                                                                     TeamViewScreen(
                                                                         vm = viewModel(
                                                                             factory = Factory(
@@ -660,7 +651,6 @@ class MainActivity : ComponentActivity() {
                                                 drawerState.close()
                                             }
                                         }
-
                                         Scaffold(
                                             topBar = {
                                                 MyTopAppBar(
@@ -674,43 +664,7 @@ class MainActivity : ComponentActivity() {
                                                     drawerState
                                                 )
                                             },
-                                            /*floatingActionButton = {
-                                            //if (vm.isEditing) {
-                                                if (currentDestination == "Profile") {
-                                                    FloatingActionButton(onClick ={
-                                                        navController.navigate("EditProfile"){
-                                                            popUpTo(navController.graph.findStartDestination().id) {
-                                                                saveState = true
-                                                            }
-                                                            launchSingleTop = true
-                                                            restoreState = true
-                                                        }},
-                                                        containerColor = MaterialTheme.colorScheme.primary
-                                                    ){
-                                                        Icon(
-                                                            imageVector = Icons.Default.Edit,
-                                                            contentDescription = "Edit",
-                                                            tint = MaterialTheme.colorScheme.onSecondary
-                                                        )
-                                                    }
-                                            }else if(currentDestination == "Tasks"){
-                                                FloatingActionButton(onClick ={
-                                                    navController.navigate("EditTask"){
-                                                        popUpTo(navController.graph.findStartDestination().id) {
-                                                            saveState = true
-                                                        }
-                                                        launchSingleTop = true
-                                                        restoreState = true
-                                                    }},
-                                                    containerColor = MaterialTheme.colorScheme.primary
-                                                ){
-                                                    Icon(
-                                                        imageVector = Icons.Default.Edit,
-                                                        contentDescription = "Edit",
-                                                        tint = MaterialTheme.colorScheme.onSecondary
-                                                    )
-                                                }
-                                                },*/
+
                                                 content = { paddingValue ->
                                                     Column(Modifier.padding(paddingValue)) {
                                                         // In your main activity or main screen composable
@@ -949,7 +903,7 @@ class MainActivity : ComponentActivity() {
                                                 }
                                             },
                                             bottomBar = {
-                                                if ( currentDestination == "Login" || !isVertical() ) {
+                                                if ( currentDestination == "Login" || !isVertical() || currentDestination == "JoinTeam/{teamId}") {
                                                     Row {}
                                                 } else {
                                                     NavigationBar(containerColor = MaterialTheme.colorScheme.primary) {

@@ -639,12 +639,14 @@ fun TeamDetailsEdit(vm: TeamDetailsViewModel = viewModel(factory = Factory(Local
                         errorText = vm.descriptionError,
                         onChange = vm::changeDescription
                     )
-                    if (!vm.addTeam) {
-                        TeamMembersDropdownMenuBox(
-                            vm,
-                            "Manage Members",
-                            vm.teamMembers
-                        )
+                    if (!vm.addTeam ) {
+                        if(vm.teamMembers.size>1){
+                            TeamMembersDropdownMenuBox(
+                                vm,
+                                "Manage Members",
+                                vm.teamMembers.filter{ it.id != vm.loggedMember.id }
+                            )
+                        }
                     } else {
                         Spacer(modifier = Modifier.height(20.dp))
                         HorizontalDivider(color = Color.White)
@@ -951,7 +953,7 @@ fun TeamAssignMemberDialog(vm: TeamDetailsViewModel) {
                     ) else Modifier.heightIn(0.dp, 165.dp)
                 ) {
                     item(1) {
-                        vm.teamMembers.forEach { member ->
+                        vm.teamMembers.filter{it.id != vm.loggedMember.id}.forEach { member ->
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
