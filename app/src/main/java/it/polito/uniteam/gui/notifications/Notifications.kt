@@ -245,7 +245,7 @@ fun ActivitiesSection(vm: NotificationsViewModel = viewModel(factory = Factory(L
                     else
                         "You Left The Team."
                 } else if(history.comment.contains("${vm.loggedMember.username} removed from the Team")) {
-                    "You were removed from the Team."
+                    "You were removed from the Team" + history.comment.split("from the Team")[1]
                 } else {
                     history.comment
                 }
@@ -277,6 +277,6 @@ fun ActivityItem(teamName: String?, teamId:String?, Activity: String) {
                 .wrapContentHeight(),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Start
     ) {
-        Text(text = if(teamName!=null) "$teamName -> $Activity" else Activity)
+        Text(text = if(teamName!=null) "Team $teamName -> $Activity" else Activity)
     }
 }
