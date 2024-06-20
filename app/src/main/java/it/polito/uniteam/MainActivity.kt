@@ -523,7 +523,7 @@ class MainActivity : ComponentActivity() {
                                                                     "JoinTeam/{teamId}",
                                                                     deepLinks = listOf(navDeepLink {
                                                                         uriPattern =
-                                                                            "https://UniTeam/join/{teamId}"
+                                                                            "https://UniTeam.it/join/{teamId}"
                                                                     })
                                                                 ) {
                                                                     Login(
@@ -878,7 +878,7 @@ class MainActivity : ComponentActivity() {
                                                                 "JoinTeam/{teamId}",
                                                                 deepLinks = listOf(navDeepLink {
                                                                     uriPattern =
-                                                                        "https://UniTeam/join/{teamId}"
+                                                                        "https://UniTeam.it/join/{teamId}"
                                                                 })
                                                             ) {
                                                                 Login(

@@ -42,7 +42,7 @@ import it.polito.uniteam.isVertical
 fun Invitation(teamId: String, teamName: String) {
     val context = LocalContext.current
     val clipboardManager = LocalClipboardManager.current
-    val invitationLink = "https://UniTeam/join/$teamId"
+    val invitationLink = "https://UniTeam.it/join/$teamId"
     val copied = remember { mutableStateOf(false) }
 
     if (isVertical()) {
