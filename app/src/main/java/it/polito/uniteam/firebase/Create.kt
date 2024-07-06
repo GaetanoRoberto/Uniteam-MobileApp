@@ -148,7 +148,7 @@ suspend fun uploadFile(context: Context, fileUri: Uri, fileStorageName: String) 
         e.printStackTrace()
 
         // Update notification for failure
-        builder.setContentText("Upload failed")
+        builder.setContentText(e.toString())
             .setProgress(0, 0, false)
             .setOngoing(false)
         notificationManager.notify(2, builder.build())

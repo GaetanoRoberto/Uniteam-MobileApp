@@ -101,6 +101,12 @@ fun deleteTeam(db: FirebaseFirestore, teamId: String, files:List<FileDBFinal>, /
             val member = transaction.get(memberRef)
             Pair(memberRef,member)
         }
+
+        val tasksToRemove = tasks.map {
+            val taskRef = db.collection("Task").document(it)
+            val task = transaction.get(taskRef)
+            Pair(taskRef,task)
+        }
         membersToRemove.forEach { (memberRef,member) ->
             val teamsInfo = member.get("teamsInfo") as? List<Map<String, Any>> ?: emptyList()
 
@@ -117,8 +123,33 @@ fun deleteTeam(db: FirebaseFirestore, teamId: String, files:List<FileDBFinal>, /
         transaction.delete(chatRef)
 
         // Delete tasks and related files
-        tasks.forEach { taskId ->
-            deleteTask(db, files, taskId, teamId)
+        tasksToRemove.forEach { (taskRef,task) ->
+            // delete comments, files and history related to the task
+            val taskComments = task.get("taskComments") as List<String>
+            taskComments.forEach { comment->
+                val commentRef = db.collection("Comment").document(comment)
+                transaction.delete(commentRef)
+            }
+            val taskFiles = task.get("taskFiles") as List<String>
+            // db file entry
+            taskFiles.forEach { file ->
+                val fileRef = db.collection("File").document(file)
+                transaction.delete(fileRef)
+            }
+            // db fileStorage
+            files.filter { taskFiles.contains(it.id) }.forEach { file ->
+                deleteFile(db, file, task.id)
+            }
+            val taskHistory = task.get("taskHistory") as List<String>
+            taskHistory.forEach { history ->
+                val historyRef = db.collection("History").document(history)
+                transaction.delete(historyRef)
+            }
+            // remove the task from the team
+            val teamRef = db.collection("Team").document(teamId)
+            transaction.update(teamRef,"tasks",FieldValue.arrayRemove(task.id))
+            // delete the task
+            transaction.delete(taskRef)
         }
         // Add to history
         val historyData = mapOf(

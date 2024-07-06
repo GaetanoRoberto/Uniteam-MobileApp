@@ -62,6 +62,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.io.FileOutputStream
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -270,16 +271,17 @@ suspend fun downloadFileAndSaveToDownloads(context: Context, fileStorageName: St
         val MAX_DOWNLOAD_SIZE = 1024 * 1024 * 100L // Adjust as needed
         val stream = fileRef.stream.await().stream
 
-        // Get the Downloads directory
-        val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-        // Create the Uniteam directory within Downloads
-        val uniteamDir = java.io.File(downloadsDir, "Uniteam")
-        if (!uniteamDir.exists()) {
-            uniteamDir.mkdirs() // Create the directory if it doesn't exist
-        }
         // Create a file in the Downloads directory
-        val file = java.io.File(uniteamDir, fileName)
         withContext(Dispatchers.IO) {
+            // Get the Downloads directory
+            val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            // Create the Uniteam directory within Downloads
+            val uniteamDir = java.io.File(downloadsDir, "Uniteam")
+            if (!uniteamDir.exists()) {
+                uniteamDir.mkdirs() // Create the directory if it doesn't exist
+            }
+            val file = File(uniteamDir, fileName)
+            file.createNewFile()
             FileOutputStream(file).use { fos ->
                 val buffer = ByteArray(1024 * 400) // 400 KB buffer
                 var totalBytesRead = 0L
@@ -315,7 +317,7 @@ suspend fun downloadFileAndSaveToDownloads(context: Context, fileStorageName: St
     } catch (e: Exception) {
         Log.d("file",e.toString())
         // Update notification for failure
-        builder.setContentText("Download failed")
+        builder.setContentText(e.toString())
             .setProgress(0, 0, false)
             .setOngoing(false)
         notificationManager.notify(1, builder.build())
