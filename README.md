@@ -1,3 +1,8 @@
+# Mad_project
+
+Project of the Mobile Application Development course, made in <a href='https://kotlinlang.org/' target='_blank'>Kotlin</a> with the <a href='https://developer.android.com/studio' target='_blank'>AndroidStudio</a> IDE. The goal was to create a teamwork management app, designed to facilitate collaboration, communication, and coordination among team members to enhance users' overall productivity and efficiency. The project was made by leveraging also on the <a href='https://developer.android.com/compose' target='_blank'>Jetpack Compose</a> framework and by using <a href='https://firebase.google.com/' target='_blank'>Firebase</a> as backend service to store and retrieve data.<br><br>
+See [below](#uniteam-screens) for the app main screens.
+
 # UniTeam Screens
 
 ## LoginPage
@@ -129,6 +134,3 @@
         <img src="./documentation/Statistics3.jpg" alt="Screenshot of Invitation" width="300" style="margin-left:10px;margin-right:10px">
     </div>
 </div>
-
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-24ddc0f5d75046c5622901739e7c5dd533143b0c8e959d652212380cedb1ea36.svg)](https://classroom.github.com/a/8qmHTW81)
-
